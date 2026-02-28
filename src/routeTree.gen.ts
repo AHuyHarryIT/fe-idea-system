@@ -9,48 +9,96 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
+import { Route as DashboardStaffRouteImport } from './routes/dashboard/staff'
+import { Route as DashboardManagerRouteImport } from './routes/dashboard/manager'
 
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
-  id: '/demo/tanstack-query',
-  path: '/demo/tanstack-query',
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
+  id: '/dashboard/',
+  path: '/dashboard/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardStaffRoute = DashboardStaffRouteImport.update({
+  id: '/dashboard/staff',
+  path: '/dashboard/staff',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardManagerRoute = DashboardManagerRouteImport.update({
+  id: '/dashboard/manager',
+  path: '/dashboard/manager',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/login': typeof LoginRoute
+  '/dashboard/manager': typeof DashboardManagerRoute
+  '/dashboard/staff': typeof DashboardStaffRoute
+  '/dashboard': typeof DashboardIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/login': typeof LoginRoute
+  '/dashboard/manager': typeof DashboardManagerRoute
+  '/dashboard/staff': typeof DashboardStaffRoute
+  '/dashboard': typeof DashboardIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/login': typeof LoginRoute
+  '/dashboard/manager': typeof DashboardManagerRoute
+  '/dashboard/staff': typeof DashboardStaffRoute
+  '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/demo/tanstack-query'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/dashboard/manager'
+    | '/dashboard/staff'
+    | '/dashboard'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/demo/tanstack-query'
-  id: '__root__' | '/' | '/demo/tanstack-query'
+  to: '/' | '/login' | '/dashboard/manager' | '/dashboard/staff' | '/dashboard'
+  id:
+    | '__root__'
+    | '/'
+    | '/login'
+    | '/dashboard/manager'
+    | '/dashboard/staff'
+    | '/dashboard/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
+  LoginRoute: typeof LoginRoute
+  DashboardManagerRoute: typeof DashboardManagerRoute
+  DashboardStaffRoute: typeof DashboardStaffRoute
+  DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -58,11 +106,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/demo/tanstack-query': {
-      id: '/demo/tanstack-query'
-      path: '/demo/tanstack-query'
-      fullPath: '/demo/tanstack-query'
-      preLoaderRoute: typeof DemoTanstackQueryRouteImport
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/staff': {
+      id: '/dashboard/staff'
+      path: '/dashboard/staff'
+      fullPath: '/dashboard/staff'
+      preLoaderRoute: typeof DashboardStaffRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/manager': {
+      id: '/dashboard/manager'
+      path: '/dashboard/manager'
+      fullPath: '/dashboard/manager'
+      preLoaderRoute: typeof DashboardManagerRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -70,7 +132,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  DemoTanstackQueryRoute: DemoTanstackQueryRoute,
+  LoginRoute: LoginRoute,
+  DashboardManagerRoute: DashboardManagerRoute,
+  DashboardStaffRoute: DashboardStaffRoute,
+  DashboardIndexRoute: DashboardIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
