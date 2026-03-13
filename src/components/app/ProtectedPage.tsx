@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { Navigate } from '@tanstack/react-router'
 import type { Role } from '@/types/auth'
 import Layout from '@/Layout/LayoutPage'
-import { auth } from '@/lib/auth'
+import { auth, getHomeRouteForRole } from '@/lib/auth'
 
 interface ProtectedPageProps {
   children: React.ReactNode
@@ -17,7 +17,7 @@ export function ProtectedPage({ children, allowedRoles }: ProtectedPageProps) {
   }
 
   if (allowedRoles && !allowedRoles.includes(role)) {
-    return <Navigate to="/dashboard" />
+    return <Navigate to={getHomeRouteForRole(role)} />
   }
 
   return (

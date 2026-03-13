@@ -8,7 +8,7 @@ export const Route = createFileRoute('/submit-idea')({
 
 function RouteComponent() {
   return (
-    <ProtectedPage allowedRoles={['staff', 'qa_coordinator', 'qa_manager']}>
+    <ProtectedPage allowedRoles={['staff']}>
       <SubmitIdeaPage />
     </ProtectedPage>
   )

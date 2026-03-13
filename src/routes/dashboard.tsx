@@ -8,7 +8,7 @@ export const Route = createFileRoute('/dashboard')({
 
 function RouteComponent() {
   return (
-    <ProtectedPage>
+    <ProtectedPage allowedRoles={['staff']}>
       <DashboardPage />
     </ProtectedPage>
   )

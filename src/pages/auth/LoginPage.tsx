@@ -1,32 +1,43 @@
 import { useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { GraduationCap, ShieldCheck } from 'lucide-react'
-import type { LoginFormValues, Role } from '@/types/auth'
+import type { LoginFormValues } from '@/types/auth'
 import { AppButton } from '@/components/app/AppButton'
 import { FormField } from '@/components/forms/FormField'
 import { FormInput } from '@/components/forms/FormInput'
-import { auth } from '@/lib/auth'
-
-const roleOptions: Array<{ value: Role; label: string }> = [
-  { value: 'staff', label: 'Staff' },
-  { value: 'qa_coordinator', label: 'QA Coordinator' },
-  { value: 'qa_manager', label: 'QA Manager' },
-  { value: 'admin', label: 'Administrator' },
-]
+import { useLogin } from '@/hooks/useAuth'
+import { auth, getHomeRouteForRole } from '@/lib/auth'
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const { mutateAsync: login, isPending } = useLogin()
   const [formValues, setFormValues] = useState<LoginFormValues>({
     email: '',
     password: '',
   })
-  const [role, setRole] = useState<Role>('staff')
+  const [errorMessage, setErrorMessage] = useState('')
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    auth.setToken('frontend-skeleton-token')
-    auth.setRole(role)
-    navigate({ to: '/dashboard' })
+
+    setErrorMessage('')
+
+    const response = await login(formValues)
+
+    if (!response.success) {
+      setErrorMessage(response.error ?? 'Unable to sign in.')
+      return
+    }
+
+    const role = auth.getRole()
+
+    if (!role) {
+      auth.logout()
+      setErrorMessage('Login succeeded but no valid role was returned.')
+      return
+    }
+
+    navigate({ to: getHomeRouteForRole(role) })
   }
 
   return (
@@ -43,8 +54,8 @@ export default function LoginPage() {
                 Collect, review, and manage university ideas in one workspace.
               </h1>
               <p className="mt-5 max-w-2xl text-base leading-7 text-slate-300">
-                I'm pregnant with excitement to build out this idea management
-                system for
+                Sign in with your university account to submit ideas, review
+                contributions, and manage campaigns from one place.
               </p>
             </div>
           </div>
@@ -92,22 +103,14 @@ export default function LoginPage() {
                 />
               </FormField>
 
-              <FormField label="Role preview">
-                <select
-                  value={role}
-                  onChange={(event) => setRole(event.target.value as Role)}
-                  className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-                >
-                  {roleOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </FormField>
+              {errorMessage ? (
+                <p className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                  {errorMessage}
+                </p>
+              ) : null}
 
-              <AppButton type="submit" className="w-full">
-                Continue to workspace
+              <AppButton type="submit" className="w-full" disabled={isPending}>
+                {isPending ? 'Signing in...' : 'Continue to workspace'}
               </AppButton>
             </form>
           </div>

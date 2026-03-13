@@ -1,63 +1,153 @@
+import { useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { CalendarRange, ListChecks, Tags, Users } from 'lucide-react'
+import { categoryService, ideaService, submissionService, userService } from '@/api'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { StatCard } from '@/components/shared/StatCard'
+import {
+  extractCollection,
+  formatDateLabel,
+  mapCategory,
+  mapIdeaSummary,
+  mapSubmission,
+} from '@/lib/api-mappers'
 
 export default function AdminDashboardPage() {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['adminOverview'],
+    queryFn: async () => {
+      const [usersResponse, categoriesResponse, submissionsResponse, ideasResponse] =
+        await Promise.all([
+          userService.getUsers(),
+          categoryService.getAdminCategories(),
+          submissionService.getAdminSubmissions(),
+          ideaService.getAllIdeasAsAdmin(),
+        ])
+
+      if (
+        !usersResponse.success ||
+        !categoriesResponse.success ||
+        !submissionsResponse.success ||
+        !ideasResponse.success
+      ) {
+        throw new Error(
+          usersResponse.error ??
+            categoriesResponse.error ??
+            submissionsResponse.error ??
+            ideasResponse.error ??
+            'Unable to load admin overview.',
+        )
+      }
+
+      return {
+        users: extractCollection(usersResponse.data, ['users']),
+        categories: extractCollection(categoriesResponse.data, ['categories']).map(mapCategory),
+        submissions: extractCollection(submissionsResponse.data, ['submissions']).map(mapSubmission),
+        ideas: extractCollection(ideasResponse.data, ['ideas']).map(mapIdeaSummary),
+      }
+    },
+  })
+
+  const recentSubmissions = useMemo(
+    () => data?.submissions.slice(0, 4) ?? [],
+    [data],
+  )
+
   return (
     <div className="mx-auto max-w-7xl">
       <PageHeader
         title="Administration"
-        description="Admin control center shell for academic years, categories, campaign windows, and user management."
+        description="Live admin control center for users, categories, submissions, and university ideas."
       />
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
         <StatCard
           icon={Users}
           title="Users"
-          value="--"
-          description="Bind to total active users."
+          value={isLoading ? '...' : `${data?.users.length ?? 0}`}
+          description="Total users returned by the admin user directory."
         />
         <StatCard
           icon={Tags}
           title="Categories"
-          value="--"
-          description="Bind to category count."
+          value={isLoading ? '...' : `${data?.categories.length ?? 0}`}
+          description="Currently configured idea categories."
         />
         <StatCard
           icon={CalendarRange}
-          title="Academic years"
-          value="--"
-          description="Bind to campaign period configuration."
+          title="Submission windows"
+          value={isLoading ? '...' : `${data?.submissions.length ?? 0}`}
+          description="Open and historical submission periods."
         />
         <StatCard
           icon={ListChecks}
-          title="System rules"
-          value="--"
-          description="Optional summary for permissions or settings."
+          title="Ideas"
+          value={isLoading ? '...' : `${data?.ideas.length ?? 0}`}
+          description="University-wide idea count from the admin API."
         />
       </div>
 
       <div className="mt-6 grid gap-6 xl:grid-cols-2">
         <SectionCard
           title="Management modules"
-          description="Suggested entry points for admin CRUD screens."
+          description="Live summaries you can use as entry points for dedicated CRUD screens."
         >
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
-              Manage users
+          {error ? (
+            <EmptyState
+              icon={Users}
+              title="Unable to load admin data"
+              description={error.message}
+            />
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
+                Manage users · {data?.users.length ?? 0}
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
+                Manage categories · {data?.categories.length ?? 0}
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
+                Manage submissions · {data?.submissions.length ?? 0}
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
+                Review ideas · {data?.ideas.length ?? 0}
+              </div>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
-              Manage categories
+          )}
+        </SectionCard>
+
+        <SectionCard
+          title="Recent submissions"
+          description="Most recent campaign windows loaded from the admin submission API."
+        >
+          {error ? (
+            <EmptyState
+              icon={CalendarRange}
+              title="Submission data unavailable"
+              description={error.message}
+            />
+          ) : recentSubmissions.length > 0 ? (
+            <div className="space-y-4">
+              {recentSubmissions.map((submission) => (
+                <div
+                  key={submission.id}
+                  className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600"
+                >
+                  <p className="font-medium text-slate-900">{submission.name}</p>
+                  <p className="mt-2">Closure: {formatDateLabel(submission.closureDate)}</p>
+                  <p>Final closure: {formatDateLabel(submission.finalClosureDate)}</p>
+                </div>
+              ))}
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
-              Manage academic years
-            </div>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
-              Manage system settings
-            </div>
-          </div>
+          ) : (
+            <EmptyState
+              icon={CalendarRange}
+              title="No submissions configured"
+              description="Create a submission window to start accepting ideas."
+            />
+          )}
         </SectionCard>
       </div>
     </div>

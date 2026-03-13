@@ -1,27 +1,129 @@
+import { useMemo, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { MessageSquare, Paperclip, ThumbsUp } from 'lucide-react'
 import { AppButton } from '@/components/app/AppButton'
 import { FormField } from '@/components/forms/FormField'
 import { FormTextarea } from '@/components/forms/FormInput'
+import { EmptyState } from '@/components/shared/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
+import { useAddComment, useIdeaById, useVoteOnIdea } from '@/hooks/useIdeas'
+import { auth } from '@/lib/auth'
+import { formatDateLabel, mapIdeaDetail } from '@/lib/api-mappers'
 
 interface IdeaDetailPageProps {
   ideaId: string
 }
 
 export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
+  const queryClient = useQueryClient()
+  const role = auth.getRole()
+  const canVote = role === 'staff'
+  const { data, isLoading, error } = useIdeaById(ideaId)
+  const { mutateAsync: addComment, isPending: isCommenting } = useAddComment()
+  const { mutateAsync: voteOnIdea, isPending: isVoting } = useVoteOnIdea()
+  const [commentText, setCommentText] = useState('')
+  const [isAnonymous, setIsAnonymous] = useState(false)
+  const [feedbackMessage, setFeedbackMessage] = useState('')
+
+  const idea = useMemo(() => mapIdeaDetail(data), [data])
+
+  const refreshIdeaQueries = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['idea', ideaId] }),
+      queryClient.invalidateQueries({ queryKey: ['allIdeas'] }),
+      queryClient.invalidateQueries({ queryKey: ['myIdeas'] }),
+    ])
+  }
+
+  const handleVote = async () => {
+    if (!canVote) {
+      setFeedbackMessage('Voting is currently enabled for staff accounts only.')
+      return
+    }
+
+    setFeedbackMessage('')
+
+    const response = await voteOnIdea({
+      ideaId,
+      request: { isThumbsUp: true },
+    })
+
+    if (!response.success) {
+      setFeedbackMessage(response.error ?? 'Unable to register your vote.')
+      return
+    }
+
+    await refreshIdeaQueries()
+    setFeedbackMessage('Thanks! Your vote has been recorded.')
+  }
+
+  const handleCommentSubmit = async () => {
+    if (!commentText.trim()) {
+      setFeedbackMessage('Please write a comment before posting.')
+      return
+    }
+
+    setFeedbackMessage('')
+
+    const response = await addComment({
+      ideaId,
+      request: {
+        text: commentText.trim(),
+        isAnonymous,
+      },
+    })
+
+    if (!response.success) {
+      setFeedbackMessage(response.error ?? 'Unable to post your comment.')
+      return
+    }
+
+    setCommentText('')
+    setIsAnonymous(false)
+    await refreshIdeaQueries()
+    setFeedbackMessage('Comment posted successfully.')
+  }
+
+  if (error) {
+    return (
+      <div className="mx-auto max-w-6xl">
+        <PageHeader title="Idea Detail" />
+        <EmptyState
+          icon={MessageSquare}
+          title="Unable to load idea"
+          description={error.message}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="mx-auto max-w-6xl">
       <PageHeader
-        title="Idea Detail"
-        description={`Detail page shell for idea #${ideaId}. Later, load record detail, comments, attachments, and reactions by ID.`}
+        title={isLoading ? 'Loading idea...' : idea.title || 'Idea Detail'}
+        description={
+          isLoading
+            ? 'Fetching idea details from the API.'
+            : idea.brief || 'Idea detail loaded from the idea endpoint.'
+        }
         actions={
           <>
-            <AppButton variant="ghost">
+            <AppButton
+              variant="ghost"
+              onClick={handleVote}
+              disabled={isLoading || isVoting}
+            >
               <ThumbsUp className="mr-2 h-4 w-4" />
-              Like
+              {isVoting ? 'Voting...' : 'Like'}
             </AppButton>
-            <AppButton>
+            <AppButton
+              onClick={() => {
+                document
+                  .getElementById('comment-form')
+                  ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+              }}
+            >
               <MessageSquare className="mr-2 h-4 w-4" />
               Add comment
             </AppButton>
@@ -32,15 +134,21 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
       <div className="grid gap-6 xl:grid-cols-[1.4fr_0.8fr]">
         <SectionCard
           title="Main content"
-          description="Title, brief, and full content can be rendered here from the idea detail DTO."
+          description="Live content mapped from the idea detail endpoint."
         >
           <div className="space-y-4 text-sm leading-7 text-slate-600">
-            <div className="rounded-xl bg-slate-50 p-4">Title placeholder</div>
             <div className="rounded-xl bg-slate-50 p-4">
-              Brief summary placeholder
+              {isLoading ? 'Loading title...' : idea.title || 'No title provided'}
             </div>
             <div className="rounded-xl bg-slate-50 p-4">
-              Full idea content placeholder
+              {isLoading
+                ? 'Loading summary...'
+                : idea.brief || 'No summary available.'}
+            </div>
+            <div className="rounded-xl bg-slate-50 p-4">
+              {isLoading
+                ? 'Loading content...'
+                : idea.content || idea.brief || 'No detailed content available.'}
             </div>
           </div>
         </SectionCard>
@@ -48,20 +156,26 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
         <div className="space-y-6">
           <SectionCard
             title="Meta information"
-            description="Category, department, author, publish status, closure date, and counters fit well here."
+            description="Category, author, dates, and engagement metrics from the API."
           >
             <div className="space-y-3 text-sm text-slate-600">
               <div className="rounded-xl bg-slate-50 p-4">
-                Category placeholder
+                Category: {idea.categoryName || 'Uncategorized'}
               </div>
               <div className="rounded-xl bg-slate-50 p-4">
-                Department placeholder
+                Author: {idea.isAnonymous ? 'Anonymous' : (idea.authorName || 'Unknown author')}
               </div>
               <div className="rounded-xl bg-slate-50 p-4">
-                Status placeholder
+                Status: {idea.status?.replace(/_/g, ' ') || 'Pending'}
               </div>
               <div className="rounded-xl bg-slate-50 p-4">
-                Created date placeholder
+                Created: {formatDateLabel(idea.createdAt)}
+              </div>
+              <div className="rounded-xl bg-slate-50 p-4">
+                Closure: {formatDateLabel(idea.closureDate)}
+              </div>
+              <div className="rounded-xl bg-slate-50 p-4">
+                Engagement: {(idea.totalLikes ?? 0) + (idea.totalComments ?? 0)}
               </div>
             </div>
           </SectionCard>
@@ -70,10 +184,27 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
             title="Attachments"
             description="Use multipart file metadata from backend."
           >
-            <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">
-              <Paperclip className="h-4 w-4" />
-              No attachment loaded yet.
-            </div>
+            {idea.attachments && idea.attachments.length > 0 ? (
+              <div className="space-y-3">
+                {idea.attachments.map((attachment) => (
+                  <div
+                    key={attachment.id}
+                    className="flex items-center gap-3 rounded-xl bg-slate-50 p-4 text-sm text-slate-600"
+                  >
+                    <Paperclip className="h-4 w-4" />
+                    <span>{attachment.fileName}</span>
+                    {attachment.fileSize ? (
+                      <span className="text-slate-400">({attachment.fileSize})</span>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex items-center gap-3 rounded-xl bg-slate-50 p-4 text-sm text-slate-600">
+                <Paperclip className="h-4 w-4" />
+                No attachment loaded yet.
+              </div>
+            )}
           </SectionCard>
         </div>
       </div>
@@ -81,18 +212,62 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
       <div className="mt-6">
         <SectionCard
           title="Comments"
-          description="Comment list and posting form shell."
+          description="View existing comments and post a new one using the idea API."
         >
-          <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600">
-              Comments will appear here after binding to the idea comment
-              endpoint.
+          {feedbackMessage ? (
+            <div className="mb-5 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+              {feedbackMessage}
             </div>
+          ) : null}
+          <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
+            {idea.comments && idea.comments.length > 0 ? (
+              <div className="space-y-4">
+                {idea.comments.map((comment) => (
+                  <div
+                    key={comment.id}
+                    className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600"
+                  >
+                    <div className="flex items-center justify-between gap-4 text-xs text-slate-500">
+                      <span>
+                        {comment.isAnonymous
+                          ? 'Anonymous'
+                          : (comment.authorName || 'Unknown author')}
+                      </span>
+                      <span>{formatDateLabel(comment.createdAt)}</span>
+                    </div>
+                    <p className="mt-3 whitespace-pre-wrap">{comment.content}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600">
+                No comments yet. Start the discussion below.
+              </div>
+            )}
             <div>
               <FormField label="Write a comment">
-                <FormTextarea placeholder="Enter comment content" />
+                <FormTextarea
+                  id="comment-form"
+                  placeholder="Enter comment content"
+                  value={commentText}
+                  onChange={(event) => setCommentText(event.target.value)}
+                />
               </FormField>
-              <AppButton className="mt-4">Post comment</AppButton>
+              <label className="mt-4 flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={isAnonymous}
+                  onChange={(event) => setIsAnonymous(event.target.checked)}
+                />
+                Post anonymously
+              </label>
+              <AppButton
+                className="mt-4"
+                disabled={isCommenting}
+                onClick={handleCommentSubmit}
+              >
+                {isCommenting ? 'Posting...' : 'Post comment'}
+              </AppButton>
             </div>
           </div>
         </SectionCard>

@@ -1,33 +1,117 @@
 import { useMemo, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from '@tanstack/react-router'
 import { FileUp, Send } from 'lucide-react'
+import type { IdeaSubmitPayload } from '@/types/idea'
+import { submissionService } from '@/api'
 import { AppButton } from '@/components/app/AppButton'
 import { FormField } from '@/components/forms/FormField'
 import { FormInput, FormTextarea } from '@/components/forms/FormInput'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
-import type { IdeaSubmitPayload } from '@/types/idea'
+import { useStaffCategories } from '@/hooks/useCategories'
+import { useSubmitIdea } from '@/hooks/useIdeas'
+import {
+  extractCollection,
+  formatDateLabel,
+  mapCategory,
+  mapSubmission,
+} from '@/lib/api-mappers'
 
 const initialForm: IdeaSubmitPayload = {
   title: '',
   brief: '',
   content: '',
   categoryId: '',
-  academicYearId: '',
+  submissionId: '',
   isAnonymous: false,
   attachments: [],
 }
 
 export default function SubmitIdeaPage() {
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const { data: categoryData, isLoading: categoriesLoading } = useStaffCategories()
+  const {
+    data: submissionData,
+    isLoading: submissionsLoading,
+  } = useQuery({
+    queryKey: ['activeSubmissions'],
+    queryFn: async () => {
+      const response = await submissionService.getActiveSubmissions()
+
+      if (!response.success) {
+        throw new Error(response.error ?? 'Unable to load active submissions.')
+      }
+
+      return response.data
+    },
+  })
+  const { mutateAsync: submitIdea, isPending } = useSubmitIdea()
   const [form, setForm] = useState<IdeaSubmitPayload>(initialForm)
+  const [feedbackMessage, setFeedbackMessage] = useState('')
 
   const fileNames = useMemo(
     () => form.attachments.map((file) => file.name).join(', '),
     [form.attachments],
   )
+  const categories = useMemo(
+    () => extractCollection(categoryData, ['categories']).map(mapCategory),
+    [categoryData],
+  )
+  const submissions = useMemo(
+    () => extractCollection(submissionData, ['submissions']).map(mapSubmission),
+    [submissionData],
+  )
+
+  const handleSubmit = async () => {
+    setFeedbackMessage('')
+
+    if (
+      !form.title.trim() ||
+      !form.brief.trim() ||
+      !form.content.trim() ||
+      !form.categoryId ||
+      !form.submissionId
+    ) {
+      setFeedbackMessage('Please complete all required fields before submitting.')
+      return
+    }
+
+    const formData = new FormData()
+    formData.append('Text', form.title.trim())
+    formData.append('Description', `${form.brief.trim()}\n\n${form.content.trim()}`)
+    formData.append('CategoryId', form.categoryId)
+    formData.append('SubmissionId', form.submissionId)
+    formData.append('IsAnonymous', String(form.isAnonymous))
+
+    form.attachments.forEach((file) => {
+      formData.append('Files', file)
+    })
+
+    const response = await submitIdea(formData)
+
+    if (!response.success) {
+      setFeedbackMessage(response.error ?? 'Unable to submit your idea.')
+      return
+    }
+
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['myIdeas'] }),
+      queryClient.invalidateQueries({ queryKey: ['allIdeas'] }),
+    ])
+
+    setForm(initialForm)
+    setFeedbackMessage('Idea submitted successfully.')
+    navigate({ to: '/ideas' })
+  }
 
   return (
     <div className="mx-auto max-w-5xl">
-      <PageHeader title="Submit Idea" />
+      <PageHeader
+        title="Submit Idea"
+        description="Create a new staff idea and send it directly to the submission API."
+      />
 
       <div className="space-y-6">
         <SectionCard
@@ -46,17 +130,25 @@ export default function SubmitIdeaPage() {
             </FormField>
             <FormField label="Academic year" required>
               <select
-                value={form.academicYearId}
+                value={form.submissionId}
                 onChange={(event) =>
                   setForm((prev) => ({
                     ...prev,
-                    academicYearId: event.target.value,
+                    submissionId: event.target.value,
                   }))
                 }
                 className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
               >
-                <option value="">Select academic year</option>
+                <option value="">Select active submission</option>
+                {submissions.map((submission) => (
+                  <option key={submission.id} value={submission.id}>
+                    {submission.name} · closes {formatDateLabel(submission.closureDate)}
+                  </option>
+                ))}
               </select>
+              {submissionsLoading ? (
+                <p className="text-xs text-slate-500">Loading active submissions...</p>
+              ) : null}
             </FormField>
           </div>
 
@@ -88,7 +180,7 @@ export default function SubmitIdeaPage() {
 
         <SectionCard
           title="Classification & privacy"
-          description="Bind select options to category and academic-year endpoints later."
+          description="Categories and submission windows are loaded from the live API."
         >
           <div className="grid gap-5 md:grid-cols-2">
             <FormField label="Category" required>
@@ -103,7 +195,15 @@ export default function SubmitIdeaPage() {
                 className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
               >
                 <option value="">Select category</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
               </select>
+              {categoriesLoading ? (
+                <p className="text-xs text-slate-500">Loading categories...</p>
+              ) : null}
             </FormField>
             <FormField label="Anonymous submission">
               <label className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
@@ -155,6 +255,12 @@ export default function SubmitIdeaPage() {
           </div>
         </SectionCard>
 
+        {feedbackMessage ? (
+          <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+            {feedbackMessage}
+          </div>
+        ) : null}
+
         <div className="flex flex-wrap justify-end gap-3">
           <AppButton
             type="button"
@@ -163,9 +269,9 @@ export default function SubmitIdeaPage() {
           >
             Reset form
           </AppButton>
-          <AppButton type="button" variant="secondary">
+          <AppButton type="button" variant="secondary" onClick={handleSubmit} disabled={isPending}>
             <Send className="mr-2 h-4 w-4" />
-            Submit idea
+            {isPending ? 'Submitting...' : 'Submit idea'}
           </AppButton>
         </div>
       </div>

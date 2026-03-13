@@ -1,5 +1,5 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
-import { auth } from '@/lib/auth'
+import { auth, getHomeRouteForRole } from '@/lib/auth'
 
 export const Route = createFileRoute('/')({
   beforeLoad: () => {
@@ -9,18 +9,6 @@ export const Route = createFileRoute('/')({
       throw redirect({ to: '/login' })
     }
 
-    if (role === 'admin') {
-      throw redirect({ to: '/admin' })
-    }
-
-    if (role === 'qa_coordinator') {
-      throw redirect({ to: '/qa-coordinator' })
-    }
-
-    if (role === 'qa_manager') {
-      throw redirect({ to: '/qa-manager' })
-    }
-
-    throw redirect({ to: '/dashboard' })
+    throw redirect({ to: getHomeRouteForRole(role) })
   },
 })

@@ -36,7 +36,7 @@ export interface IdeaSubmitPayload {
   brief: string
   content: string
   categoryId: string
-  academicYearId: string
+  submissionId: string
   isAnonymous: boolean
-  attachments: File[]
+  attachments: Array<File>
 }
