@@ -1,0 +1,109 @@
+import { useMemo, useState } from 'react'
+import { ChevronDown, GraduationCap, LogOut, UserCircle2 } from 'lucide-react'
+import type { Role } from '@/types/auth'
+
+interface TopNavProps {
+  academicYear: string
+  onAcademicYearChange: (year: string) => void
+  onLogout: () => void
+  userRole: Role
+}
+
+const academicYears = ['2024-2025', '2025-2026', '2026-2027']
+
+export default function TopNav({ academicYear, onAcademicYearChange, onLogout, userRole }: TopNavProps) {
+  const [showYearDropdown, setShowYearDropdown] = useState(false)
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false)
+
+  const roleLabel = useMemo(() => {
+    switch (userRole) {
+      case 'admin':
+        return 'Administrator'
+      case 'qa_manager':
+        return 'QA Manager'
+      case 'qa_coordinator':
+        return 'QA Coordinator'
+      default:
+        return 'Staff'
+    }
+  }, [userRole])
+
+  return (
+    <header className="fixed left-0 right-0 top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
+      <div className="flex h-16 items-center justify-between px-6">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-600 text-white">
+            <GraduationCap className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-base font-semibold text-slate-900">University Idea Collection System</p>
+            <p className="text-xs text-slate-500">Frontend skeleton for role-based portal</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="relative hidden sm:block">
+            <button
+              type="button"
+              onClick={() => setShowYearDropdown((prev) => !prev)}
+              className="inline-flex items-center gap-2 rounded-xl bg-slate-100 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-200"
+            >
+              Academic Year: {academicYear}
+              <ChevronDown className="h-4 w-4" />
+            </button>
+
+            {showYearDropdown ? (
+              <div className="absolute right-0 mt-2 w-44 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg">
+                {academicYears.map((year) => (
+                  <button
+                    key={year}
+                    type="button"
+                    onClick={() => {
+                      onAcademicYearChange(year)
+                      setShowYearDropdown(false)
+                    }}
+                    className={`block w-full px-4 py-3 text-left text-sm transition ${
+                      year === academicYear
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-slate-700 hover:bg-slate-50'
+                    }`}
+                  >
+                    {year}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
+
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowProfileDropdown((prev) => !prev)}
+              className="inline-flex items-center gap-3 rounded-xl px-3 py-2 transition hover:bg-slate-100"
+            >
+              <UserCircle2 className="h-8 w-8 text-slate-500" />
+              <div className="hidden text-left sm:block">
+                <p className="text-sm font-medium text-slate-800">{roleLabel}</p>
+                <p className="text-xs text-slate-500">Workspace account</p>
+              </div>
+              <ChevronDown className="h-4 w-4 text-slate-500" />
+            </button>
+
+            {showProfileDropdown ? (
+              <div className="absolute right-0 mt-2 w-52 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg">
+                <button
+                  type="button"
+                  onClick={onLogout}
+                  className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sign out
+                </button>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    </header>
+  )
+}
