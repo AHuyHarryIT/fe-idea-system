@@ -31,11 +31,9 @@ const initialForm: IdeaSubmitPayload = {
 export default function SubmitIdeaPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { data: categoryData, isLoading: categoriesLoading } = useStaffCategories()
-  const {
-    data: submissionData,
-    isLoading: submissionsLoading,
-  } = useQuery({
+  const { data: categoryData, isLoading: categoriesLoading } =
+    useStaffCategories()
+  const { data: submissionData, isLoading: submissionsLoading } = useQuery({
     queryKey: ['activeSubmissions'],
     queryFn: async () => {
       const response = await submissionService.getActiveSubmissions()
@@ -74,13 +72,18 @@ export default function SubmitIdeaPage() {
       !form.categoryId ||
       !form.submissionId
     ) {
-      setFeedbackMessage('Please complete all required fields before submitting.')
+      setFeedbackMessage(
+        'Please complete all required fields before submitting.',
+      )
       return
     }
 
     const formData = new FormData()
     formData.append('Text', form.title.trim())
-    formData.append('Description', `${form.brief.trim()}\n\n${form.content.trim()}`)
+    formData.append(
+      'Description',
+      `${form.brief.trim()}\n\n${form.content.trim()}`,
+    )
     formData.append('CategoryId', form.categoryId)
     formData.append('SubmissionId', form.submissionId)
     formData.append('IsAnonymous', String(form.isAnonymous))
@@ -142,12 +145,15 @@ export default function SubmitIdeaPage() {
                 <option value="">Select active submission</option>
                 {submissions.map((submission) => (
                   <option key={submission.id} value={submission.id}>
-                    {submission.name} · closes {formatDateLabel(submission.closureDate)}
+                    {submission.name} · closes{' '}
+                    {formatDateLabel(submission.closureDate)}
                   </option>
                 ))}
               </select>
               {submissionsLoading ? (
-                <p className="text-xs text-slate-500">Loading active submissions...</p>
+                <p className="text-xs text-slate-500">
+                  Loading active submissions...
+                </p>
               ) : null}
             </FormField>
           </div>
@@ -269,7 +275,12 @@ export default function SubmitIdeaPage() {
           >
             Reset form
           </AppButton>
-          <AppButton type="button" variant="secondary" onClick={handleSubmit} disabled={isPending}>
+          <AppButton
+            type="button"
+            variant="secondary"
+            onClick={handleSubmit}
+            disabled={isPending}
+          >
             <Send className="mr-2 h-4 w-4" />
             {isPending ? 'Submitting...' : 'Submit idea'}
           </AppButton>

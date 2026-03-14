@@ -17,6 +17,7 @@ import { Route as IdeasRouteImport } from './routes/ideas'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as IdeasIndexRouteImport } from './routes/ideas.index'
 import { Route as IdeasIdeaIdRouteImport } from './routes/ideas.$ideaId'
 
 const SubmitIdeaRoute = SubmitIdeaRouteImport.update({
@@ -59,6 +60,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IdeasIndexRoute = IdeasIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => IdeasRoute,
+} as any)
 const IdeasIdeaIdRoute = IdeasIdeaIdRouteImport.update({
   id: '/$ideaId',
   path: '/$ideaId',
@@ -75,17 +81,18 @@ export interface FileRoutesByFullPath {
   '/qa-manager': typeof QaManagerRoute
   '/submit-idea': typeof SubmitIdeaRoute
   '/ideas/$ideaId': typeof IdeasIdeaIdRoute
+  '/ideas/': typeof IdeasIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/dashboard': typeof DashboardRoute
-  '/ideas': typeof IdeasRouteWithChildren
   '/login': typeof LoginRoute
   '/qa-coordinator': typeof QaCoordinatorRoute
   '/qa-manager': typeof QaManagerRoute
   '/submit-idea': typeof SubmitIdeaRoute
   '/ideas/$ideaId': typeof IdeasIdeaIdRoute
+  '/ideas': typeof IdeasIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -98,6 +105,7 @@ export interface FileRoutesById {
   '/qa-manager': typeof QaManagerRoute
   '/submit-idea': typeof SubmitIdeaRoute
   '/ideas/$ideaId': typeof IdeasIdeaIdRoute
+  '/ideas/': typeof IdeasIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -111,17 +119,18 @@ export interface FileRouteTypes {
     | '/qa-manager'
     | '/submit-idea'
     | '/ideas/$ideaId'
+    | '/ideas/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/admin'
     | '/dashboard'
-    | '/ideas'
     | '/login'
     | '/qa-coordinator'
     | '/qa-manager'
     | '/submit-idea'
     | '/ideas/$ideaId'
+    | '/ideas'
   id:
     | '__root__'
     | '/'
@@ -133,6 +142,7 @@ export interface FileRouteTypes {
     | '/qa-manager'
     | '/submit-idea'
     | '/ideas/$ideaId'
+    | '/ideas/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -204,6 +214,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ideas/': {
+      id: '/ideas/'
+      path: '/'
+      fullPath: '/ideas/'
+      preLoaderRoute: typeof IdeasIndexRouteImport
+      parentRoute: typeof IdeasRoute
+    }
     '/ideas/$ideaId': {
       id: '/ideas/$ideaId'
       path: '/$ideaId'
@@ -216,10 +233,12 @@ declare module '@tanstack/react-router' {
 
 interface IdeasRouteChildren {
   IdeasIdeaIdRoute: typeof IdeasIdeaIdRoute
+  IdeasIndexRoute: typeof IdeasIndexRoute
 }
 
 const IdeasRouteChildren: IdeasRouteChildren = {
   IdeasIdeaIdRoute: IdeasIdeaIdRoute,
+  IdeasIndexRoute: IdeasIndexRoute,
 }
 
 const IdeasRouteWithChildren = IdeasRoute._addFileChildren(IdeasRouteChildren)

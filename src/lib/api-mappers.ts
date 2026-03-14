@@ -126,7 +126,9 @@ function asBoolean(value: unknown, fallback = false) {
 }
 
 function normalizeIdeaStatus(value: unknown): IdeaSummary['status'] {
-  const status = asString(value).toLowerCase().replace(/[^a-z]/g, '')
+  const status = asString(value)
+    .toLowerCase()
+    .replace(/[^a-z]/g, '')
 
   switch (status) {
     case 'draft':
@@ -173,7 +175,10 @@ export function mapIdeaSummary(value: unknown): IdeaSummary {
 
   return {
     id: asString(record.id ?? record.ideaId),
-    title: asString(record.title ?? record.text ?? record.name, 'Untitled idea'),
+    title: asString(
+      record.title ?? record.text ?? record.name,
+      'Untitled idea',
+    ),
     categoryName: asString(
       record.categoryName ?? getNestedValue(record, ['category', 'name']),
     ),
@@ -208,8 +213,13 @@ export function mapIdeaDetail(value: unknown): IdeaDetailModel {
   const record = extractRecord(value) ?? {}
   const summary = mapIdeaSummary(record)
   const attachments = extractCollection(record.attachments ?? record.files)
-  const comments = extractCollection(record.comments ?? record.commentList)
-
+  const comments = extractCollection(
+    record.comments ??
+      record.commentList ??
+      record.commentDtos ??
+      record.commentsDto ??
+      record.ideaComments,
+  )
   return {
     ...summary,
     brief: asString(record.brief ?? record.summary ?? record.shortDescription),
@@ -217,7 +227,8 @@ export function mapIdeaDetail(value: unknown): IdeaDetailModel {
       record.content ?? record.description ?? record.fullDescription,
     ),
     closureDate: asString(
-      record.closureDate ?? getNestedValue(record, ['submission', 'closureDate']),
+      record.closureDate ??
+        getNestedValue(record, ['submission', 'closureDate']),
     ),
     finalClosureDate: asString(
       record.finalClosureDate ??
@@ -227,7 +238,10 @@ export function mapIdeaDetail(value: unknown): IdeaDetailModel {
       const attachmentRecord = extractRecord(attachment) ?? {}
 
       return {
-        id: asString(attachmentRecord.id ?? attachmentRecord.fileId, `${index}`),
+        id: asString(
+          attachmentRecord.id ?? attachmentRecord.fileId,
+          `${index}`,
+        ),
         fileName: asString(
           attachmentRecord.fileName ?? attachmentRecord.name,
           `Attachment ${index + 1}`,
@@ -239,14 +253,25 @@ export function mapIdeaDetail(value: unknown): IdeaDetailModel {
       const commentRecord = extractRecord(comment) ?? {}
 
       return {
-        id: asString(commentRecord.id, `${index}`),
+        id: asString(commentRecord.id ?? commentRecord.commentId, `${index}`),
         authorName: asString(
           commentRecord.authorName ??
             commentRecord.createdBy ??
-            getNestedValue(commentRecord, ['author', 'name']),
+            commentRecord.userName ??
+            getNestedValue(commentRecord, ['author', 'name']) ??
+            getNestedValue(commentRecord, ['user', 'fullName']),
         ),
-        content: asString(commentRecord.content ?? commentRecord.text),
-        createdAt: asString(commentRecord.createdAt ?? commentRecord.createdDate),
+        content: asString(
+          commentRecord.content ??
+            commentRecord.text ??
+            commentRecord.commentText ??
+            commentRecord.description,
+        ),
+        createdAt: asString(
+          commentRecord.createdAt ??
+            commentRecord.createdDate ??
+            commentRecord.commentDate,
+        ),
         isAnonymous: asBoolean(commentRecord.isAnonymous),
       }
     }),

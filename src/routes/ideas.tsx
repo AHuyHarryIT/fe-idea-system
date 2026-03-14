@@ -1,6 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { Outlet, createFileRoute } from '@tanstack/react-router'
 import { ProtectedPage } from '@/components/app/ProtectedPage'
-import IdeaListPage from '@/pages/staff/IdeaListPage'
 
 export const Route = createFileRoute('/ideas')({
   component: RouteComponent,
@@ -9,7 +8,7 @@ export const Route = createFileRoute('/ideas')({
 function RouteComponent() {
   return (
     <ProtectedPage>
-      <IdeaListPage />
+      <Outlet />
     </ProtectedPage>
   )
 }

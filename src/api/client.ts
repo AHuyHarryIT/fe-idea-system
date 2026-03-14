@@ -1,8 +1,10 @@
 import { auth } from '@/lib/auth'
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL ??
-  'http://localhost:5000/api'
+const API_BASE_URL = import.meta.env.VITE_API_URL
+
+if (!API_BASE_URL) {
+  throw new Error('Missing VITE_API_URL in .env')
+}
 
 export interface ApiResponse<T> {
   success: boolean
@@ -74,7 +76,7 @@ class ApiClient {
 
   async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`
 
@@ -107,8 +109,7 @@ class ApiClient {
       console.error('API request failed:', error)
       return {
         success: false,
-        error:
-          error instanceof Error ? error.message : 'An error occurred',
+        error: error instanceof Error ? error.message : 'An error occurred',
       }
     }
   }
@@ -135,7 +136,10 @@ class ApiClient {
     return this.request<T>(endpoint, { method: 'DELETE' })
   }
 
-  async uploadFiles<T>(endpoint: string, formData: FormData): Promise<ApiResponse<T>> {
+  async uploadFiles<T>(
+    endpoint: string,
+    formData: FormData,
+  ): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`
 
     try {
@@ -172,8 +176,7 @@ class ApiClient {
       console.error('File upload failed:', error)
       return {
         success: false,
-        error:
-          error instanceof Error ? error.message : 'An error occurred',
+        error: error instanceof Error ? error.message : 'An error occurred',
       }
     }
   }

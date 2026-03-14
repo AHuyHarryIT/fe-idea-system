@@ -27,6 +27,8 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
   const [feedbackMessage, setFeedbackMessage] = useState('')
 
   const idea = useMemo(() => mapIdeaDetail(data), [data])
+  console.log('idea detail raw data:', data)
+  console.log('mapped idea detail:', idea)
 
   const refreshIdeaQueries = async () => {
     await Promise.all([
@@ -78,6 +80,23 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
       setFeedbackMessage(response.error ?? 'Unable to post your comment.')
       return
     }
+
+    const newComment = response.data
+
+    queryClient.setQueryData(['idea', ideaId], (oldData: any) => {
+      if (!oldData || !newComment) return oldData
+
+      const existingComments = oldData.comments ?? oldData.commentList ?? []
+
+      return {
+        ...oldData,
+        comments: [...existingComments, newComment],
+        totalComments:
+          (oldData.totalComments ?? oldData.commentsCount ?? 0) + 1,
+        commentsCount:
+          (oldData.commentsCount ?? oldData.totalComments ?? 0) + 1,
+      }
+    })
 
     setCommentText('')
     setIsAnonymous(false)
@@ -138,7 +157,9 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
         >
           <div className="space-y-4 text-sm leading-7 text-slate-600">
             <div className="rounded-xl bg-slate-50 p-4">
-              {isLoading ? 'Loading title...' : idea.title || 'No title provided'}
+              {isLoading
+                ? 'Loading title...'
+                : idea.title || 'No title provided'}
             </div>
             <div className="rounded-xl bg-slate-50 p-4">
               {isLoading
@@ -148,7 +169,9 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
             <div className="rounded-xl bg-slate-50 p-4">
               {isLoading
                 ? 'Loading content...'
-                : idea.content || idea.brief || 'No detailed content available.'}
+                : idea.content ||
+                  idea.brief ||
+                  'No detailed content available.'}
             </div>
           </div>
         </SectionCard>
@@ -163,7 +186,10 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
                 Category: {idea.categoryName || 'Uncategorized'}
               </div>
               <div className="rounded-xl bg-slate-50 p-4">
-                Author: {idea.isAnonymous ? 'Anonymous' : (idea.authorName || 'Unknown author')}
+                Author:{' '}
+                {idea.isAnonymous
+                  ? 'Anonymous'
+                  : idea.authorName || 'Unknown author'}
               </div>
               <div className="rounded-xl bg-slate-50 p-4">
                 Status: {idea.status?.replace(/_/g, ' ') || 'Pending'}
@@ -194,7 +220,9 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
                     <Paperclip className="h-4 w-4" />
                     <span>{attachment.fileName}</span>
                     {attachment.fileSize ? (
-                      <span className="text-slate-400">({attachment.fileSize})</span>
+                      <span className="text-slate-400">
+                        ({attachment.fileSize})
+                      </span>
                     ) : null}
                   </div>
                 ))}
@@ -231,11 +259,13 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
                       <span>
                         {comment.isAnonymous
                           ? 'Anonymous'
-                          : (comment.authorName || 'Unknown author')}
+                          : comment.authorName || 'Unknown author'}
                       </span>
                       <span>{formatDateLabel(comment.createdAt)}</span>
                     </div>
-                    <p className="mt-3 whitespace-pre-wrap">{comment.content}</p>
+                    <p className="mt-3 whitespace-pre-wrap">
+                      {comment.content}
+                    </p>
                   </div>
                 ))}
               </div>
