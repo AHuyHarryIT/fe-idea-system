@@ -1,3 +1,5 @@
+// Registers the parent route for idea-related pages.
+// Nested routes such as the catalogue and detail view are rendered through the Outlet component.
 import { Outlet, createFileRoute } from '@tanstack/react-router'
 import { ProtectedPage } from '@/components/app/ProtectedPage'
 

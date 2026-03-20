@@ -131,7 +131,7 @@ export default function SubmitIdeaPage() {
                 placeholder="Enter a concise title"
               />
             </FormField>
-            <FormField label="Academic year" required>
+            {/* <FormField label="Academic year" required>
               <select
                 value={form.submissionId}
                 onChange={(event) =>
@@ -155,7 +155,7 @@ export default function SubmitIdeaPage() {
                   Loading active submissions...
                 </p>
               ) : null}
-            </FormField>
+            </FormField> */}
           </div>
 
           <div className="mt-5 grid gap-5">

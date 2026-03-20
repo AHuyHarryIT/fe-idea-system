@@ -1,3 +1,6 @@
+// Provides mapping utilities that transform heterogeneous backend responses
+// into stable front-end models. The mapping layer reduces direct coupling
+// between UI components and variations in API response structure.
 import type { Category } from '@/api/categories'
 import type { Submission } from '@/api/submissions'
 import type { IdeaDetailModel, IdeaSummary } from '@/types/idea'
@@ -34,6 +37,8 @@ function getNestedValue(record: UnknownRecord, keys: Array<string>) {
   return current
 }
 
+// Extracts the first array-like collection discovered within a response object.
+// This supports multiple wrapper conventions such as data, items, results, or ideas.
 export function extractCollection<T = unknown>(
   value: unknown,
   keys: Array<string> = defaultCollectionKeys,
@@ -69,6 +74,7 @@ export function extractCollection<T = unknown>(
   return []
 }
 
+// Extracts a single record from common API wrapper structures.
 export function extractRecord(value: unknown): UnknownRecord | null {
   if (isRecord(value)) {
     for (const key of ['data', 'result', 'item']) {
@@ -85,6 +91,7 @@ export function extractRecord(value: unknown): UnknownRecord | null {
   return null
 }
 
+// Converts unknown input values into display-safe strings.
 export function asString(value: unknown, fallback = '') {
   if (typeof value === 'string') {
     return value
@@ -97,6 +104,7 @@ export function asString(value: unknown, fallback = '') {
   return fallback
 }
 
+// Converts unknown input values into numeric values used by engagement metrics.
 export function asNumber(value: unknown, fallback = 0) {
   if (typeof value === 'number' && Number.isFinite(value)) {
     return value
@@ -151,6 +159,7 @@ function normalizeIdeaStatus(value: unknown): IdeaSummary['status'] {
   }
 }
 
+// Formats ISO-style dates into a human-readable label for the UI.
 export function formatDateLabel(value: string | undefined, emptyLabel = '—') {
   if (!value) {
     return emptyLabel
@@ -169,6 +178,7 @@ export function formatDateLabel(value: string | undefined, emptyLabel = '—') {
   }).format(date)
 }
 
+// Maps summary-level idea data used by listing views and lightweight cards.
 export function mapIdeaSummary(value: unknown): IdeaSummary {
   const record = extractRecord(value) ?? {}
   const comments = extractCollection(record.comments ?? record.commentList)
@@ -209,6 +219,8 @@ export function mapIdeaSummary(value: unknown): IdeaSummary {
   }
 }
 
+// Maps detailed idea data, including attachments and comments,
+// into a unified model for the idea detail page.
 export function mapIdeaDetail(value: unknown): IdeaDetailModel {
   const record = extractRecord(value) ?? {}
   const summary = mapIdeaSummary(record)
@@ -220,6 +232,7 @@ export function mapIdeaDetail(value: unknown): IdeaDetailModel {
       record.commentsDto ??
       record.ideaComments,
   )
+
   return {
     ...summary,
     brief: asString(record.brief ?? record.summary ?? record.shortDescription),
@@ -240,10 +253,7 @@ export function mapIdeaDetail(value: unknown): IdeaDetailModel {
       const attachmentRecord = extractRecord(attachment) ?? {}
 
       return {
-        id: asString(
-          attachmentRecord.id ?? attachmentRecord.fileId,
-          `${index}`,
-        ),
+        id: asString(attachmentRecord.id ?? attachmentRecord.fileId, `${index}`),
         fileName: asString(
           attachmentRecord.fileName ?? attachmentRecord.name,
           `Attachment ${index + 1}`,
@@ -261,18 +271,15 @@ export function mapIdeaDetail(value: unknown): IdeaDetailModel {
             commentRecord.createdBy ??
             commentRecord.userName ??
             getNestedValue(commentRecord, ['author', 'name']) ??
-            getNestedValue(commentRecord, ['user', 'fullName']),
+            getNestedValue(commentRecord, ['user', 'name']),
         ),
         content: asString(
           commentRecord.content ??
             commentRecord.text ??
-            commentRecord.commentText ??
-            commentRecord.description,
+            commentRecord.commentText,
         ),
         createdAt: asString(
-          commentRecord.createdAt ??
-            commentRecord.createdDate ??
-            commentRecord.commentDate,
+          commentRecord.createdAt ?? commentRecord.createdDate,
         ),
         isAnonymous: asBoolean(commentRecord.isAnonymous),
       }
@@ -280,22 +287,24 @@ export function mapIdeaDetail(value: unknown): IdeaDetailModel {
   }
 }
 
+// Maps category payloads into a simplified front-end category model.
 export function mapCategory(value: unknown): Category {
   const record = extractRecord(value) ?? {}
 
   return {
     id: asString(record.id),
-    name: asString(record.name, 'Unnamed category'),
+    name: asString(record.name, 'Unknown category'),
+    description: asString(record.description),
   }
 }
 
+// Maps submission payloads and normalises date fields used by submission forms.
 export function mapSubmission(value: unknown): Submission {
   const record = extractRecord(value) ?? {}
 
   return {
     id: asString(record.id),
     name: asString(record.name, 'Untitled submission'),
-    academicYear: asString(record.academicYear),
     closureDate: asString(record.closureDate),
     finalClosureDate: asString(record.finalClosureDate),
   }

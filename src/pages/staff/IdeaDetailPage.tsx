@@ -1,3 +1,6 @@
+// Renders the detailed view of a selected idea.
+// The component is responsible for presenting idea content, metadata,
+// attachments, engagement actions, and the associated discussion thread.
 import { useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
@@ -17,18 +20,27 @@ interface IdeaDetailPageProps {
 
 export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
   const queryClient = useQueryClient()
+
+  // Retrieves idea detail data and exposes the relevant loading states.
   const { data, isLoading, error } = useIdeaById(ideaId)
+
+  // Provides API mutations for comment submission and user voting actions.
   const { mutateAsync: addComment, isPending: isCommenting } = useAddComment()
   const { mutateAsync: voteOnIdea, isPending: isVoting } = useVoteOnIdea()
+
+  // Maintains local form state for the discussion area.
   const [commentText, setCommentText] = useState('')
   const [isAnonymous, setIsAnonymous] = useState(false)
   const [feedbackMessage, setFeedbackMessage] = useState('')
 
+  // Normalises the backend response into a stable view model for the page.
   const idea = useMemo(() => mapIdeaDetail(data), [data])
 
+  // User interactions are disabled only while data is still loading.
   const canLike = !isLoading
-  const canComment = !isLoading && (idea.canComment ?? true)
+  const canComment = !isLoading
 
+  // Refreshes the detail and listing queries after a successful mutation.
   const refreshIdeaQueries = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['idea', ideaId] }),
@@ -37,6 +49,7 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
     ])
   }
 
+  // Handles the voting workflow and synchronises the updated engagement data.
   const handleVote = async () => {
     setFeedbackMessage('')
 
@@ -54,12 +67,8 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
     setFeedbackMessage('Thanks! Your vote has been recorded.')
   }
 
+  // Handles comment submission and clears the input state after success.
   const handleCommentSubmit = async () => {
-    if (!canComment) {
-      setFeedbackMessage('Commenting is currently unavailable for this idea.')
-      return
-    }
-
     if (!commentText.trim()) {
       setFeedbackMessage('Please write a comment before posting.')
       return
@@ -86,6 +95,7 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
     setFeedbackMessage('Comment posted successfully.')
   }
 
+  // Displays a fallback state when the idea detail request cannot be completed.
   if (error) {
     return (
       <div className="w-full px-6 py-6 lg:px-8">
@@ -140,12 +150,6 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
           </>
         }
       />
-
-      {!canComment ? (
-        <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-          Commenting is currently unavailable for this idea.
-        </div>
-      ) : null}
 
       <div className="grid grid-cols-1 gap-6 2xl:grid-cols-[minmax(0,2.2fr)_380px]">
         <div className="space-y-6">

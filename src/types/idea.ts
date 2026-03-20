@@ -1,3 +1,5 @@
+// Defines shared front-end data contracts for idea-related workflows.
+// These interfaces support consistent typing across listing, detail, and submission pages.
 export interface IdeaSummary {
   id: string
   title: string
@@ -12,6 +14,7 @@ export interface IdeaSummary {
   status?: 'draft' | 'submitted' | 'under_review' | 'published' | 'closed'
 }
 
+// Represents the complete idea detail model consumed by the detail view.
 export interface IdeaDetailModel extends IdeaSummary {
   brief?: string
   content?: string
@@ -33,6 +36,7 @@ export interface IdeaDetailModel extends IdeaSummary {
   }>
 }
 
+// Represents the payload structure used when submitting a new idea.
 export interface IdeaSubmitPayload {
   title: string
   brief: string

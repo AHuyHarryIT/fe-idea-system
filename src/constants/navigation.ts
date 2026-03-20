@@ -1,3 +1,6 @@
+// Defines the role-based navigation structure used by the sidebar.
+// Each user role is mapped to a tailored set of destinations that reflects
+// its responsibilities within the idea collection system.
 import {
   BarChart3,
   LayoutDashboard,
@@ -8,6 +11,7 @@ import {
 } from 'lucide-react'
 import type { Role } from '@/types/auth'
 
+// Represents a single sidebar navigation item.
 export interface NavItem {
   path: string
   label: string

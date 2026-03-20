@@ -1,3 +1,5 @@
+// Renders the main idea catalogue page, including search, filtering,
+// and navigation to both submission and detail workflows.
 import { useMemo } from 'react'
 import { Funnel, Lightbulb, Search } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
@@ -18,9 +20,12 @@ import {
 export default function IdeaListPage() {
   const { search, setSearch, status, setStatus, category, setCategory } =
     useIdeaFilters()
+
+  // Retrieves idea records and category metadata required by the catalogue page.
   const { data, isLoading, error } = useAllIdeas()
   const { data: categoryData } = useCategories()
 
+  // Normalises raw API data into summary models used by the list interface.
   const ideas = useMemo(
     () =>
       extractCollection(data, ['ideas'])
@@ -28,6 +33,8 @@ export default function IdeaListPage() {
         .filter((idea) => idea.id),
     [data],
   )
+
+  // Prepares category options for the filter control.
   const categories = useMemo(
     () =>
       extractCollection(categoryData, ['categories'])
@@ -36,11 +43,13 @@ export default function IdeaListPage() {
     [categoryData],
   )
 
+  // Derives a distinct set of available statuses from the loaded idea records.
   const statuses = useMemo(
     () => Array.from(new Set(ideas.map((idea) => idea.status).filter(Boolean))),
     [ideas],
   )
 
+  // Applies client-side filtering based on the active search and selection criteria.
   const filteredIdeas = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase()
 
