@@ -9,9 +9,5 @@ export const Route = createFileRoute('/ideas/$ideaId')({
 function RouteComponent() {
   const { ideaId } = Route.useParams()
 
-  return (
-    <ProtectedPage>
-      <IdeaDetailPage ideaId={ideaId} />
-    </ProtectedPage>
-  )
+  return <IdeaDetailPage ideaId={ideaId} />
 }

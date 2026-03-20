@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { Funnel, Lightbulb, Search } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
 import { AppButton } from '@/components/app/AppButton'
 import { IdeaCard } from '@/components/ideas/IdeaCard'
 import { EmptyState } from '@/components/shared/EmptyState'
@@ -8,7 +9,11 @@ import { SectionCard } from '@/components/shared/SectionCard'
 import { useCategories } from '@/hooks/useCategories'
 import { useIdeaFilters } from '@/hooks/useIdeaFilters'
 import { useAllIdeas } from '@/hooks/useIdeas'
-import { extractCollection, mapCategory, mapIdeaSummary } from '@/lib/api-mappers'
+import {
+  extractCollection,
+  mapCategory,
+  mapIdeaSummary,
+} from '@/lib/api-mappers'
 
 export default function IdeaListPage() {
   const { search, setSearch, status, setStatus, category, setCategory } =
@@ -17,11 +22,17 @@ export default function IdeaListPage() {
   const { data: categoryData } = useCategories()
 
   const ideas = useMemo(
-    () => extractCollection(data, ['ideas']).map(mapIdeaSummary).filter((idea) => idea.id),
+    () =>
+      extractCollection(data, ['ideas'])
+        .map(mapIdeaSummary)
+        .filter((idea) => idea.id),
     [data],
   )
   const categories = useMemo(
-    () => extractCollection(categoryData, ['categories']).map(mapCategory).filter((item) => item.id),
+    () =>
+      extractCollection(categoryData, ['categories'])
+        .map(mapCategory)
+        .filter((item) => item.id),
     [categoryData],
   )
 
@@ -51,6 +62,11 @@ export default function IdeaListPage() {
       <PageHeader
         title="Idea Listing"
         description={`${filteredIdeas.length} ideas matched from the live catalogue.`}
+        actions={
+          <Link to="/submit-idea">
+            <AppButton>Submit Idea</AppButton>
+          </Link>
+        }
       />
 
       <SectionCard title="Search & filters">

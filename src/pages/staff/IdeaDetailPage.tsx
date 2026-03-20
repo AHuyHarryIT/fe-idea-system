@@ -81,23 +81,6 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
       return
     }
 
-    const newComment = response.data
-
-    queryClient.setQueryData(['idea', ideaId], (oldData: any) => {
-      if (!oldData || !newComment) return oldData
-
-      const existingComments = oldData.comments ?? oldData.commentList ?? []
-
-      return {
-        ...oldData,
-        comments: [...existingComments, newComment],
-        totalComments:
-          (oldData.totalComments ?? oldData.commentsCount ?? 0) + 1,
-        commentsCount:
-          (oldData.commentsCount ?? oldData.totalComments ?? 0) + 1,
-      }
-    })
-
     setCommentText('')
     setIsAnonymous(false)
     await refreshIdeaQueries()
@@ -106,7 +89,7 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
 
   if (error) {
     return (
-      <div className="mx-auto max-w-6xl">
+      <div className="w-full px-6 py-6">
         <PageHeader title="Idea Detail" />
         <EmptyState
           icon={MessageSquare}
@@ -118,7 +101,7 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
   }
 
   return (
-    <div className="mx-auto max-w-6xl">
+    <div className="w-full px-6 py-6">
       <PageHeader
         title={isLoading ? 'Loading idea...' : idea.title || 'Idea Detail'}
         description={
@@ -150,12 +133,12 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
         }
       />
 
-      <div className="grid gap-6 xl:grid-cols-[1.4fr_0.8fr]">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,2fr)_360px]">
         <SectionCard
           title="Main content"
           description="Live content mapped from the idea detail endpoint."
         >
-          <div className="space-y-4 text-sm leading-7 text-slate-600">
+          <div className="min-h-[420px] space-y-4 text-sm leading-7 text-slate-600">
             <div className="rounded-xl bg-slate-50 p-4">
               {isLoading
                 ? 'Loading title...'
@@ -247,7 +230,8 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
               {feedbackMessage}
             </div>
           ) : null}
-          <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
+
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1.8fr)_360px]">
             {idea.comments && idea.comments.length > 0 ? (
               <div className="space-y-4">
                 {idea.comments.map((comment) => (
@@ -274,6 +258,7 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
                 No comments yet. Start the discussion below.
               </div>
             )}
+
             <div>
               <FormField label="Write a comment">
                 <FormTextarea
@@ -283,6 +268,7 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
                   onChange={(event) => setCommentText(event.target.value)}
                 />
               </FormField>
+
               <label className="mt-4 flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
                 <input
                   type="checkbox"
@@ -291,6 +277,7 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
                 />
                 Post anonymously
               </label>
+
               <AppButton
                 className="mt-4"
                 disabled={isCommenting}

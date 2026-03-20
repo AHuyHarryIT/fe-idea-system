@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { categoryService } from '@/api'
 import type { CreateCategoryRequest } from '@/api'
+import { categoryService } from '@/api'
 
 export const useStaffCategories = () => {
   return useQuery({
@@ -33,8 +33,7 @@ export const useCreateAdminCategory = () => {
 
 export const useDeleteAdminCategory = () => {
   return useMutation({
-    mutationFn: (id: string) =>
-      categoryService.deleteAdminCategory(id),
+    mutationFn: (id: string) => categoryService.deleteAdminCategory(id),
   })
 }
 
@@ -58,8 +57,7 @@ export const useCreateQAManagerCategory = () => {
 
 export const useDeleteQAManagerCategory = () => {
   return useMutation({
-    mutationFn: (id: string) =>
-      categoryService.deleteQAManagerCategory(id),
+    mutationFn: (id: string) => categoryService.deleteQAManagerCategory(id),
   })
 }
 

@@ -1,9 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
+import type { CommentCreateRequest, VoteRequest } from '@/api'
 import { ideaService } from '@/api'
-import type {
-  CommentCreateRequest,
-  VoteRequest,
-} from '@/api'
 
 export const useMyIdeas = () => {
   return useQuery({

@@ -22,7 +22,9 @@ export default function Layout({ children, userRole, onLogout }: LayoutProps) {
       />
       <div className="flex">
         <Sidebar userRole={userRole} />
-        <main className="min-h-screen flex-1 px-6 pb-8 pt-22 lg:ml-64">{children}</main>
+        <main className="min-h-screen flex-1 pb-8 pt-22 lg:ml-64">
+          {children}
+        </main>
       </div>
     </div>
   )

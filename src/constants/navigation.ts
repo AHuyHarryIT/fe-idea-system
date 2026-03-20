@@ -22,14 +22,17 @@ export const navigationByRole: Record<Role, Array<NavItem>> = {
   ],
   qa_coordinator: [
     { path: '/qa-coordinator', label: 'Dashboard', icon: PieChart },
+    { path: '/submit-idea', label: 'Submit Idea', icon: Lightbulb },
     { path: '/ideas', label: 'Browse Ideas', icon: List },
   ],
   qa_manager: [
     { path: '/qa-manager', label: 'Dashboard', icon: BarChart3 },
+    { path: '/submit-idea', label: 'Submit Idea', icon: Lightbulb },
     { path: '/ideas', label: 'Browse Ideas', icon: List },
   ],
   admin: [
     { path: '/admin', label: 'Dashboard', icon: Settings },
+    { path: '/submit-idea', label: 'Submit Idea', icon: Lightbulb },
     { path: '/ideas', label: 'Browse Ideas', icon: List },
   ],
 }
