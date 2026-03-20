@@ -234,6 +234,8 @@ export function mapIdeaDetail(value: unknown): IdeaDetailModel {
       record.finalClosureDate ??
         getNestedValue(record, ['submission', 'finalClosureDate']),
     ),
+    canComment: asBoolean(record.canComment, true),
+    canVote: asBoolean(record.canVote ?? record.canComment, true),
     attachments: attachments.map((attachment, index) => {
       const attachmentRecord = extractRecord(attachment) ?? {}
 

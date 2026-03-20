@@ -17,6 +17,8 @@ export interface IdeaDetailModel extends IdeaSummary {
   content?: string
   closureDate?: string
   finalClosureDate?: string
+  canComment?: boolean
+  canVote?: boolean
   attachments?: Array<{
     id: string
     fileName: string
