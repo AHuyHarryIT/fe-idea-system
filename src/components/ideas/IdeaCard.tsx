@@ -1,26 +1,9 @@
 import { Link } from '@tanstack/react-router'
 import { CalendarDays, Eye, MessageSquare, ThumbsUp } from 'lucide-react'
-import type { IdeaSummary } from '@/types/idea'
+import type { Idea } from '@/api'
 
 interface IdeaCardProps {
-  idea: IdeaSummary
-}
-
-function getStatusLabel(status?: IdeaSummary['status']) {
-  switch (status) {
-    case 'draft':
-      return 'Draft'
-    case 'submitted':
-      return 'Submitted'
-    case 'under_review':
-      return 'Under Review'
-    case 'published':
-      return 'Published'
-    case 'closed':
-      return 'Closed'
-    default:
-      return 'Status Pending'
-  }
+  idea: Idea
 }
 
 export function IdeaCard({ idea }: IdeaCardProps) {
@@ -36,13 +19,10 @@ export function IdeaCard({ idea }: IdeaCardProps) {
             <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
               {idea.categoryName ?? 'Category pending'}
             </span>
-            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
-              {getStatusLabel(idea.status)}
-            </span>
           </div>
           <div>
             <h3 className="text-lg font-semibold text-slate-900">
-              {idea.title}
+              {idea.text || 'Untitled idea'}
             </h3>
             <p className="mt-2 text-sm text-slate-600">
               {idea.departmentName ??
@@ -63,15 +43,15 @@ export function IdeaCard({ idea }: IdeaCardProps) {
         <div className="flex flex-wrap gap-4 text-sm text-slate-600">
           <span className="inline-flex items-center gap-1">
             <Eye className="h-4 w-4" />
-            {idea.totalViews ?? 0}
+            {idea.viewCount ?? 0}
           </span>
           <span className="inline-flex items-center gap-1">
             <ThumbsUp className="h-4 w-4" />
-            {idea.totalLikes ?? 0}
+            {(idea.thumbsUpCount ?? 0) + (idea.thumbsDownCount ?? 0)}
           </span>
           <span className="inline-flex items-center gap-1">
             <MessageSquare className="h-4 w-4" />
-            {idea.totalComments ?? 0}
+            {idea.commentCount ?? 0}
           </span>
         </div>
       </div>

@@ -9,29 +9,31 @@ import {
   useIdeasWithoutComments,
 } from '@/hooks/useDashboard'
 import { useQAManagerIdeas } from '@/hooks/useIdeas'
-import { extractCollection, mapIdeaSummary } from '@/lib/api-mappers'
+import { normalizeIdeaResponse } from '@/lib/idea-response-mapper'
 
 export default function QAManagerPage() {
   const { data: ideaData, isLoading, error } = useQAManagerIdeas()
   const { data: departmentData } = useDepartmentStats()
   const { data: withoutCommentsData } = useIdeasWithoutComments()
 
-  const ideas = useMemo(
-    () => extractCollection(ideaData, ['ideas']).map(mapIdeaSummary).filter((idea) => idea.id),
-    [ideaData],
-  )
+  const ideas = useMemo(() => {
+    const ideaList = normalizeIdeaResponse(ideaData)
+    return Array.isArray(ideaList) ? ideaList.filter((idea) => idea.id) : []
+  }, [ideaData])
+
   const departmentStats = useMemo(
-    () => extractCollection<Record<string, unknown>>(departmentData).filter(Boolean),
+    () => (Array.isArray(departmentData) ? departmentData : []),
     [departmentData],
   )
+
   const ideasWithoutComments = useMemo(
-    () => extractCollection<Record<string, unknown>>(withoutCommentsData).filter(Boolean),
+    () => (Array.isArray(withoutCommentsData) ? withoutCommentsData : []),
     [withoutCommentsData],
   )
   const engagementRate =
     ideas.length > 0
       ? (((ideas.reduce(
-          (total, idea) => total + (idea.totalLikes ?? 0) + (idea.totalComments ?? 0),
+          (total, idea) => total + (idea.thumbsUpCount ?? 0) + (idea.thumbsDownCount ?? 0) + (idea.commentCount ?? 0),
           0,
         ) /
           ideas.length) *
@@ -86,7 +88,7 @@ export default function QAManagerPage() {
                   className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600"
                 >
                   <p className="font-medium text-slate-900">
-                    {String(idea.text ?? idea.title ?? `Idea ${index + 1}`)}
+                    {String(idea.text ?? `Idea ${index + 1}`)}
                   </p>
                 </div>
               ))}
@@ -105,7 +107,7 @@ export default function QAManagerPage() {
         >
           <div className="space-y-4 text-sm text-slate-600">
             <div className="rounded-xl bg-slate-50 p-4">
-              Top idea engagement: {ideas[0]?.title || 'No ideas loaded'}
+              Top idea engagement: {ideas[0]?.text || 'No ideas loaded'}
             </div>
             <div className="rounded-xl bg-slate-50 p-4">
               Department comparison entries: {departmentStats.length}

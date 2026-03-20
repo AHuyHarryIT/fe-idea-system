@@ -7,6 +7,20 @@ export interface User {
   name: string
   role: string
   department?: string
+  avatar?: string
+  createdAt?: string
+}
+
+export interface UserListResponse {
+  users: Array<User>
+  availableRoles?: Array<string>
+}
+
+export interface CreateUserRequest {
+  email: string
+  name: string
+  password?: string
+  role: string
 }
 
 export interface UpdateRoleRequest {
@@ -15,8 +29,13 @@ export interface UpdateRoleRequest {
 
 export const userService = {
   // Admin endpoints
-  getUsers: (): Promise<ApiResponse<Array<User>>> =>
-    apiClient.get<Array<User>>('/User'),
+  getUsers: (): Promise<ApiResponse<UserListResponse>> =>
+    apiClient.get<UserListResponse>('/User'),
+
+  createUser: (
+    request: CreateUserRequest
+  ): Promise<ApiResponse<User>> =>
+    apiClient.post<User>('/User', request),
 
   updateUserRole: (
     userId: string,
@@ -25,5 +44,5 @@ export const userService = {
     apiClient.put<User>(`/User/${userId}/role`, request),
 
   deleteUser: (userId: string): Promise<ApiResponse<void>> =>
-    apiClient.delete(`/User/${userId}`),
+    apiClient.delete<void>(`/User/${userId}`),
 }

@@ -9,11 +9,7 @@ import { SectionCard } from '@/components/shared/SectionCard'
 import { useCategories } from '@/hooks/useCategories'
 import { useIdeaFilters } from '@/hooks/useIdeaFilters'
 import { useAllIdeas } from '@/hooks/useIdeas'
-import {
-  extractCollection,
-  mapCategory,
-  mapIdeaSummary,
-} from '@/lib/api-mappers'
+import { normalizeIdeaResponse } from '@/lib/idea-response-mapper'
 
 export default function IdeaListPage() {
   const { search, setSearch, status, setStatus, category, setCategory } =
@@ -21,20 +17,15 @@ export default function IdeaListPage() {
   const { data, isLoading, error } = useAllIdeas()
   const { data: categoryData } = useCategories()
 
-  const ideas = useMemo(
-    () =>
-      extractCollection(data, ['ideas'])
-        .map(mapIdeaSummary)
-        .filter((idea) => idea.id),
-    [data],
-  )
-  const categories = useMemo(
-    () =>
-      extractCollection(categoryData, ['categories'])
-        .map(mapCategory)
-        .filter((item) => item.id),
-    [categoryData],
-  )
+  const ideas = useMemo(() => {
+    const ideaList = normalizeIdeaResponse(data)
+    return Array.isArray(ideaList) ? ideaList.filter((idea) => idea.id) : []
+  }, [data])
+  
+  const categories = useMemo(() => {
+    const categoryList = categoryData ?? []
+    return Array.isArray(categoryList) ? categoryList.filter((item) => item.id) : []
+  }, [categoryData])
 
   const statuses = useMemo(
     () => Array.from(new Set(ideas.map((idea) => idea.status).filter(Boolean))),
@@ -47,7 +38,7 @@ export default function IdeaListPage() {
     return ideas.filter((idea) => {
       const matchesSearch =
         normalizedSearch.length === 0 ||
-        [idea.title, idea.categoryName, idea.departmentName, idea.authorName]
+        [idea.text, idea.categoryName, idea.departmentName, idea.authorName]
           .filter(Boolean)
           .some((value) => value?.toLowerCase().includes(normalizedSearch))
       const matchesStatus = !status || idea.status === status

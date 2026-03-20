@@ -15,9 +15,10 @@ import { Route as QaCoordinatorRouteImport } from './routes/qa-coordinator'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IdeasRouteImport } from './routes/ideas'
 import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as IdeasIndexRouteImport } from './routes/ideas.index'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as ManageUsersRouteImport } from './routes/manage/users'
 import { Route as IdeasIdeaIdRouteImport } from './routes/ideas.$ideaId'
 
 const SubmitIdeaRoute = SubmitIdeaRouteImport.update({
@@ -50,11 +51,6 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -65,6 +61,16 @@ const IdeasIndexRoute = IdeasIndexRouteImport.update({
   path: '/',
   getParentRoute: () => IdeasRoute,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManageUsersRoute = ManageUsersRouteImport.update({
+  id: '/manage/users',
+  path: '/manage/users',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IdeasIdeaIdRoute = IdeasIdeaIdRouteImport.update({
   id: '/$ideaId',
   path: '/$ideaId',
@@ -73,7 +79,6 @@ const IdeasIdeaIdRoute = IdeasIdeaIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
   '/dashboard': typeof DashboardRoute
   '/ideas': typeof IdeasRouteWithChildren
   '/login': typeof LoginRoute
@@ -81,23 +86,25 @@ export interface FileRoutesByFullPath {
   '/qa-manager': typeof QaManagerRoute
   '/submit-idea': typeof SubmitIdeaRoute
   '/ideas/$ideaId': typeof IdeasIdeaIdRoute
+  '/manage/users': typeof ManageUsersRoute
+  '/admin': typeof AdminIndexRoute
   '/ideas/': typeof IdeasIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/qa-coordinator': typeof QaCoordinatorRoute
   '/qa-manager': typeof QaManagerRoute
   '/submit-idea': typeof SubmitIdeaRoute
   '/ideas/$ideaId': typeof IdeasIdeaIdRoute
+  '/manage/users': typeof ManageUsersRoute
+  '/admin': typeof AdminIndexRoute
   '/ideas': typeof IdeasIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
   '/dashboard': typeof DashboardRoute
   '/ideas': typeof IdeasRouteWithChildren
   '/login': typeof LoginRoute
@@ -105,13 +112,14 @@ export interface FileRoutesById {
   '/qa-manager': typeof QaManagerRoute
   '/submit-idea': typeof SubmitIdeaRoute
   '/ideas/$ideaId': typeof IdeasIdeaIdRoute
+  '/manage/users': typeof ManageUsersRoute
+  '/admin/': typeof AdminIndexRoute
   '/ideas/': typeof IdeasIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/admin'
     | '/dashboard'
     | '/ideas'
     | '/login'
@@ -119,22 +127,24 @@ export interface FileRouteTypes {
     | '/qa-manager'
     | '/submit-idea'
     | '/ideas/$ideaId'
+    | '/manage/users'
+    | '/admin'
     | '/ideas/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/admin'
     | '/dashboard'
     | '/login'
     | '/qa-coordinator'
     | '/qa-manager'
     | '/submit-idea'
     | '/ideas/$ideaId'
+    | '/manage/users'
+    | '/admin'
     | '/ideas'
   id:
     | '__root__'
     | '/'
-    | '/admin'
     | '/dashboard'
     | '/ideas'
     | '/login'
@@ -142,18 +152,21 @@ export interface FileRouteTypes {
     | '/qa-manager'
     | '/submit-idea'
     | '/ideas/$ideaId'
+    | '/manage/users'
+    | '/admin/'
     | '/ideas/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRoute
   DashboardRoute: typeof DashboardRoute
   IdeasRoute: typeof IdeasRouteWithChildren
   LoginRoute: typeof LoginRoute
   QaCoordinatorRoute: typeof QaCoordinatorRoute
   QaManagerRoute: typeof QaManagerRoute
   SubmitIdeaRoute: typeof SubmitIdeaRoute
+  ManageUsersRoute: typeof ManageUsersRoute
+  AdminIndexRoute: typeof AdminIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -200,13 +213,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -220,6 +226,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/ideas/'
       preLoaderRoute: typeof IdeasIndexRouteImport
       parentRoute: typeof IdeasRoute
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manage/users': {
+      id: '/manage/users'
+      path: '/manage/users'
+      fullPath: '/manage/users'
+      preLoaderRoute: typeof ManageUsersRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/ideas/$ideaId': {
       id: '/ideas/$ideaId'
@@ -245,13 +265,14 @@ const IdeasRouteWithChildren = IdeasRoute._addFileChildren(IdeasRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRoute,
   DashboardRoute: DashboardRoute,
   IdeasRoute: IdeasRouteWithChildren,
   LoginRoute: LoginRoute,
   QaCoordinatorRoute: QaCoordinatorRoute,
   QaManagerRoute: QaManagerRoute,
   SubmitIdeaRoute: SubmitIdeaRoute,
+  ManageUsersRoute: ManageUsersRoute,
+  AdminIndexRoute: AdminIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

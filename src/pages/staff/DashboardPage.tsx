@@ -8,7 +8,7 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { StatCard } from '@/components/shared/StatCard'
 import { useMyIdeas } from '@/hooks/useIdeas'
-import { extractCollection, mapIdeaSummary } from '@/lib/api-mappers'
+import { normalizeIdeaResponse } from '@/lib/idea-response-mapper'
 
 function getTimestamp(value?: string) {
   if (!value) {
@@ -22,14 +22,13 @@ function getTimestamp(value?: string) {
 export default function DashboardPage() {
   const { data, isLoading, error } = useMyIdeas()
 
-  const ideas = useMemo(
-    () =>
-      extractCollection(data, ['ideas']).map(mapIdeaSummary).filter((idea) => idea.id),
-    [data],
-  )
+  const ideas = useMemo(() => {
+    const ideaList = normalizeIdeaResponse(data)
+    return Array.isArray(ideaList) ? ideaList.filter((idea) => idea.id) : []
+  }, [data])
 
   const recentIdeas = useMemo(
-    () => [...ideas].sort((left, right) => getTimestamp(right.createdAt) - getTimestamp(left.createdAt)).slice(0, 3),
+    () => [...ideas].sort((left, right) => getTimestamp(right.createdAt || right.createdDate) - getTimestamp(left.createdAt || left.createdDate)).slice(0, 3),
     [ideas],
   )
 
@@ -38,18 +37,18 @@ export default function DashboardPage() {
       [...ideas]
         .sort(
           (left, right) =>
-            (right.totalLikes ?? 0) + (right.totalComments ?? 0) - ((left.totalLikes ?? 0) + (left.totalComments ?? 0)),
+            ((right.thumbsUpCount ?? 0) + (right.commentCount ?? 0)) - ((left.thumbsUpCount ?? 0) + (left.commentCount ?? 0)),
         )
         .slice(0, 3),
     [ideas],
   )
 
   const totalEngagement = ideas.reduce(
-    (total, idea) => total + (idea.totalLikes ?? 0) + (idea.totalComments ?? 0),
+    (total, idea) => total + (idea.thumbsUpCount ?? 0) + (idea.commentCount ?? 0),
     0,
   )
   const totalFeedback = ideas.reduce(
-    (total, idea) => total + (idea.totalComments ?? 0),
+    (total, idea) => total + (idea.commentCount ?? 0),
     0,
   )
 

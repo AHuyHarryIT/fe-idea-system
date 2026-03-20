@@ -1,20 +1,15 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { CalendarRange, ListChecks, Tags, Users } from 'lucide-react'
+import { useNavigate } from '@tanstack/react-router'
 import { categoryService, ideaService, submissionService, userService } from '@/api'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { StatCard } from '@/components/shared/StatCard'
-import {
-  extractCollection,
-  formatDateLabel,
-  mapCategory,
-  mapIdeaSummary,
-  mapSubmission,
-} from '@/lib/api-mappers'
 
 export default function AdminDashboardPage() {
+  const navigate = useNavigate()
   const { data, isLoading, error } = useQuery({
     queryKey: ['adminOverview'],
     queryFn: async () => {
@@ -23,7 +18,7 @@ export default function AdminDashboardPage() {
           userService.getUsers(),
           categoryService.getAdminCategories(),
           submissionService.getAdminSubmissions(),
-          ideaService.getAllIdeasAsAdmin(),
+          ideaService.getAllIdeas(),
         ])
 
       if (
@@ -41,11 +36,30 @@ export default function AdminDashboardPage() {
         )
       }
 
+      // Handle API response formats
+      // API returns direct array: [{id, title, ...}]
+      // But code expects: {ideas: [...]} or {items: [...]}
+      const ideaData = ideasResponse.data;
+      let ideas: Array<any> = [];
+      if (Array.isArray(ideaData)) {
+        ideas = ideaData;
+      } else if (ideaData?.ideas) {
+        ideas = ideaData.ideas;
+      } else if (ideaData?.items) {
+        ideas = ideaData.items;
+      }
+      
+      // Map title to text for compatibility with frontend
+      const mappedIdeas = ideas.map((idea: any) => ({
+        ...idea,
+        text: idea.text || idea.title,
+      }));
+
       return {
-        users: extractCollection(usersResponse.data, ['users']),
-        categories: extractCollection(categoriesResponse.data, ['categories']).map(mapCategory),
-        submissions: extractCollection(submissionsResponse.data, ['submissions']).map(mapSubmission),
-        ideas: extractCollection(ideasResponse.data, ['ideas']).map(mapIdeaSummary),
+        users: usersResponse.data?.users ?? [],
+        categories: categoriesResponse.data ?? [],
+        submissions: submissionsResponse.data ?? [],
+        ideas: mappedIdeas,
       }
     },
   })
@@ -102,9 +116,12 @@ export default function AdminDashboardPage() {
             />
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
+              <button
+                onClick={() => navigate({ to: '/manage/users' })}
+                className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600 hover:bg-slate-100 hover:border-slate-300 transition-colors text-left"
+              >
                 Manage users · {data?.users.length ?? 0}
-              </div>
+              </button>
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
                 Manage categories · {data?.categories.length ?? 0}
               </div>
@@ -136,8 +153,8 @@ export default function AdminDashboardPage() {
                   className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600"
                 >
                   <p className="font-medium text-slate-900">{submission.name}</p>
-                  <p className="mt-2">Closure: {formatDateLabel(submission.closureDate)}</p>
-                  <p>Final closure: {formatDateLabel(submission.finalClosureDate)}</p>
+                  <p className="mt-2">Closure: {new Date(submission.closureDate).toLocaleDateString()}</p>
+                  <p>Final closure: {new Date(submission.finalClosureDate).toLocaleDateString()}</p>
                 </div>
               ))}
             </div>

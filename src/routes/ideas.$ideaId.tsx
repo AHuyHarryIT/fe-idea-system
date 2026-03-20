@@ -1,5 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { ProtectedPage } from '@/components/app/ProtectedPage'
 import IdeaDetailPage from '@/pages/staff/IdeaDetailPage'
 
 export const Route = createFileRoute('/ideas/$ideaId')({

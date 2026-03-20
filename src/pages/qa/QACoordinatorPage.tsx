@@ -5,14 +5,16 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { StatCard } from '@/components/shared/StatCard'
 import { useQACoordinatorIdeas } from '@/hooks/useIdeas'
-import { extractCollection, mapIdeaSummary } from '@/lib/api-mappers'
+import { normalizeIdeaResponse } from '@/lib/idea-response-mapper'
 
 export default function QACoordinatorPage() {
   const { data, isLoading, error } = useQACoordinatorIdeas()
-  const ideas = useMemo(
-    () => extractCollection(data, ['ideas']).map(mapIdeaSummary).filter((idea) => idea.id),
-    [data],
-  )
+  
+  const ideas = useMemo(() => {
+    const ideaList = normalizeIdeaResponse(data)
+    return Array.isArray(ideaList) ? ideaList.filter((idea) => idea.id) : []
+  }, [data])
+
   const pendingIdeas = ideas.filter(
     (idea) => idea.status === 'submitted' || idea.status === 'under_review',
   )
@@ -66,7 +68,7 @@ export default function QACoordinatorPage() {
                   key={idea.id}
                   className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600"
                 >
-                  <p className="font-medium text-slate-900">{idea.title}</p>
+                  <p className="font-medium text-slate-900">{idea.text || 'Untitled'}</p>
                   <p className="mt-2">Category: {idea.categoryName || 'Uncategorized'}</p>
                   <p>Status: {idea.status?.replace(/_/g, ' ') || 'Pending'}</p>
                 </div>
@@ -92,7 +94,7 @@ export default function QACoordinatorPage() {
                   key={idea.id}
                   className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600"
                 >
-                  <p className="font-medium text-slate-900">{idea.title}</p>
+                  <p className="font-medium text-slate-900">{idea.text}</p>
                   <p className="mt-2">Author: {idea.authorName || 'Anonymous'}</p>
                 </div>
               ))}

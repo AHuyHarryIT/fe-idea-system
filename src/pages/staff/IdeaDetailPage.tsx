@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { Lightbulb, MessageSquare, Paperclip, ThumbsUp } from 'lucide-react'
+import { Lightbulb, MessageSquare, ThumbsUp } from 'lucide-react'
 import { AppButton } from '@/components/app/AppButton'
 import { FormField } from '@/components/forms/FormField'
 import { FormTextarea } from '@/components/forms/FormInput'
@@ -9,25 +9,36 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { useAddComment, useIdeaById, useVoteOnIdea } from '@/hooks/useIdeas'
-import { formatDateLabel, mapIdeaDetail } from '@/lib/api-mappers'
 
 interface IdeaDetailPageProps {
   ideaId: string
 }
 
+function formatDate(dateString?: string) {
+  if (!dateString) return '—'
+  try {
+    const date = new Date(dateString)
+    return new Intl.DateTimeFormat('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }).format(date)
+  } catch {
+    return dateString
+  }
+}
+
 export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
   const queryClient = useQueryClient()
-  const { data, isLoading, error } = useIdeaById(ideaId)
+  const { data: idea, isLoading, error } = useIdeaById(ideaId)
   const { mutateAsync: addComment, isPending: isCommenting } = useAddComment()
   const { mutateAsync: voteOnIdea, isPending: isVoting } = useVoteOnIdea()
   const [commentText, setCommentText] = useState('')
   const [isAnonymous, setIsAnonymous] = useState(false)
   const [feedbackMessage, setFeedbackMessage] = useState('')
 
-  const idea = useMemo(() => mapIdeaDetail(data), [data])
-
   const canLike = !isLoading
-  const canComment = !isLoading && (idea.canComment ?? true)
+  const canComment = !isLoading && (idea?.canComment ?? true)
 
   const refreshIdeaQueries = async () => {
     await Promise.all([
@@ -102,11 +113,11 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
   return (
     <div className="w-full px-6 py-6 lg:px-8">
       <PageHeader
-        title={isLoading ? 'Loading idea...' : idea.title || 'Idea Detail'}
+        title={isLoading ? 'Loading idea...' : idea?.text || 'Idea Detail'}
         description={
           isLoading
             ? 'Fetching idea details from the API.'
-            : idea.brief || 'Idea detail loaded from the idea endpoint.'
+            : idea?.description || 'Idea detail loaded from the idea endpoint.'
         }
         actions={
           <>
@@ -151,49 +162,36 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
         <div className="space-y-6">
           <SectionCard
             title="Main content"
-            description="Live content mapped from the idea detail endpoint."
+            description="Live content from the idea detail endpoint."
           >
             <div className="space-y-4 text-sm leading-7 text-slate-600">
               <div className="rounded-2xl bg-slate-50 p-5">
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                  Idea title
+                  Idea text
                 </p>
                 <p className="mt-2 text-base font-medium text-slate-900">
                   {isLoading
-                    ? 'Loading title...'
-                    : idea.title || 'No title provided'}
+                    ? 'Loading text...'
+                    : idea?.text || 'No text provided'}
                 </p>
               </div>
 
               <div className="rounded-2xl bg-slate-50 p-5">
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                  Summary
+                  Description
                 </p>
                 <p className="mt-2">
                   {isLoading
-                    ? 'Loading summary...'
-                    : idea.brief || 'No summary available.'}
+                    ? 'Loading description...'
+                    : idea?.description || 'No description available.'}
                 </p>
-              </div>
-
-              <div className="min-h-[260px] rounded-2xl bg-slate-50 p-5">
-                <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                  Detailed content
-                </p>
-                <div className="mt-2 whitespace-pre-wrap text-sm leading-7 text-slate-700">
-                  {isLoading
-                    ? 'Loading content...'
-                    : idea.content ||
-                      idea.brief ||
-                      'No detailed content available.'}
-                </div>
               </div>
             </div>
           </SectionCard>
 
           <SectionCard
             title="Comments"
-            description="View existing comments and post a new one using the idea API."
+            description="View existing comments and post a new one."
           >
             {feedbackMessage ? (
               <div className="mb-5 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
@@ -202,7 +200,7 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
             ) : null}
 
             <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.8fr)_360px]">
-              {idea.comments && idea.comments.length > 0 ? (
+              {idea?.comments && idea.comments.length > 0 ? (
                 <div className="space-y-4">
                   {idea.comments.map((comment) => (
                     <div
@@ -213,12 +211,12 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
                         <span>
                           {comment.isAnonymous
                             ? 'Anonymous'
-                            : comment.authorName || 'Unknown author'}
+                            : comment.authorName || comment.createdBy || 'Unknown author'}
                         </span>
-                        <span>{formatDateLabel(comment.createdAt)}</span>
+                        <span>{formatDate(comment.createdAt)}</span>
                       </div>
                       <p className="mt-3 whitespace-pre-wrap">
-                        {comment.content}
+                        {comment.text}
                       </p>
                     </div>
                   ))}
@@ -269,63 +267,37 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
         <div className="space-y-6">
           <SectionCard
             title="Meta information"
-            description="Category, author, dates, and engagement metrics from the API."
+            description="Category, author, dates, and engagement metrics."
           >
             <div className="space-y-3 text-sm text-slate-600">
               <div className="rounded-2xl bg-slate-50 p-4">
-                Category: {idea.categoryName || 'Uncategorized'}
+                Category: {idea?.categoryName || 'Uncategorized'}
               </div>
               <div className="rounded-2xl bg-slate-50 p-4">
                 Author:{' '}
-                {idea.isAnonymous
+                {idea?.isAnonymous
                   ? 'Anonymous'
-                  : idea.authorName || 'Unknown author'}
+                  : idea?.authorName || 'Unknown author'}
               </div>
               <div className="rounded-2xl bg-slate-50 p-4">
-                Status: {idea.status?.replace(/_/g, ' ') || 'Pending'}
+                Status: {idea?.status?.replace(/_/g, ' ') || 'Pending'}
               </div>
               <div className="rounded-2xl bg-slate-50 p-4">
-                Created: {formatDateLabel(idea.createdAt)}
+                Created: {formatDate(idea?.createdAt || idea?.createdDate)}
               </div>
               <div className="rounded-2xl bg-slate-50 p-4">
-                Closure: {formatDateLabel(idea.closureDate)}
+                Views: {idea?.viewCount ?? 0}
               </div>
               <div className="rounded-2xl bg-slate-50 p-4">
-                Likes: {idea.totalLikes ?? 0}
+                Upvotes: {idea?.thumbsUpCount ?? 0}
               </div>
               <div className="rounded-2xl bg-slate-50 p-4">
-                Comments: {idea.totalComments ?? idea.comments?.length ?? 0}
+                Downvotes: {idea?.thumbsDownCount ?? 0}
+              </div>
+              <div className="rounded-2xl bg-slate-50 p-4">
+                Comments: {idea?.commentCount ?? idea?.comments?.length ?? 0}
               </div>
             </div>
-          </SectionCard>
-
-          <SectionCard
-            title="Attachments"
-            description="Use multipart file metadata from backend."
-          >
-            {idea.attachments && idea.attachments.length > 0 ? (
-              <div className="space-y-3">
-                {idea.attachments.map((attachment) => (
-                  <div
-                    key={attachment.id}
-                    className="flex items-center gap-3 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600"
-                  >
-                    <Paperclip className="h-4 w-4" />
-                    <span>{attachment.fileName}</span>
-                    {attachment.fileSize ? (
-                      <span className="text-slate-400">
-                        ({attachment.fileSize})
-                      </span>
-                    ) : null}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex items-center gap-3 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600">
-                <Paperclip className="h-4 w-4" />
-                No attachment loaded yet.
-              </div>
-            )}
           </SectionCard>
         </div>
       </div>

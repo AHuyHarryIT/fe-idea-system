@@ -5,23 +5,37 @@ const API_BASE_URL =
   'http://localhost:5000/api'
 
 async function requestExport(endpoint: string, filename: string): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${auth.getToken() ?? ''}`,
-    },
-  })
+  try {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${auth.getToken() ?? ''}`,
+      },
+    })
 
-  if (!response.ok) {
-    throw new Error(`Export failed (HTTP ${response.status})`)
+    if (!response.ok) {
+      throw new Error(`Export failed (HTTP ${response.status})`)
+    }
+
+    const blob = await response.blob()
+    downloadBlob(blob, filename)
+  } catch (error) {
+    console.error('Export error:', error)
+    throw error
   }
-
-  const blob = await response.blob()
-  downloadBlob(blob, filename)
 }
 
 export const exportService = {
-  // Admin exports
+  // Admin and QA Manager exports
+  exportIdeasAsCSV: async (): Promise<void> => {
+    return requestExport('/Export/csv', 'ideas.csv')
+  },
+
+  exportIdeasAsZip: async (): Promise<void> => {
+    return requestExport('/Export/zip', 'ideas.zip')
+  },
+
+  // Alias methods for backwards compatibility
   exportAdminIdeasAsCSV: async (): Promise<void> => {
     return requestExport('/Export/csv', 'ideas.csv')
   },
@@ -30,21 +44,11 @@ export const exportService = {
     return requestExport('/Export/zip', 'ideas.zip')
   },
 
-  // QA Manager exports
   exportQAManagerIdeasAsCSV: async (): Promise<void> => {
     return requestExport('/Export/csv', 'ideas.csv')
   },
 
   exportQAManagerIdeasAsZip: async (): Promise<void> => {
-    return requestExport('/Export/zip', 'ideas.zip')
-  },
-
-  // Public exports
-  exportIdeasAsCSV: async (): Promise<void> => {
-    return requestExport('/Export/csv', 'ideas.csv')
-  },
-
-  exportIdeasAsZip: async (): Promise<void> => {
     return requestExport('/Export/zip', 'ideas.zip')
   },
 }

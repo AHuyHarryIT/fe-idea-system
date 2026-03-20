@@ -11,12 +11,6 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { useStaffCategories } from '@/hooks/useCategories'
 import { useSubmitIdea } from '@/hooks/useIdeas'
-import {
-  extractCollection,
-  formatDateLabel,
-  mapCategory,
-  mapSubmission,
-} from '@/lib/api-mappers'
 
 const initialForm: IdeaSubmitPayload = {
   title: '',
@@ -26,6 +20,20 @@ const initialForm: IdeaSubmitPayload = {
   submissionId: '',
   isAnonymous: false,
   attachments: [],
+}
+
+function formatDate(dateString?: string) {
+  if (!dateString) return '—'
+  try {
+    const date = new Date(dateString)
+    return new Intl.DateTimeFormat('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    }).format(date)
+  } catch {
+    return dateString
+  }
 }
 
 export default function SubmitIdeaPage() {
@@ -53,14 +61,8 @@ export default function SubmitIdeaPage() {
     () => form.attachments.map((file) => file.name).join(', '),
     [form.attachments],
   )
-  const categories = useMemo(
-    () => extractCollection(categoryData, ['categories']).map(mapCategory),
-    [categoryData],
-  )
-  const submissions = useMemo(
-    () => extractCollection(submissionData, ['submissions']).map(mapSubmission),
-    [submissionData],
-  )
+  const categories = useMemo(() => categoryData ?? [], [categoryData])
+  const submissions = useMemo(() => submissionData ?? [], [submissionData])
 
   const handleSubmit = async () => {
     setFeedbackMessage('')
@@ -146,7 +148,7 @@ export default function SubmitIdeaPage() {
                 {submissions.map((submission) => (
                   <option key={submission.id} value={submission.id}>
                     {submission.name} · closes{' '}
-                    {formatDateLabel(submission.closureDate)}
+                    {formatDate(submission.closureDate)}
                   </option>
                 ))}
               </select>

@@ -10,6 +10,9 @@ export { ideaService } from './ideas'
 export * from './categories'
 export { categoryService } from './categories'
 
+export * from './departments'
+export { departmentService } from './departments'
+
 export * from './submissions'
 export { submissionService } from './submissions'
 

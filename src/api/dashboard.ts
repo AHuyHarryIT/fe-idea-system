@@ -2,11 +2,18 @@ import { apiClient } from './client'
 import type { ApiResponse } from './client'
 
 export interface DashboardStats {
-  totalIdeas: number
-  totalVotes: number
-  totalComments: number
-  departmentIdeas: number
-  pendingReview: number
+  totalIdeas?: number
+  totalVotes?: number
+  totalComments?: number
+  departmentIdeas?: number
+  pendingReview?: number
+}
+
+export interface DepartmentStat {
+  departmentName: string
+  ideaCount: number
+  percentage: number
+  contributorCount?: number
 }
 
 export interface StaffDashboard {
@@ -27,8 +34,8 @@ export interface QACoordinatorDashboard {
 
 export interface QAManagerDashboard {
   stats: DashboardStats
-  pendingIdeas: number
-  ideasWithoutComments: number
+  pendingIdeas?: number
+  ideasWithoutComments?: number
 }
 
 export const dashboardService = {
@@ -36,8 +43,8 @@ export const dashboardService = {
   getGeneralDashboard: (): Promise<ApiResponse<DashboardStats>> =>
     apiClient.get<DashboardStats>('/Stats/dashboard'),
 
-  getDepartmentStats: (): Promise<ApiResponse<Array<{ department: string; count: number }>>> =>
-    apiClient.get<Array<{ department: string; count: number }>>('/Stats/departments'),
+  getDepartmentStats: (): Promise<ApiResponse<Array<DepartmentStat>>> =>
+    apiClient.get<Array<DepartmentStat>>('/Stats/departments'),
 
   getIdeasWithoutComments: (): Promise<ApiResponse<Array<{ id: string; text: string }>>> =>
     apiClient.get<Array<{ id: string; text: string }>>('/Stats/ideas-without-comments'),
