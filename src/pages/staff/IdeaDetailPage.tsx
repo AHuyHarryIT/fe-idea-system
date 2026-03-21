@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { Lightbulb, MessageSquare, ThumbsUp } from 'lucide-react'
+import { Lightbulb, MessageSquare, ThumbsDown, ThumbsUp } from 'lucide-react'
 import { AppButton } from '@/components/app/AppButton'
 import { FormField } from '@/components/forms/FormField'
 import { FormTextarea } from '@/components/forms/FormInput'
@@ -48,12 +48,28 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
     ])
   }
 
-  const handleVote = async () => {
+  const handleLike = async () => {
     setFeedbackMessage('')
 
     const response = await voteOnIdea({
       ideaId,
       request: { isThumbsUp: true },
+    })
+
+    if (!response.success) {
+      setFeedbackMessage(response.error ?? 'Unable to register your vote.')
+      return
+    }
+
+    await refreshIdeaQueries()
+    setFeedbackMessage('Thanks! Your vote has been recorded.')
+  }
+  const handleDislike = async () => {
+    setFeedbackMessage('')
+
+    const response = await voteOnIdea({
+      ideaId,
+      request: { isThumbsDown: true },
     })
 
     if (!response.success) {
@@ -130,13 +146,16 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
 
             <AppButton
               variant="ghost"
-              onClick={handleVote}
+              onClick={handleLike}
               disabled={isLoading || isVoting || !canLike}
             >
               <ThumbsUp className="mr-2 h-4 w-4" />
-              {isVoting ? 'Voting...' : 'Like'}
+              Like
             </AppButton>
-
+            <AppButton variant="red" onClick={handleDislike}>
+              <ThumbsDown className="mr-2 h-4 w-4" />
+              Dislike
+            </AppButton>
             <AppButton
               onClick={() => {
                 document
@@ -211,13 +230,13 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
                         <span>
                           {comment.isAnonymous
                             ? 'Anonymous'
-                            : comment.authorName || comment.createdBy || 'Unknown author'}
+                            : comment.authorName ||
+                              comment.createdBy ||
+                              'Unknown author'}
                         </span>
                         <span>{formatDate(comment.createdAt)}</span>
                       </div>
-                      <p className="mt-3 whitespace-pre-wrap">
-                        {comment.text}
-                      </p>
+                      <p className="mt-3 whitespace-pre-wrap">{comment.text}</p>
                     </div>
                   ))}
                 </div>

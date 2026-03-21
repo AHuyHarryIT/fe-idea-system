@@ -1,5 +1,11 @@
 import { Link } from '@tanstack/react-router'
-import { CalendarDays, Eye, MessageSquare, ThumbsUp } from 'lucide-react'
+import {
+  CalendarDays,
+  Eye,
+  MessageSquare,
+  ThumbsDown,
+  ThumbsUp,
+} from 'lucide-react'
 import type { Idea } from '@/api'
 
 interface IdeaCardProps {
@@ -47,7 +53,11 @@ export function IdeaCard({ idea }: IdeaCardProps) {
           </span>
           <span className="inline-flex items-center gap-1">
             <ThumbsUp className="h-4 w-4" />
-            {(idea.thumbsUpCount ?? 0) + (idea.thumbsDownCount ?? 0)}
+            {idea.thumbsUpCount ?? 0}
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <ThumbsDown className="h-4 w-4" />
+            {idea.thumbsDownCount ?? 0}
           </span>
           <span className="inline-flex items-center gap-1">
             <MessageSquare className="h-4 w-4" />

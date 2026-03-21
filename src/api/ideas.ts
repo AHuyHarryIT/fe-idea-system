@@ -3,8 +3,8 @@ import type { ApiResponse } from './client'
 
 export interface Idea {
   id: string
-  text?: string  // Frontend field
-  title?: string  // API field (backend sometimes returns this instead of text)
+  text?: string // Frontend field
+  title?: string // API field (backend sometimes returns this instead of text)
   description?: string
   categoryId?: string
   categoryName: string
@@ -60,7 +60,8 @@ export interface CommentCreateRequest {
 }
 
 export interface VoteRequest {
-  isThumbsUp: boolean
+  isThumbsUp?: boolean
+  isThumbsDown?: boolean
 }
 
 export const ideaService = {
@@ -71,31 +72,32 @@ export const ideaService = {
   getAllIdeas: (): Promise<ApiResponse<IdeaListResponse>> =>
     apiClient.get<IdeaListResponse>('/Idea'),
 
-  getPagedIdeas: (pageNumber: number = 1, pageSize: number = 10): Promise<ApiResponse<IdeaListResponse>> =>
-    apiClient.get<IdeaListResponse>(`/Idea/paged?pageNumber=${pageNumber}&pageSize=${pageSize}`),
+  getPagedIdeas: (
+    pageNumber: number = 1,
+    pageSize: number = 10,
+  ): Promise<ApiResponse<IdeaListResponse>> =>
+    apiClient.get<IdeaListResponse>(
+      `/Idea/paged?pageNumber=${pageNumber}&pageSize=${pageSize}`,
+    ),
 
   getIdeaById: (id: string): Promise<ApiResponse<Idea>> =>
     apiClient.get<Idea>(`/Idea/${id}`),
 
-  createIdea: (
-    request: IdeaCreateRequest
-  ): Promise<ApiResponse<Idea>> =>
+  createIdea: (request: IdeaCreateRequest): Promise<ApiResponse<Idea>> =>
     apiClient.post<Idea>('/Idea', request),
 
-  submitIdea: (
-    formData: FormData
-  ): Promise<ApiResponse<Idea>> =>
+  submitIdea: (formData: FormData): Promise<ApiResponse<Idea>> =>
     apiClient.uploadFiles<Idea>('/Idea', formData),
 
   voteOnIdea: (
     ideaId: string,
-    request: VoteRequest
+    request: VoteRequest,
   ): Promise<ApiResponse<void>> =>
     apiClient.post<void>(`/Idea/${ideaId}/vote`, request),
 
   addComment: (
     ideaId: string,
-    request: CommentCreateRequest
+    request: CommentCreateRequest,
   ): Promise<ApiResponse<Comment>> =>
     apiClient.post<Comment>(`/Idea/${ideaId}/comments`, request),
 

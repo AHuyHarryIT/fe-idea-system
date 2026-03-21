@@ -25,7 +25,6 @@ export default function ManageCategoryPage() {
     useDeleteIdeaCategory()
 
   const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
   const [feedbackMessage, setFeedbackMessage] = useState('')
 
   // Normalises raw API category data into a stable UI model.
@@ -59,7 +58,6 @@ export default function ManageCategoryPage() {
       })
 
       setName('')
-      setDescription('')
       await refreshCategoryQueries()
       setFeedbackMessage('Category created successfully.')
     } catch (err) {

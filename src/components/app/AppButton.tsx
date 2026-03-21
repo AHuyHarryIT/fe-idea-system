@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes } from 'react'
 
 interface AppButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost'
+  variant?: 'primary' | 'secondary' | 'ghost' | 'red'
 }
 
 const variantClassNames: Record<
@@ -11,6 +11,7 @@ const variantClassNames: Record<
   primary: 'bg-blue-600 text-white hover:bg-blue-700',
   secondary: 'bg-slate-900 text-white hover:bg-slate-800',
   ghost: 'bg-slate-100 text-slate-700 hover:bg-slate-200',
+  red: 'bg-red-600 text-white hover:bg-red-700',
 }
 
 export function AppButton({
