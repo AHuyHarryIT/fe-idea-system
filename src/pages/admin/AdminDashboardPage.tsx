@@ -2,24 +2,34 @@ import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { CalendarRange, ListChecks, Tags, Users } from 'lucide-react'
 import { useNavigate } from '@tanstack/react-router'
-import { categoryService, ideaService, submissionService, userService } from '@/api'
+import {
+  categoryService,
+  ideaService,
+  submissionService,
+  userService,
+} from '@/api'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { StatCard } from '@/components/shared/StatCard'
+import { AppButton } from '@/components/app/ManageButton'
 
 export default function AdminDashboardPage() {
   const navigate = useNavigate()
   const { data, isLoading, error } = useQuery({
     queryKey: ['adminOverview'],
     queryFn: async () => {
-      const [usersResponse, categoriesResponse, submissionsResponse, ideasResponse] =
-        await Promise.all([
-          userService.getUsers(),
-          categoryService.getAdminCategories(),
-          submissionService.getAdminSubmissions(),
-          ideaService.getAllIdeas(),
-        ])
+      const [
+        usersResponse,
+        categoriesResponse,
+        submissionsResponse,
+        ideasResponse,
+      ] = await Promise.all([
+        userService.getUsers(),
+        categoryService.getIdeaCategories(),
+        submissionService.getAdminSubmissions(),
+        ideaService.getAllIdeas(),
+      ])
 
       if (
         !usersResponse.success ||
@@ -39,21 +49,21 @@ export default function AdminDashboardPage() {
       // Handle API response formats
       // API returns direct array: [{id, title, ...}]
       // But code expects: {ideas: [...]} or {items: [...]}
-      const ideaData = ideasResponse.data;
-      let ideas: Array<any> = [];
+      const ideaData = ideasResponse.data
+      let ideas: Array<any> = []
       if (Array.isArray(ideaData)) {
-        ideas = ideaData;
+        ideas = ideaData
       } else if (ideaData?.ideas) {
-        ideas = ideaData.ideas;
+        ideas = ideaData.ideas
       } else if (ideaData?.items) {
-        ideas = ideaData.items;
+        ideas = ideaData.items
       }
-      
+
       // Map title to text for compatibility with frontend
       const mappedIdeas = ideas.map((idea: any) => ({
         ...idea,
         text: idea.text || idea.title,
-      }));
+      }))
 
       return {
         users: usersResponse.data?.users ?? [],
@@ -116,21 +126,32 @@ export default function AdminDashboardPage() {
             />
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
-              <button
+              <AppButton
+                variant="blue"
                 onClick={() => navigate({ to: '/manage/users' })}
-                className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600 hover:bg-slate-100 hover:border-slate-300 transition-colors text-left"
               >
                 Manage users · {data?.users.length ?? 0}
-              </button>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
+              </AppButton>
+
+              <AppButton
+                variant="blue"
+                onClick={() => navigate({ to: '/manage/categories' })}
+              >
                 Manage categories · {data?.categories.length ?? 0}
-              </div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
+              </AppButton>
+
+              <AppButton
+                variant="blue"
+                // onClick={() => navigate({ to: '/manage/submissions' })}
+              >
                 Manage submissions · {data?.submissions.length ?? 0}
-              </div>
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
+              </AppButton>
+              <AppButton
+                variant="blue"
+                onClick={() => navigate({ to: '/manage/ideas' })}
+              >
                 Review ideas · {data?.ideas.length ?? 0}
-              </div>
+              </AppButton>
             </div>
           )}
         </SectionCard>
@@ -152,9 +173,17 @@ export default function AdminDashboardPage() {
                   key={submission.id}
                   className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600"
                 >
-                  <p className="font-medium text-slate-900">{submission.name}</p>
-                  <p className="mt-2">Closure: {new Date(submission.closureDate).toLocaleDateString()}</p>
-                  <p>Final closure: {new Date(submission.finalClosureDate).toLocaleDateString()}</p>
+                  <p className="font-medium text-slate-900">
+                    {submission.name}
+                  </p>
+                  <p className="mt-2">
+                    Closure:{' '}
+                    {new Date(submission.closureDate).toLocaleDateString()}
+                  </p>
+                  <p>
+                    Final closure:{' '}
+                    {new Date(submission.finalClosureDate).toLocaleDateString()}
+                  </p>
                 </div>
               ))}
             </div>

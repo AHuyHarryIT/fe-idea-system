@@ -28,7 +28,14 @@ export default function DashboardPage() {
   }, [data])
 
   const recentIdeas = useMemo(
-    () => [...ideas].sort((left, right) => getTimestamp(right.createdAt || right.createdDate) - getTimestamp(left.createdAt || left.createdDate)).slice(0, 3),
+    () =>
+      [...ideas]
+        .sort(
+          (left, right) =>
+            getTimestamp(right.createdAt || right.createdDate) -
+            getTimestamp(left.createdAt || left.createdDate),
+        )
+        .slice(0, 3),
     [ideas],
   )
 
@@ -37,14 +44,17 @@ export default function DashboardPage() {
       [...ideas]
         .sort(
           (left, right) =>
-            ((right.thumbsUpCount ?? 0) + (right.commentCount ?? 0)) - ((left.thumbsUpCount ?? 0) + (left.commentCount ?? 0)),
+            (right.thumbsUpCount ?? 0) +
+            (right.commentCount ?? 0) -
+            ((left.thumbsUpCount ?? 0) + (left.commentCount ?? 0)),
         )
         .slice(0, 3),
     [ideas],
   )
 
   const totalEngagement = ideas.reduce(
-    (total, idea) => total + (idea.thumbsUpCount ?? 0) + (idea.commentCount ?? 0),
+    (total, idea) =>
+      total + (idea.thumbsUpCount ?? 0) + (idea.commentCount ?? 0),
     0,
   )
   const totalFeedback = ideas.reduce(

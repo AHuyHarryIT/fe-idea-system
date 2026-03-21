@@ -1,73 +1,37 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
-import type { CreateCategoryRequest } from '@/api'
-import { categoryService } from '@/api'
+import type { CreateIdeaCategoryRequest } from '@/api/categories'
+import { categoryService } from '@/api/categories'
 
-export const useStaffCategories = () => {
+// Retrieves the list of idea categories used across the system.
+export const useIdeaCategories = () => {
   return useQuery({
-    queryKey: ['staffCategories'],
+    queryKey: ['ideaCategories'],
     queryFn: async () => {
-      const response = await categoryService.getStaffCategories()
+      const response = await categoryService.getIdeaCategories()
       if (response.success) return response.data
-      throw new Error(response.error)
+      throw new Error(response.error ?? 'Unable to load idea categories.')
     },
   })
 }
 
-export const useAdminCategories = () => {
-  return useQuery({
-    queryKey: ['adminCategories'],
-    queryFn: async () => {
-      const response = await categoryService.getAdminCategories()
+// Creates a new idea category.
+export const useCreateIdeaCategory = () => {
+  return useMutation({
+    mutationFn: async (request: CreateIdeaCategoryRequest) => {
+      const response = await categoryService.createIdeaCategory(request)
       if (response.success) return response.data
-      throw new Error(response.error)
+      throw new Error(response.error ?? 'Unable to create idea category.')
     },
   })
 }
 
-export const useCreateAdminCategory = () => {
+// Deletes an existing idea category.
+export const useDeleteIdeaCategory = () => {
   return useMutation({
-    mutationFn: (request: CreateCategoryRequest) =>
-      categoryService.createAdminCategory(request),
-  })
-}
-
-export const useDeleteAdminCategory = () => {
-  return useMutation({
-    mutationFn: (id: string) => categoryService.deleteAdminCategory(id),
-  })
-}
-
-export const useQAManagerCategories = () => {
-  return useQuery({
-    queryKey: ['qaManagerCategories'],
-    queryFn: async () => {
-      const response = await categoryService.getQAManagerCategories()
+    mutationFn: async (id: string) => {
+      const response = await categoryService.deleteIdeaCategory(id)
       if (response.success) return response.data
-      throw new Error(response.error)
-    },
-  })
-}
-
-export const useCreateQAManagerCategory = () => {
-  return useMutation({
-    mutationFn: (request: CreateCategoryRequest) =>
-      categoryService.createQAManagerCategory(request),
-  })
-}
-
-export const useDeleteQAManagerCategory = () => {
-  return useMutation({
-    mutationFn: (id: string) => categoryService.deleteQAManagerCategory(id),
-  })
-}
-
-export const useCategories = () => {
-  return useQuery({
-    queryKey: ['categories'],
-    queryFn: async () => {
-      const response = await categoryService.getCategories()
-      if (response.success) return response.data
-      throw new Error(response.error)
+      throw new Error(response.error ?? 'Unable to delete idea category.')
     },
   })
 }

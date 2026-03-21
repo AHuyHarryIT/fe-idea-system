@@ -19,6 +19,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as IdeasIndexRouteImport } from './routes/ideas.index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as ManageUsersRouteImport } from './routes/manage/users'
+import { Route as ManageCategoriesRouteImport } from './routes/manage/categories'
 import { Route as IdeasIdeaIdRouteImport } from './routes/ideas.$ideaId'
 
 const SubmitIdeaRoute = SubmitIdeaRouteImport.update({
@@ -71,6 +72,11 @@ const ManageUsersRoute = ManageUsersRouteImport.update({
   path: '/manage/users',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ManageCategoriesRoute = ManageCategoriesRouteImport.update({
+  id: '/manage/categories',
+  path: '/manage/categories',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IdeasIdeaIdRoute = IdeasIdeaIdRouteImport.update({
   id: '/$ideaId',
   path: '/$ideaId',
@@ -86,6 +92,7 @@ export interface FileRoutesByFullPath {
   '/qa-manager': typeof QaManagerRoute
   '/submit-idea': typeof SubmitIdeaRoute
   '/ideas/$ideaId': typeof IdeasIdeaIdRoute
+  '/manage/categories': typeof ManageCategoriesRoute
   '/manage/users': typeof ManageUsersRoute
   '/admin': typeof AdminIndexRoute
   '/ideas/': typeof IdeasIndexRoute
@@ -98,6 +105,7 @@ export interface FileRoutesByTo {
   '/qa-manager': typeof QaManagerRoute
   '/submit-idea': typeof SubmitIdeaRoute
   '/ideas/$ideaId': typeof IdeasIdeaIdRoute
+  '/manage/categories': typeof ManageCategoriesRoute
   '/manage/users': typeof ManageUsersRoute
   '/admin': typeof AdminIndexRoute
   '/ideas': typeof IdeasIndexRoute
@@ -112,6 +120,7 @@ export interface FileRoutesById {
   '/qa-manager': typeof QaManagerRoute
   '/submit-idea': typeof SubmitIdeaRoute
   '/ideas/$ideaId': typeof IdeasIdeaIdRoute
+  '/manage/categories': typeof ManageCategoriesRoute
   '/manage/users': typeof ManageUsersRoute
   '/admin/': typeof AdminIndexRoute
   '/ideas/': typeof IdeasIndexRoute
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
     | '/qa-manager'
     | '/submit-idea'
     | '/ideas/$ideaId'
+    | '/manage/categories'
     | '/manage/users'
     | '/admin'
     | '/ideas/'
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
     | '/qa-manager'
     | '/submit-idea'
     | '/ideas/$ideaId'
+    | '/manage/categories'
     | '/manage/users'
     | '/admin'
     | '/ideas'
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '/qa-manager'
     | '/submit-idea'
     | '/ideas/$ideaId'
+    | '/manage/categories'
     | '/manage/users'
     | '/admin/'
     | '/ideas/'
@@ -165,6 +177,7 @@ export interface RootRouteChildren {
   QaCoordinatorRoute: typeof QaCoordinatorRoute
   QaManagerRoute: typeof QaManagerRoute
   SubmitIdeaRoute: typeof SubmitIdeaRoute
+  ManageCategoriesRoute: typeof ManageCategoriesRoute
   ManageUsersRoute: typeof ManageUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -241,6 +254,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManageUsersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/manage/categories': {
+      id: '/manage/categories'
+      path: '/manage/categories'
+      fullPath: '/manage/categories'
+      preLoaderRoute: typeof ManageCategoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ideas/$ideaId': {
       id: '/ideas/$ideaId'
       path: '/$ideaId'
@@ -271,6 +291,7 @@ const rootRouteChildren: RootRouteChildren = {
   QaCoordinatorRoute: QaCoordinatorRoute,
   QaManagerRoute: QaManagerRoute,
   SubmitIdeaRoute: SubmitIdeaRoute,
+  ManageCategoriesRoute: ManageCategoriesRoute,
   ManageUsersRoute: ManageUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
 }

@@ -1,53 +1,27 @@
 import { apiClient } from './client'
 import type { ApiResponse } from './client'
 
-export interface Category {
+// Represents a thematic category used to classify ideas.
+export interface IdeaCategory {
   id: string
   name: string
 }
 
-export interface CreateCategoryRequest {
+// Represents the payload required to create a new idea category.
+export interface CreateIdeaCategoryRequest {
   name: string
 }
 
+// Provides API operations for retrieving and managing idea categories.
 export const categoryService = {
-  // Staff endpoints
-  getStaffCategories: (): Promise<ApiResponse<Array<Category>>> =>
-    apiClient.get<Array<Category>>('/Categories'),
+  getIdeaCategories: (): Promise<ApiResponse<Array<IdeaCategory>>> =>
+    apiClient.get<Array<IdeaCategory>>('/Categories'),
 
-  // Admin endpoints
-  getAdminCategories: (): Promise<ApiResponse<Array<Category>>> =>
-    apiClient.get<Array<Category>>('/Categories'),
+  createIdeaCategory: (
+    request: CreateIdeaCategoryRequest,
+  ): Promise<ApiResponse<IdeaCategory>> =>
+    apiClient.post<IdeaCategory>('/Categories', request),
 
-  createAdminCategory: (
-    request: CreateCategoryRequest
-  ): Promise<ApiResponse<Category>> =>
-    apiClient.post<Category>('/Categories', request),
-
-  deleteAdminCategory: (id: string): Promise<ApiResponse<void>> =>
-    apiClient.delete(`/Categories/${id}`),
-
-  // QA Manager endpoints
-  getQAManagerCategories: (): Promise<ApiResponse<Array<Category>>> =>
-    apiClient.get<Array<Category>>('/Categories'),
-
-  createQAManagerCategory: (
-    request: CreateCategoryRequest
-  ): Promise<ApiResponse<Category>> =>
-    apiClient.post<Category>('/Categories', request),
-
-  deleteQAManagerCategory: (id: string): Promise<ApiResponse<void>> =>
-    apiClient.delete(`/Categories/${id}`),
-
-  // Public endpoints
-  getCategories: (): Promise<ApiResponse<Array<Category>>> =>
-    apiClient.get<Array<Category>>('/Categories'),
-
-  createCategory: (
-    request: CreateCategoryRequest
-  ): Promise<ApiResponse<Category>> =>
-    apiClient.post<Category>('/Categories', request),
-
-  deleteCategory: (id: string): Promise<ApiResponse<void>> =>
+  deleteIdeaCategory: (id: string): Promise<ApiResponse<void>> =>
     apiClient.delete(`/Categories/${id}`),
 }

@@ -1,10 +1,12 @@
 import {
   BarChart3,
+  FolderKanban,
   LayoutDashboard,
   Lightbulb,
   List,
   PieChart,
   Settings,
+  Tags,
   Users,
 } from 'lucide-react'
 import type { Role } from '@/types/auth'
@@ -34,6 +36,11 @@ export const navigationByRole: Record<Role, Array<NavItem>> = {
   admin: [
     { path: '/admin', label: 'Dashboard', icon: Settings },
     { path: '/manage/users', label: 'Manage Users', icon: Users },
+    {
+      path: '/manage/categories',
+      label: 'Manage Categories',
+      icon: FolderKanban,
+    },
     { path: '/submit-idea', label: 'Submit Idea', icon: Lightbulb },
     { path: '/ideas', label: 'Browse Ideas', icon: List },
   ],

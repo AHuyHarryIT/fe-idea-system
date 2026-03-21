@@ -6,25 +6,28 @@ import { IdeaCard } from '@/components/ideas/IdeaCard'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
-import { useCategories } from '@/hooks/useCategories'
+
 import { useIdeaFilters } from '@/hooks/useIdeaFilters'
 import { useAllIdeas } from '@/hooks/useIdeas'
 import { normalizeIdeaResponse } from '@/lib/idea-response-mapper'
+import { useIdeaCategories } from '@/hooks/useCategories'
 
 export default function IdeaListPage() {
   const { search, setSearch, status, setStatus, category, setCategory } =
     useIdeaFilters()
   const { data, isLoading, error } = useAllIdeas()
-  const { data: categoryData } = useCategories()
+  const { data: categoryData } = useIdeaCategories()
 
   const ideas = useMemo(() => {
     const ideaList = normalizeIdeaResponse(data)
     return Array.isArray(ideaList) ? ideaList.filter((idea) => idea.id) : []
   }, [data])
-  
+
   const categories = useMemo(() => {
     const categoryList = categoryData ?? []
-    return Array.isArray(categoryList) ? categoryList.filter((item) => item.id) : []
+    return Array.isArray(categoryList)
+      ? categoryList.filter((item) => item.id)
+      : []
   }, [categoryData])
 
   const statuses = useMemo(

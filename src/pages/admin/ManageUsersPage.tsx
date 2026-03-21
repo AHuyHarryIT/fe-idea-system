@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ChevronLeft, Edit2, Plus, Trash2, Users } from 'lucide-react'
-import { useNavigate } from '@tanstack/react-router'
+import { Edit2, Plus, Trash2, Users } from 'lucide-react'
 import { userService } from '@/api'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -14,10 +13,14 @@ interface FormState {
   role: string
 }
 
-const AVAILABLE_ROLES = ['Administrator', 'Staff', 'QA Manager', 'QA Coordinator']
+const AVAILABLE_ROLES = [
+  'Administrator',
+  'Staff',
+  'QA Manager',
+  'QA Coordinator',
+]
 
 export default function ManageUsersPage() {
-  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [isCreating, setIsCreating] = useState(false)
   const [editingUserId, setEditingUserId] = useState<string | null>(null)
@@ -96,12 +99,6 @@ export default function ManageUsersPage() {
   return (
     <div className="mx-auto max-w-7xl">
       <div className="mb-6 flex items-center gap-3">
-        <button
-          onClick={() => navigate({ to: '/admin' })}
-          className="rounded-lg hover:bg-slate-100 p-2"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
         <PageHeader
           title="Manage Users"
           description="Create, update roles, and manage user accounts across the platform."
@@ -114,7 +111,9 @@ export default function ManageUsersPage() {
           <h3 className="mb-4 text-lg font-semibold">Create New User</h3>
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-slate-700">Email</label>
+              <label className="block text-sm font-medium text-slate-700">
+                Email
+              </label>
               <input
                 type="email"
                 value={formState.email}
@@ -126,7 +125,9 @@ export default function ManageUsersPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700">Name</label>
+              <label className="block text-sm font-medium text-slate-700">
+                Name
+              </label>
               <input
                 type="text"
                 value={formState.name}
@@ -152,7 +153,9 @@ export default function ManageUsersPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700">Role</label>
+              <label className="block text-sm font-medium text-slate-700">
+                Role
+              </label>
               <select
                 value={formState.role}
                 onChange={(e) =>
@@ -203,7 +206,9 @@ export default function ManageUsersPage() {
           <EmptyState
             icon={Users}
             title="Error loading users"
-            description={error instanceof Error ? error.message : 'Unknown error'}
+            description={
+              error instanceof Error ? error.message : 'Unknown error'
+            }
           />
         ) : users.length === 0 ? (
           <EmptyState
@@ -236,13 +241,18 @@ export default function ManageUsersPage() {
               <tbody className="divide-y divide-slate-200">
                 {users.map((user) => (
                   <tr key={user.id} className="hover:bg-slate-50">
-                    <td className="px-6 py-4 text-sm text-slate-900">{user.email}</td>
-                    <td className="px-6 py-4 text-sm text-slate-900">{user.name}</td>
+                    <td className="px-6 py-4 text-sm text-slate-900">
+                      {user.email}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-slate-900">
+                      {user.name}
+                    </td>
                     <td className="px-6 py-4 text-sm">
                       {editingUserId === user.id ? (
                         <select
                           value={
-                            users.find((u) => u.id === user.id)?.role || user.role
+                            users.find((u) => u.id === user.id)?.role ||
+                            user.role
                           }
                           onChange={(e) => {
                             handleUpdateRole(user.id, e.target.value)
@@ -250,7 +260,11 @@ export default function ManageUsersPage() {
                           className="rounded-lg border border-slate-300 px-2 py-1 text-sm"
                         >
                           {AVAILABLE_ROLES.map((role) => (
-                            <option key={role} value={role} selected={user.role == role}>
+                            <option
+                              key={role}
+                              value={role}
+                              selected={user.role == role}
+                            >
                               {role}
                             </option>
                           ))}
@@ -269,7 +283,7 @@ export default function ManageUsersPage() {
                         <button
                           onClick={() =>
                             setEditingUserId(
-                              editingUserId === user.id ? null : user.id
+                              editingUserId === user.id ? null : user.id,
                             )
                           }
                           className="rounded-lg p-2 hover:bg-slate-100"

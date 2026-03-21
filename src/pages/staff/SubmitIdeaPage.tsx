@@ -7,8 +7,8 @@ import { AppButton } from '@/components/app/AppButton'
 import { FormField } from '@/components/forms/FormField'
 import { FormInput, FormTextarea } from '@/components/forms/FormInput'
 import { PageHeader } from '@/components/shared/PageHeader'
+import { useIdeaCategories } from '@/hooks/useCategories'
 import { SectionCard } from '@/components/shared/SectionCard'
-import { useStaffCategories } from '@/hooks/useCategories'
 import { useSubmitIdea } from '@/hooks/useIdeas'
 
 const initialForm: IdeaSubmitPayload = {
@@ -25,7 +25,7 @@ export default function SubmitIdeaPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { data: categoryData, isLoading: categoriesLoading } =
-    useStaffCategories()
+    useIdeaCategories()
   const { mutateAsync: submitIdea, isPending } = useSubmitIdea()
   const [form, setForm] = useState<IdeaSubmitPayload>(initialForm)
   const [feedbackMessage, setFeedbackMessage] = useState('')
