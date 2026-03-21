@@ -1,9 +1,8 @@
 import { useMemo, useState } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { FileUp, Send } from 'lucide-react'
 import type { IdeaSubmitPayload } from '@/types/idea'
-import { submissionService } from '@/api'
 import { AppButton } from '@/components/app/AppButton'
 import { FormField } from '@/components/forms/FormField'
 import { FormInput, FormTextarea } from '@/components/forms/FormInput'
@@ -22,37 +21,11 @@ const initialForm: IdeaSubmitPayload = {
   attachments: [],
 }
 
-function formatDate(dateString?: string) {
-  if (!dateString) return '—'
-  try {
-    const date = new Date(dateString)
-    return new Intl.DateTimeFormat('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    }).format(date)
-  } catch {
-    return dateString
-  }
-}
-
 export default function SubmitIdeaPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { data: categoryData, isLoading: categoriesLoading } =
     useStaffCategories()
-  const { data: submissionData, isLoading: submissionsLoading } = useQuery({
-    queryKey: ['activeSubmissions'],
-    queryFn: async () => {
-      const response = await submissionService.getActiveSubmissions()
-
-      if (!response.success) {
-        throw new Error(response.error ?? 'Unable to load active submissions.')
-      }
-
-      return response.data
-    },
-  })
   const { mutateAsync: submitIdea, isPending } = useSubmitIdea()
   const [form, setForm] = useState<IdeaSubmitPayload>(initialForm)
   const [feedbackMessage, setFeedbackMessage] = useState('')
@@ -62,7 +35,6 @@ export default function SubmitIdeaPage() {
     [form.attachments],
   )
   const categories = useMemo(() => categoryData ?? [], [categoryData])
-  const submissions = useMemo(() => submissionData ?? [], [submissionData])
 
   const handleSubmit = async () => {
     setFeedbackMessage('')
@@ -71,8 +43,7 @@ export default function SubmitIdeaPage() {
       !form.title.trim() ||
       !form.brief.trim() ||
       !form.content.trim() ||
-      !form.categoryId ||
-      !form.submissionId
+      !form.categoryId
     ) {
       setFeedbackMessage(
         'Please complete all required fields before submitting.',
@@ -87,7 +58,6 @@ export default function SubmitIdeaPage() {
       `${form.brief.trim()}\n\n${form.content.trim()}`,
     )
     formData.append('CategoryId', form.categoryId)
-    formData.append('SubmissionId', form.submissionId)
     formData.append('IsAnonymous', String(form.isAnonymous))
 
     form.attachments.forEach((file) => {
@@ -123,7 +93,7 @@ export default function SubmitIdeaPage() {
           title="Idea information"
           description="Core fields expected from the submit-idea flow."
         >
-          <div className="grid gap-5 md:grid-cols-2">
+          <div className="grid gap-5">
             <FormField label="Idea title" required>
               <FormInput
                 value={form.title}
@@ -132,31 +102,6 @@ export default function SubmitIdeaPage() {
                 }
                 placeholder="Enter a concise title"
               />
-            </FormField>
-            <FormField label="Academic year" required>
-              <select
-                value={form.submissionId}
-                onChange={(event) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    submissionId: event.target.value,
-                  }))
-                }
-                className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-              >
-                <option value="">Select active submission</option>
-                {submissions.map((submission) => (
-                  <option key={submission.id} value={submission.id}>
-                    {submission.name} · closes{' '}
-                    {formatDate(submission.closureDate)}
-                  </option>
-                ))}
-              </select>
-              {submissionsLoading ? (
-                <p className="text-xs text-slate-500">
-                  Loading active submissions...
-                </p>
-              ) : null}
             </FormField>
           </div>
 
