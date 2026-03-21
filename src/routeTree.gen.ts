@@ -19,6 +19,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as IdeasIndexRouteImport } from './routes/ideas.index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as ManageUsersRouteImport } from './routes/manage/users'
+import { Route as ManageDepartmentsRouteImport } from './routes/manage/departments'
 import { Route as ManageCategoriesRouteImport } from './routes/manage/categories'
 import { Route as IdeasIdeaIdRouteImport } from './routes/ideas.$ideaId'
 
@@ -72,6 +73,11 @@ const ManageUsersRoute = ManageUsersRouteImport.update({
   path: '/manage/users',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ManageDepartmentsRoute = ManageDepartmentsRouteImport.update({
+  id: '/manage/departments',
+  path: '/manage/departments',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ManageCategoriesRoute = ManageCategoriesRouteImport.update({
   id: '/manage/categories',
   path: '/manage/categories',
@@ -93,6 +99,7 @@ export interface FileRoutesByFullPath {
   '/submit-idea': typeof SubmitIdeaRoute
   '/ideas/$ideaId': typeof IdeasIdeaIdRoute
   '/manage/categories': typeof ManageCategoriesRoute
+  '/manage/departments': typeof ManageDepartmentsRoute
   '/manage/users': typeof ManageUsersRoute
   '/admin': typeof AdminIndexRoute
   '/ideas/': typeof IdeasIndexRoute
@@ -106,6 +113,7 @@ export interface FileRoutesByTo {
   '/submit-idea': typeof SubmitIdeaRoute
   '/ideas/$ideaId': typeof IdeasIdeaIdRoute
   '/manage/categories': typeof ManageCategoriesRoute
+  '/manage/departments': typeof ManageDepartmentsRoute
   '/manage/users': typeof ManageUsersRoute
   '/admin': typeof AdminIndexRoute
   '/ideas': typeof IdeasIndexRoute
@@ -121,6 +129,7 @@ export interface FileRoutesById {
   '/submit-idea': typeof SubmitIdeaRoute
   '/ideas/$ideaId': typeof IdeasIdeaIdRoute
   '/manage/categories': typeof ManageCategoriesRoute
+  '/manage/departments': typeof ManageDepartmentsRoute
   '/manage/users': typeof ManageUsersRoute
   '/admin/': typeof AdminIndexRoute
   '/ideas/': typeof IdeasIndexRoute
@@ -137,6 +146,7 @@ export interface FileRouteTypes {
     | '/submit-idea'
     | '/ideas/$ideaId'
     | '/manage/categories'
+    | '/manage/departments'
     | '/manage/users'
     | '/admin'
     | '/ideas/'
@@ -150,6 +160,7 @@ export interface FileRouteTypes {
     | '/submit-idea'
     | '/ideas/$ideaId'
     | '/manage/categories'
+    | '/manage/departments'
     | '/manage/users'
     | '/admin'
     | '/ideas'
@@ -164,6 +175,7 @@ export interface FileRouteTypes {
     | '/submit-idea'
     | '/ideas/$ideaId'
     | '/manage/categories'
+    | '/manage/departments'
     | '/manage/users'
     | '/admin/'
     | '/ideas/'
@@ -178,6 +190,7 @@ export interface RootRouteChildren {
   QaManagerRoute: typeof QaManagerRoute
   SubmitIdeaRoute: typeof SubmitIdeaRoute
   ManageCategoriesRoute: typeof ManageCategoriesRoute
+  ManageDepartmentsRoute: typeof ManageDepartmentsRoute
   ManageUsersRoute: typeof ManageUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -254,6 +267,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManageUsersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/manage/departments': {
+      id: '/manage/departments'
+      path: '/manage/departments'
+      fullPath: '/manage/departments'
+      preLoaderRoute: typeof ManageDepartmentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/manage/categories': {
       id: '/manage/categories'
       path: '/manage/categories'
@@ -292,6 +312,7 @@ const rootRouteChildren: RootRouteChildren = {
   QaManagerRoute: QaManagerRoute,
   SubmitIdeaRoute: SubmitIdeaRoute,
   ManageCategoriesRoute: ManageCategoriesRoute,
+  ManageDepartmentsRoute: ManageDepartmentsRoute,
   ManageUsersRoute: ManageUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
 }

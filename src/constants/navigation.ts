@@ -1,12 +1,12 @@
 import {
   BarChart3,
+  Building2,
   FolderKanban,
   LayoutDashboard,
   Lightbulb,
   List,
   PieChart,
   Settings,
-  Tags,
   Users,
 } from 'lucide-react'
 import type { Role } from '@/types/auth'
@@ -30,6 +30,11 @@ export const navigationByRole: Record<Role, Array<NavItem>> = {
   ],
   qa_manager: [
     { path: '/qa-manager', label: 'Dashboard', icon: BarChart3 },
+    {
+      path: '/manage/departments',
+      label: 'Manage Departments',
+      icon: Building2,
+    },
     { path: '/submit-idea', label: 'Submit Idea', icon: Lightbulb },
     { path: '/ideas', label: 'Browse Ideas', icon: List },
   ],
@@ -40,6 +45,11 @@ export const navigationByRole: Record<Role, Array<NavItem>> = {
       path: '/manage/categories',
       label: 'Manage Categories',
       icon: FolderKanban,
+    },
+    {
+      path: '/manage/departments',
+      label: 'Manage Departments',
+      icon: Building2,
     },
     { path: '/submit-idea', label: 'Submit Idea', icon: Lightbulb },
     { path: '/ideas', label: 'Browse Ideas', icon: List },

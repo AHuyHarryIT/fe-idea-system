@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Edit2, Plus, Trash2, Users } from 'lucide-react'
 import { userService } from '@/api'
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { AppButton } from '@/components/app/AppButton'
@@ -24,6 +25,7 @@ export default function ManageUsersPage() {
   const queryClient = useQueryClient()
   const [isCreating, setIsCreating] = useState(false)
   const [editingUserId, setEditingUserId] = useState<string | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [formState, setFormState] = useState<FormState>({
     email: '',
     name: '',
@@ -91,9 +93,7 @@ export default function ManageUsersPage() {
   }
 
   const handleDeleteUser = (userId: string) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      deleteUserMutation.mutate(userId)
-    }
+    setDeleteConfirm(userId)
   }
 
   return (
@@ -308,6 +308,23 @@ export default function ManageUsersPage() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        isOpen={!!deleteConfirm}
+        title="Delete User"
+        message="Are you sure you want to delete this user? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        isDangerous
+        isLoading={deleteUserMutation.isPending}
+        onConfirm={() => {
+          if (deleteConfirm) {
+            deleteUserMutation.mutate(deleteConfirm)
+            setDeleteConfirm(null)
+          }
+        }}
+        onCancel={() => setDeleteConfirm(null)}
+      />
     </div>
   )
 }

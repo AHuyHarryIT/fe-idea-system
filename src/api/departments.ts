@@ -12,7 +12,31 @@ export interface DepartmentListResponse {
   departments?: Array<Department>
 }
 
+export interface CreateDepartmentPayload {
+  name: string
+  description?: string
+}
+
+export interface UpdateDepartmentPayload {
+  name: string
+  description?: string
+}
+
 export const departmentService = {
   getDepartments: (): Promise<ApiResponse<Array<Department>>> =>
     apiClient.get<Array<Department>>('/Department/departments'),
+
+  createDepartment: (
+    payload: CreateDepartmentPayload,
+  ): Promise<ApiResponse<Department>> =>
+    apiClient.post<Department>('/Department', payload),
+
+  updateDepartment: (
+    id: string,
+    payload: UpdateDepartmentPayload,
+  ): Promise<ApiResponse<Department>> =>
+    apiClient.put<Department>(`/Department/${id}`, payload),
+
+  deleteDepartment: (id: string): Promise<ApiResponse<void>> =>
+    apiClient.delete<void>(`/Department/${id}`),
 }
