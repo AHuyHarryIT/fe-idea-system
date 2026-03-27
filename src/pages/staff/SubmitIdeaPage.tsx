@@ -10,6 +10,7 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { useIdeaCategories } from '@/hooks/useCategories'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { useSubmitIdea } from '@/hooks/useIdeas'
+import { useSubmissions } from '@/hooks/useSubmissions'
 
 const initialForm: IdeaSubmitPayload = {
   title: '',
@@ -21,20 +22,46 @@ const initialForm: IdeaSubmitPayload = {
   attachments: [],
 }
 
+function formatDateLabel(value?: string) {
+  if (!value) return '—'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(date)
+}
+
 export default function SubmitIdeaPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { data: categoryData, isLoading: categoriesLoading } =
     useIdeaCategories()
+  const { data: submissionData, isLoading: submissionsLoading } =
+    useSubmissions()
   const { mutateAsync: submitIdea, isPending } = useSubmitIdea()
   const [form, setForm] = useState<IdeaSubmitPayload>(initialForm)
   const [feedbackMessage, setFeedbackMessage] = useState('')
+  const [agreedToTerms, setAgreedToTerms] = useState(false)
 
   const fileNames = useMemo(
     () => form.attachments.map((file) => file.name).join(', '),
     [form.attachments],
   )
   const categories = useMemo(() => categoryData ?? [], [categoryData])
+  const submissions = useMemo(() => submissionData ?? [], [submissionData])
+
+  const selectedSubmission = useMemo(
+    () => submissions.find((submission) => submission.id === form.submissionId),
+    [form.submissionId, submissions],
+  )
+
+  const handleReset = () => {
+    setForm(initialForm)
+    setAgreedToTerms(false)
+    setFeedbackMessage('')
+  }
 
   const handleSubmit = async () => {
     setFeedbackMessage('')
@@ -43,10 +70,18 @@ export default function SubmitIdeaPage() {
       !form.title.trim() ||
       !form.brief.trim() ||
       !form.content.trim() ||
-      !form.categoryId
+      !form.categoryId ||
+      !form.submissionId
     ) {
       setFeedbackMessage(
         'Please complete all required fields before submitting.',
+      )
+      return
+    }
+
+    if (!agreedToTerms) {
+      setFeedbackMessage(
+        'You must accept the Terms and Conditions before submitting an idea.',
       )
       return
     }
@@ -58,6 +93,7 @@ export default function SubmitIdeaPage() {
       `${form.brief.trim()}\n\n${form.content.trim()}`,
     )
     formData.append('CategoryId', form.categoryId)
+    formData.append('SubmissionId', form.submissionId)
     formData.append('IsAnonymous', String(form.isAnonymous))
 
     form.attachments.forEach((file) => {
@@ -74,10 +110,10 @@ export default function SubmitIdeaPage() {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['myIdeas'] }),
       queryClient.invalidateQueries({ queryKey: ['allIdeas'] }),
+      queryClient.invalidateQueries({ queryKey: ['pagedIdeas'] }),
     ])
 
-    setForm(initialForm)
-    setFeedbackMessage('Idea submitted successfully.')
+    handleReset()
     navigate({ to: '/ideas' })
   }
 
@@ -85,7 +121,7 @@ export default function SubmitIdeaPage() {
     <div className="mx-auto max-w-5xl">
       <PageHeader
         title="Submit Idea"
-        description="Create a new staff idea and send it directly to the submission API."
+        description="Create a new staff idea, choose an active submission window, and send it directly to the submission API."
       />
 
       <div className="space-y-6">
@@ -132,7 +168,7 @@ export default function SubmitIdeaPage() {
         </SectionCard>
 
         <SectionCard
-          title="Classification & privacy"
+          title="Classification, submission window & privacy"
           description="Categories and submission windows are loaded from the live API."
         >
           <div className="grid gap-5 md:grid-cols-2">
@@ -158,6 +194,35 @@ export default function SubmitIdeaPage() {
                 <p className="text-xs text-slate-500">Loading categories...</p>
               ) : null}
             </FormField>
+
+            <FormField label="Submission window" required>
+              <select
+                value={form.submissionId}
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    submissionId: event.target.value,
+                  }))
+                }
+                className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+              >
+                <option value="">Select submission</option>
+                {submissions.map((submission) => (
+                  <option key={submission.id} value={submission.id}>
+                    {submission.name} · {submission.academicYear}
+                  </option>
+                ))}
+              </select>
+              {submissionsLoading ? (
+                <p className="text-xs text-slate-500">Loading submissions...</p>
+              ) : selectedSubmission ? (
+                <p className="text-xs text-slate-500">
+                  Closure: {formatDateLabel(selectedSubmission.closureDate)} · Final
+                  closure: {formatDateLabel(selectedSubmission.finalClosureDate)}
+                </p>
+              ) : null}
+            </FormField>
+
             <FormField label="Anonymous submission">
               <label className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
                 <input
@@ -208,6 +273,28 @@ export default function SubmitIdeaPage() {
           </div>
         </SectionCard>
 
+        <SectionCard
+          title="Terms and Conditions"
+          description="Staff must accept the submission terms before an idea can be sent."
+        >
+          <div className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
+            <ul className="list-disc space-y-2 pl-5">
+              <li>You confirm that the submitted idea is relevant to university improvement.</li>
+              <li>You understand that uploaded files may be reviewed by authorised staff.</li>
+              <li>You accept that comments may remain open until the final closure date.</li>
+            </ul>
+            <label className="flex items-start gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
+              <input
+                type="checkbox"
+                checked={agreedToTerms}
+                onChange={(event) => setAgreedToTerms(event.target.checked)}
+                className="mt-1"
+              />
+              I have read and agree to the Terms and Conditions for idea submission.
+            </label>
+          </div>
+        </SectionCard>
+
         {feedbackMessage ? (
           <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
             {feedbackMessage}
@@ -215,11 +302,7 @@ export default function SubmitIdeaPage() {
         ) : null}
 
         <div className="flex flex-wrap justify-end gap-3">
-          <AppButton
-            type="button"
-            variant="ghost"
-            onClick={() => setForm(initialForm)}
-          >
+          <AppButton type="button" variant="ghost" onClick={handleReset}>
             Reset form
           </AppButton>
           <AppButton

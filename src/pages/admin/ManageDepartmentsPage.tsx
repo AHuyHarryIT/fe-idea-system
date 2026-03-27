@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Edit2, Trash2 } from 'lucide-react'
 import type { Department } from '@/api/departments'
 import { departmentService } from '@/api/departments'
 import { AppButton } from '@/components/app/AppButton'

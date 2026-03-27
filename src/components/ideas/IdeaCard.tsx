@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import {
+  BadgeCheck,
   CalendarDays,
   Eye,
   MessageSquare,
@@ -12,7 +13,19 @@ interface IdeaCardProps {
   idea: Idea
 }
 
+function normalizeRoleLabel(value?: string) {
+  if (!value) return 'Staff'
+  return value
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase())
+}
+
 export function IdeaCard({ idea }: IdeaCardProps) {
+  const authorLabel = idea.isAnonymous
+    ? 'Anonymous'
+    : (idea.authorName ?? 'Pending')
+  const roleLabel = normalizeRoleLabel((idea as Idea & { authorRole?: string }).authorRole)
+
   return (
     <Link
       to="/ideas/$ideaId"
@@ -36,10 +49,15 @@ export function IdeaCard({ idea }: IdeaCardProps) {
             </p>
           </div>
           <div className="flex flex-wrap gap-4 text-xs text-slate-500">
-            <span>
-              Author:{' '}
-              {idea.isAnonymous ? 'Anonymous' : (idea.authorName ?? 'Pending')}
-            </span>
+            <div>
+              <span>Author: {authorLabel}</span>
+              {!idea.isAnonymous ? (
+                <span className="mt-1 flex items-center gap-1 text-[11px] text-slate-400">
+                  <BadgeCheck className="h-3.5 w-3.5" />
+                  {roleLabel}
+                </span>
+              ) : null}
+            </div>
             <span className="inline-flex items-center gap-1">
               <CalendarDays className="h-3.5 w-3.5" />
               {idea.createdAt ?? 'Waiting for API date'}

@@ -142,7 +142,7 @@ export default function AdminDashboardPage() {
 
               <ManageButton
                 variant="blue"
-                // onClick={() => navigate({ to: '/manage/submissions' })}
+                onClick={() => navigate({ to: '/manage/submissions' })}
               >
                 Manage submissions · {data?.submissions.length ?? 0}
               </ManageButton>
