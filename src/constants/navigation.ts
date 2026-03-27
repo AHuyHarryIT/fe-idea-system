@@ -1,6 +1,7 @@
 import {
   BarChart3,
   Building2,
+  CalendarRange,
   FolderKanban,
   LayoutDashboard,
   Lightbulb,
@@ -35,6 +36,7 @@ export const navigationByRole: Record<Role, Array<NavItem>> = {
       label: 'Manage Departments',
       icon: Building2,
     },
+    { path: '/manage/submissions', label: 'Manage Submissions', icon: CalendarRange },
     { path: '/submit-idea', label: 'Submit Idea', icon: Lightbulb },
     { path: '/ideas', label: 'Browse Ideas', icon: List },
   ],
@@ -51,6 +53,7 @@ export const navigationByRole: Record<Role, Array<NavItem>> = {
       label: 'Manage Departments',
       icon: Building2,
     },
+    { path: '/manage/submissions', label: 'Manage Submissions', icon: CalendarRange },
     { path: '/submit-idea', label: 'Submit Idea', icon: Lightbulb },
     { path: '/ideas', label: 'Browse Ideas', icon: List },
   ],

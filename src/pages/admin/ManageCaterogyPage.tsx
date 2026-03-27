@@ -1,9 +1,11 @@
 import { useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { Pencil, Plus, Tag, Trash2 } from 'lucide-react'
+import { Plus, Tag } from 'lucide-react'
+import { ActionButton } from '@/components/app/ActionButton'
 import { AppButton } from '@/components/app/AppButton'
 import { FormField } from '@/components/forms/FormField'
 import { FormInput } from '@/components/forms/FormInput'
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
@@ -11,23 +13,25 @@ import {
   useCreateIdeaCategory,
   useDeleteIdeaCategory,
   useIdeaCategories,
+  useUpdateIdeaCategory,
 } from '@/hooks/useCategories'
 import { extractCollection, mapCategory } from '@/lib/api-mappers'
 
-// Renders the administrative interface for managing idea categories.
-// Categories are used as thematic labels that classify submitted ideas.
 export default function ManageCategoryPage() {
   const queryClient = useQueryClient()
   const { data, isLoading, error } = useIdeaCategories()
   const { mutateAsync: createIdeaCategory, isPending: isCreating } =
     useCreateIdeaCategory()
+  const { mutateAsync: updateIdeaCategory, isPending: isUpdating } =
+    useUpdateIdeaCategory()
   const { mutateAsync: deleteIdeaCategory, isPending: isDeleting } =
     useDeleteIdeaCategory()
 
   const [name, setName] = useState('')
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [feedbackMessage, setFeedbackMessage] = useState('')
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
-  // Normalises raw API category data into a stable UI model.
   const categories = useMemo(
     () =>
       extractCollection(data, ['categories'])
@@ -36,15 +40,19 @@ export default function ManageCategoryPage() {
     [data],
   )
 
-  // Refreshes category queries after create or delete operations.
   const refreshCategoryQueries = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['ideaCategories'] }),
+      queryClient.invalidateQueries({ queryKey: ['adminOverview'] }),
     ])
   }
 
-  // Handles creation of a new idea category.
-  const handleCreateCategory = async () => {
+  const resetForm = () => {
+    setName('')
+    setEditingId(null)
+  }
+
+  const handleSaveCategory = async () => {
     if (!name.trim()) {
       setFeedbackMessage('Category name is required.')
       return
@@ -53,32 +61,43 @@ export default function ManageCategoryPage() {
     setFeedbackMessage('')
 
     try {
-      await createIdeaCategory({
-        name: name.trim(),
-      })
+      if (editingId) {
+        await updateIdeaCategory({ id: editingId, request: { name: name.trim() } })
+        setFeedbackMessage('Category updated successfully.')
+      } else {
+        await createIdeaCategory({ name: name.trim() })
+        setFeedbackMessage('Category created successfully.')
+      }
 
-      setName('')
+      resetForm()
       await refreshCategoryQueries()
-      setFeedbackMessage('Category created successfully.')
     } catch (err) {
       setFeedbackMessage(
-        err instanceof Error ? err.message : 'Unable to create category.',
+        err instanceof Error
+          ? err.message
+          : editingId
+            ? 'Unable to update category.'
+            : 'Unable to create category.',
       )
     }
   }
 
-  // Handles deletion of an existing idea category.
-  const handleDeleteCategory = async (id: string) => {
+  const handleDeleteCategory = async () => {
+    if (!deleteConfirmId) return
+
     setFeedbackMessage('')
 
     try {
-      await deleteIdeaCategory(id)
+      await deleteIdeaCategory(deleteConfirmId)
       await refreshCategoryQueries()
       setFeedbackMessage('Category deleted successfully.')
+      if (editingId === deleteConfirmId) resetForm()
     } catch (err) {
       setFeedbackMessage(
         err instanceof Error ? err.message : 'Unable to delete category.',
       )
+    } finally {
+      setDeleteConfirmId(null)
     }
   }
 
@@ -86,7 +105,7 @@ export default function ManageCategoryPage() {
     <div className="w-full px-6 py-6 lg:px-8">
       <PageHeader
         title="Manage Idea Categories"
-        description="Create, review, and remove thematic categories used to classify submitted ideas."
+        description="Create, review, update, and remove thematic categories used to classify submitted ideas."
       />
 
       {feedbackMessage ? (
@@ -97,10 +116,10 @@ export default function ManageCategoryPage() {
 
       <div className="space-y-6">
         <SectionCard
-          title="Create category"
-          description="Add a new thematic category for idea classification."
+          title={editingId ? 'Edit category' : 'Create category'}
+          description="Add a new thematic category for idea classification or rename an existing one."
         >
-          <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] md:items-end">
+          <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-end">
             <FormField label="Category name">
               <FormInput
                 value={name}
@@ -110,12 +129,20 @@ export default function ManageCategoryPage() {
             </FormField>
 
             <AppButton
-              onClick={handleCreateCategory}
-              disabled={isCreating}
-              className="h-12 w-5 min-w-44"
+              onClick={handleSaveCategory}
+              disabled={isCreating || isUpdating}
+              className="h-12 min-w-44"
             >
               <Plus className="mr-2 h-4 w-4" />
-              {isCreating ? 'Creating...' : 'Add category'}
+              {isCreating || isUpdating
+                ? 'Saving...'
+                : editingId
+                  ? 'Update category'
+                  : 'Add category'}
+            </AppButton>
+
+            <AppButton type="button" variant="ghost" onClick={resetForm}>
+              Reset
             </AppButton>
           </div>
         </SectionCard>
@@ -149,20 +176,20 @@ export default function ManageCategoryPage() {
                       Category ID: {category.id}
                     </p>
                   </div>
-                  <div>
-                    <AppButton variant="primary">
-                      <Pencil className="mr-2 h-4 w-4" />
-                      Edit
-                    </AppButton>
-                    <AppButton
-                      variant="ghost"
-                      onClick={() => handleDeleteCategory(category.id)}
+                  <div className="flex flex-wrap gap-2">
+                    <ActionButton
+                      action="edit"
+                      onClick={() => {
+                        setEditingId(category.id)
+                        setName(category.name)
+                      }}
+                      disabled={editingId === category.id}
+                    />
+                    <ActionButton
+                      action="delete"
+                      onClick={() => setDeleteConfirmId(category.id)}
                       disabled={isDeleting}
-                      className="self-start"
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
-                    </AppButton>
+                    />
                   </div>
                 </div>
               ))}
@@ -176,6 +203,18 @@ export default function ManageCategoryPage() {
           )}
         </SectionCard>
       </div>
+
+      <ConfirmDialog
+        isOpen={!!deleteConfirmId}
+        title="Delete Category"
+        message="Are you sure you want to delete this category? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        isDangerous
+        isLoading={isDeleting}
+        onConfirm={handleDeleteCategory}
+        onCancel={() => setDeleteConfirmId(null)}
+      />
     </div>
   )
 }

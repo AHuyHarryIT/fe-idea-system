@@ -35,10 +35,12 @@ export interface IdeaDetailModel extends IdeaSummary {
 
 export interface IdeaSubmitPayload {
   title: string
-  brief: string
-  content: string
+  description: string
+  hasAcceptedTerms: boolean
+  // termversion: string
   categoryId: string
+  // departmentId: string
   submissionId: string
   isAnonymous: boolean
-  attachments: Array<File>
+  uploadFiles?: Array<File>
 }

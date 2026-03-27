@@ -19,6 +19,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as IdeasIndexRouteImport } from './routes/ideas.index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as ManageUsersRouteImport } from './routes/manage/users'
+import { Route as ManageSubmissionsRouteImport } from './routes/manage/submissions'
 import { Route as ManageDepartmentsRouteImport } from './routes/manage/departments'
 import { Route as ManageCategoriesRouteImport } from './routes/manage/categories'
 import { Route as IdeasIdeaIdRouteImport } from './routes/ideas.$ideaId'
@@ -73,6 +74,11 @@ const ManageUsersRoute = ManageUsersRouteImport.update({
   path: '/manage/users',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ManageSubmissionsRoute = ManageSubmissionsRouteImport.update({
+  id: '/manage/submissions',
+  path: '/manage/submissions',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ManageDepartmentsRoute = ManageDepartmentsRouteImport.update({
   id: '/manage/departments',
   path: '/manage/departments',
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/ideas/$ideaId': typeof IdeasIdeaIdRoute
   '/manage/categories': typeof ManageCategoriesRoute
   '/manage/departments': typeof ManageDepartmentsRoute
+  '/manage/submissions': typeof ManageSubmissionsRoute
   '/manage/users': typeof ManageUsersRoute
   '/admin': typeof AdminIndexRoute
   '/ideas/': typeof IdeasIndexRoute
@@ -114,6 +121,7 @@ export interface FileRoutesByTo {
   '/ideas/$ideaId': typeof IdeasIdeaIdRoute
   '/manage/categories': typeof ManageCategoriesRoute
   '/manage/departments': typeof ManageDepartmentsRoute
+  '/manage/submissions': typeof ManageSubmissionsRoute
   '/manage/users': typeof ManageUsersRoute
   '/admin': typeof AdminIndexRoute
   '/ideas': typeof IdeasIndexRoute
@@ -130,6 +138,7 @@ export interface FileRoutesById {
   '/ideas/$ideaId': typeof IdeasIdeaIdRoute
   '/manage/categories': typeof ManageCategoriesRoute
   '/manage/departments': typeof ManageDepartmentsRoute
+  '/manage/submissions': typeof ManageSubmissionsRoute
   '/manage/users': typeof ManageUsersRoute
   '/admin/': typeof AdminIndexRoute
   '/ideas/': typeof IdeasIndexRoute
@@ -147,6 +156,7 @@ export interface FileRouteTypes {
     | '/ideas/$ideaId'
     | '/manage/categories'
     | '/manage/departments'
+    | '/manage/submissions'
     | '/manage/users'
     | '/admin'
     | '/ideas/'
@@ -161,6 +171,7 @@ export interface FileRouteTypes {
     | '/ideas/$ideaId'
     | '/manage/categories'
     | '/manage/departments'
+    | '/manage/submissions'
     | '/manage/users'
     | '/admin'
     | '/ideas'
@@ -176,6 +187,7 @@ export interface FileRouteTypes {
     | '/ideas/$ideaId'
     | '/manage/categories'
     | '/manage/departments'
+    | '/manage/submissions'
     | '/manage/users'
     | '/admin/'
     | '/ideas/'
@@ -191,6 +203,7 @@ export interface RootRouteChildren {
   SubmitIdeaRoute: typeof SubmitIdeaRoute
   ManageCategoriesRoute: typeof ManageCategoriesRoute
   ManageDepartmentsRoute: typeof ManageDepartmentsRoute
+  ManageSubmissionsRoute: typeof ManageSubmissionsRoute
   ManageUsersRoute: typeof ManageUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -267,6 +280,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManageUsersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/manage/submissions': {
+      id: '/manage/submissions'
+      path: '/manage/submissions'
+      fullPath: '/manage/submissions'
+      preLoaderRoute: typeof ManageSubmissionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/manage/departments': {
       id: '/manage/departments'
       path: '/manage/departments'
@@ -313,6 +333,7 @@ const rootRouteChildren: RootRouteChildren = {
   SubmitIdeaRoute: SubmitIdeaRoute,
   ManageCategoriesRoute: ManageCategoriesRoute,
   ManageDepartmentsRoute: ManageDepartmentsRoute,
+  ManageSubmissionsRoute: ManageSubmissionsRoute,
   ManageUsersRoute: ManageUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
 }

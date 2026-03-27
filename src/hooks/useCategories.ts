@@ -2,7 +2,6 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import type { CreateIdeaCategoryRequest } from '@/api/categories'
 import { categoryService } from '@/api/categories'
 
-// Retrieves the list of idea categories used across the system.
 export const useIdeaCategories = () => {
   return useQuery({
     queryKey: ['ideaCategories'],
@@ -14,7 +13,6 @@ export const useIdeaCategories = () => {
   })
 }
 
-// Creates a new idea category.
 export const useCreateIdeaCategory = () => {
   return useMutation({
     mutationFn: async (request: CreateIdeaCategoryRequest) => {
@@ -25,7 +23,22 @@ export const useCreateIdeaCategory = () => {
   })
 }
 
-// Deletes an existing idea category.
+export const useUpdateIdeaCategory = () => {
+  return useMutation({
+    mutationFn: async ({
+      id,
+      request,
+    }: {
+      id: string
+      request: CreateIdeaCategoryRequest
+    }) => {
+      const response = await categoryService.updateIdeaCategory(id, request)
+      if (response.success) return response.data
+      throw new Error(response.error ?? 'Unable to update idea category.')
+    },
+  })
+}
+
 export const useDeleteIdeaCategory = () => {
   return useMutation({
     mutationFn: async (id: string) => {

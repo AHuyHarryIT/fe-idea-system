@@ -129,12 +129,8 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
   return (
     <div className="w-full px-6 py-6 lg:px-8">
       <PageHeader
-        title={isLoading ? 'Loading idea...' : idea?.text || 'Idea Detail'}
-        description={
-          isLoading
-            ? 'Fetching idea details from the API.'
-            : idea?.description || 'Idea detail loaded from the idea endpoint.'
-        }
+        title={isLoading ? 'Loading idea...' : 'Idea Details'}
+        description={''}
         actions={
           <>
             <Link to="/submit-idea">
@@ -179,19 +175,16 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
 
       <div className="grid grid-cols-1 gap-6 2xl:grid-cols-[minmax(0,2.2fr)_380px]">
         <div className="space-y-6">
-          <SectionCard
-            title="Main content"
-            description="Live content from the idea detail endpoint."
-          >
+          <SectionCard title="Main content" description="">
             <div className="space-y-4 text-sm leading-7 text-slate-600">
               <div className="rounded-2xl bg-slate-50 p-5">
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                  Idea text
+                  Idea Title
                 </p>
                 <p className="mt-2 text-base font-medium text-slate-900">
                   {isLoading
                     ? 'Loading text...'
-                    : idea?.text || 'No text provided'}
+                    : idea?.title || 'No text provided'}
                 </p>
               </div>
 

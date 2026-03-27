@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
-import { Funnel, Lightbulb, Search } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { Lightbulb, Search } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import { AppButton } from '@/components/app/AppButton'
 import { IdeaCard } from '@/components/ideas/IdeaCard'
@@ -12,11 +12,13 @@ import { useAllIdeas } from '@/hooks/useIdeas'
 import { normalizeIdeaResponse } from '@/lib/idea-response-mapper'
 import { useIdeaCategories } from '@/hooks/useCategories'
 
+const PAGE_SIZE = 5
+
 export default function IdeaListPage() {
-  const { search, setSearch, status, setStatus, category, setCategory } =
-    useIdeaFilters()
+  const { search, setSearch, category, setCategory } = useIdeaFilters()
   const { data, isLoading, error } = useAllIdeas()
   const { data: categoryData } = useIdeaCategories()
+  const [currentPage, setCurrentPage] = useState(1)
 
   const ideas = useMemo(() => {
     const ideaList = normalizeIdeaResponse(data)
@@ -30,11 +32,6 @@ export default function IdeaListPage() {
       : []
   }, [categoryData])
 
-  const statuses = useMemo(
-    () => Array.from(new Set(ideas.map((idea) => idea.status).filter(Boolean))),
-    [ideas],
-  )
-
   const filteredIdeas = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase()
 
@@ -44,12 +41,28 @@ export default function IdeaListPage() {
         [idea.text, idea.categoryName, idea.departmentName, idea.authorName]
           .filter(Boolean)
           .some((value) => value?.toLowerCase().includes(normalizedSearch))
-      const matchesStatus = !status || idea.status === status
       const matchesCategory = !category || idea.categoryName === category
 
-      return matchesSearch && matchesStatus && matchesCategory
+      return matchesSearch && matchesCategory
     })
-  }, [category, ideas, search, status])
+  }, [category, ideas, search])
+
+  const totalPages = Math.max(1, Math.ceil(filteredIdeas.length / PAGE_SIZE))
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [search, category])
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages)
+    }
+  }, [currentPage, totalPages])
+
+  const pagedIdeas = useMemo(() => {
+    const startIndex = (currentPage - 1) * PAGE_SIZE
+    return filteredIdeas.slice(startIndex, startIndex + PAGE_SIZE)
+  }, [currentPage, filteredIdeas])
 
   return (
     <div className="mx-auto max-w-7xl">
@@ -64,7 +77,7 @@ export default function IdeaListPage() {
       />
 
       <SectionCard title="Search & filters">
-        <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr_1fr_auto]">
+        <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr_auto]">
           <label className="relative block">
             <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
@@ -74,18 +87,6 @@ export default function IdeaListPage() {
               className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-11 pr-4 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
             />
           </label>
-          <select
-            value={status}
-            onChange={(event) => setStatus(event.target.value)}
-            className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-          >
-            <option value="">All statuses</option>
-            {statuses.map((statusOption) => (
-              <option key={statusOption} value={statusOption}>
-                {statusOption?.replace(/_/g, ' ')}
-              </option>
-            ))}
-          </select>
           <select
             value={category}
             onChange={(event) => setCategory(event.target.value)}
@@ -104,11 +105,9 @@ export default function IdeaListPage() {
             className="min-w-36"
             onClick={() => {
               setSearch('')
-              setStatus('')
               setCategory('')
             }}
           >
-            <Funnel className="mr-2 h-4 w-4" />
             Reset
           </AppButton>
         </div>
@@ -125,12 +124,45 @@ export default function IdeaListPage() {
           <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600">
             Loading ideas...
           </div>
-        ) : filteredIdeas.length > 0 ? (
-          <div className="space-y-4">
-            {filteredIdeas.map((idea) => (
-              <IdeaCard key={idea.id} idea={idea} />
-            ))}
-          </div>
+        ) : pagedIdeas.length > 0 ? (
+          <>
+            <div className="space-y-4">
+              {pagedIdeas.map((idea) => (
+                <IdeaCard key={idea.id} idea={idea} />
+              ))}
+            </div>
+
+            <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 md:flex-row md:items-center md:justify-between">
+              <p className="text-sm text-slate-600">
+                Showing {(currentPage - 1) * PAGE_SIZE + 1}–
+                {Math.min(currentPage * PAGE_SIZE, filteredIdeas.length)} of{' '}
+                {filteredIdeas.length} ideas
+              </p>
+              <div className="flex items-center gap-2">
+                <AppButton
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </AppButton>
+                <span className="rounded-xl bg-slate-100 px-4 py-2 text-sm text-slate-700">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <AppButton
+                  type="button"
+                  variant="ghost"
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                  }
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </AppButton>
+              </div>
+            </div>
+          </>
         ) : (
           <EmptyState
             icon={Lightbulb}
