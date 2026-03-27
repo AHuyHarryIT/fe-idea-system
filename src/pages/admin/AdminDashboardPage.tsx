@@ -27,7 +27,7 @@ export default function AdminDashboardPage() {
       ] = await Promise.all([
         userService.getUsers(),
         categoryService.getIdeaCategories(),
-        submissionService.getAdminSubmissions(),
+        submissionService.getSubmissions(),
         ideaService.getAllIdeas(),
       ])
 
