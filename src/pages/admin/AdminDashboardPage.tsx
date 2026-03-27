@@ -12,7 +12,7 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { StatCard } from '@/components/shared/StatCard'
-import { AppButton } from '@/components/app/ManageButton'
+import { ManageButton } from '@/components/app/ManageButton'
 
 export default function AdminDashboardPage() {
   const navigate = useNavigate()
@@ -126,32 +126,32 @@ export default function AdminDashboardPage() {
             />
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
-              <AppButton
+              <ManageButton
                 variant="blue"
                 onClick={() => navigate({ to: '/manage/users' })}
               >
                 Manage users · {data?.users.length ?? 0}
-              </AppButton>
+              </ManageButton>
 
-              <AppButton
+              <ManageButton
                 variant="blue"
                 onClick={() => navigate({ to: '/manage/categories' })}
               >
                 Manage categories · {data?.categories.length ?? 0}
-              </AppButton>
+              </ManageButton>
 
-              <AppButton
+              <ManageButton
                 variant="blue"
                 // onClick={() => navigate({ to: '/manage/submissions' })}
               >
                 Manage submissions · {data?.submissions.length ?? 0}
-              </AppButton>
-              <AppButton
+              </ManageButton>
+              <ManageButton
                 variant="blue"
                 onClick={() => navigate({ to: '/ideas' })}
               >
                 Review ideas · {data?.ideas.length ?? 0}
-              </AppButton>
+              </ManageButton>
             </div>
           )}
         </SectionCard>

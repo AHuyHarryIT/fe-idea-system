@@ -11,7 +11,7 @@ const variantClassNames: Record<
   blue: 'bg-slate-50 p-5 text-sm text-slate-600 hover:bg-blue-400',
 }
 
-export function AppButton({
+export function ManageButton({
   variant = 'blue',
   className,
   ...props

@@ -9,6 +9,7 @@ import { FormInput, FormTextarea } from '@/components/forms/FormInput'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
+import { ActionButton } from '@/components/app/ActionButton'
 
 interface DepartmentForm {
   name: string
@@ -161,11 +162,7 @@ export default function ManageDepartmentsPage() {
                       ? 'Update Department'
                       : 'Create Department'}
                 </AppButton>
-                <AppButton
-                  type="button"
-                  variant="ghost"
-                  onClick={handleCancel}
-                >
+                <AppButton type="button" variant="ghost" onClick={handleCancel}>
                   Cancel
                 </AppButton>
               </div>
@@ -232,24 +229,17 @@ export default function ManageDepartmentsPage() {
                     </td>
                     <td className="px-6 py-3">
                       <div className="flex gap-2">
-                        <button
-                          type="button"
+                        <ActionButton
+                          action="edit"
                           onClick={() => handleEdit(dept)}
-                          className="inline-flex items-center gap-2 rounded-lg bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100 transition"
                           disabled={editingId === dept.id}
-                        >
-                          <Edit2 className="h-4 w-4" />
-                          Edit
-                        </button>
-                        <button
-                          type="button"
+                        />
+
+                        <ActionButton
+                          action="delete"
                           onClick={() => handleDelete(dept.id)}
-                          className="inline-flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100 transition"
                           disabled={deleteMutation.isPending}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-                        </button>
+                        />
                       </div>
                     </td>
                   </tr>

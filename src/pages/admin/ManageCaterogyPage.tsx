@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { Plus, Tag, Trash2 } from 'lucide-react'
+import { Pencil, Plus, Tag, Trash2 } from 'lucide-react'
 import { AppButton } from '@/components/app/AppButton'
 import { FormField } from '@/components/forms/FormField'
 import { FormInput } from '@/components/forms/FormInput'
@@ -149,16 +149,21 @@ export default function ManageCategoryPage() {
                       Category ID: {category.id}
                     </p>
                   </div>
-
-                  <AppButton
-                    variant="ghost"
-                    onClick={() => handleDeleteCategory(category.id)}
-                    disabled={isDeleting}
-                    className="self-start"
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete
-                  </AppButton>
+                  <div>
+                    <AppButton variant="primary">
+                      <Pencil className="mr-2 h-4 w-4" />
+                      Edit
+                    </AppButton>
+                    <AppButton
+                      variant="ghost"
+                      onClick={() => handleDeleteCategory(category.id)}
+                      disabled={isDeleting}
+                      className="self-start"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete
+                    </AppButton>
+                  </div>
                 </div>
               ))}
             </div>
