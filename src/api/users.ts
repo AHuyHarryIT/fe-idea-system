@@ -23,8 +23,11 @@ export interface CreateUserRequest {
   role: string
 }
 
-export interface UpdateRoleRequest {
-  role: string
+export interface UpdateUserRequest {
+  name?: string
+  department?: string
+  role?: string
+  // avatar?: string
 }
 
 export const userService = {
@@ -32,14 +35,18 @@ export const userService = {
   getUsers: (): Promise<ApiResponse<UserListResponse>> =>
     apiClient.get<UserListResponse>('/User'),
 
-  createUser: (
-    request: CreateUserRequest
-  ): Promise<ApiResponse<User>> =>
+  createUser: (request: CreateUserRequest): Promise<ApiResponse<User>> =>
     apiClient.post<User>('/User', request),
+
+  updateUser: (
+    userId: string,
+    request: UpdateUserRequest,
+  ): Promise<ApiResponse<User>> =>
+    apiClient.put<User>(`/User/${userId}`, request),
 
   updateUserRole: (
     userId: string,
-    request: UpdateRoleRequest
+    request: UpdateUserRequest,
   ): Promise<ApiResponse<User>> =>
     apiClient.put<User>(`/User/${userId}/role`, request),
 

@@ -125,8 +125,6 @@ export const authService = {
   login: (credentials: LoginRequest): Promise<ApiResponse<AuthResponse>> =>
     apiClient.post<AuthResponse>('/Auth/login', credentials),
 
-  register: (
-    data: RegisterRequest
-  ): Promise<ApiResponse<AuthResponse>> =>
+  register: (data: RegisterRequest): Promise<ApiResponse<AuthResponse>> =>
     apiClient.post<AuthResponse>('/Auth/register', data),
 }

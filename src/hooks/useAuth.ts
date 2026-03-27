@@ -5,8 +5,7 @@ import { auth, normalizeRole } from '@/lib/auth'
 
 export const useLogin = () => {
   return useMutation({
-    mutationFn: (credentials: LoginRequest) =>
-      authService.login(credentials),
+    mutationFn: (credentials: LoginRequest) => authService.login(credentials),
     onSuccess: (response) => {
       const session = extractAuthResponse(response.data)
       const role = normalizeRole(session?.role)
@@ -21,8 +20,7 @@ export const useLogin = () => {
 
 export const useRegister = () => {
   return useMutation({
-    mutationFn: (data: RegisterRequest) =>
-      authService.register(data),
+    mutationFn: (data: RegisterRequest) => authService.register(data),
     onSuccess: (response) => {
       const session = extractAuthResponse(response.data)
       const role = normalizeRole(session?.role)

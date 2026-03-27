@@ -1,11 +1,13 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Edit2, Plus, Trash2, Users } from 'lucide-react'
+import { Plus, Trash2, Users } from 'lucide-react'
 import { userService } from '@/api'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { AppButton } from '@/components/app/AppButton'
+import { ActionButton } from '@/components/app/ActionButton'
+import { auth } from '@/lib/auth'
 
 interface FormState {
   email: string
@@ -22,6 +24,8 @@ const AVAILABLE_ROLES = [
 ]
 
 export default function ManageUsersPage() {
+  const { getUserId } = auth
+  const userId = getUserId()
   const queryClient = useQueryClient()
   const [isCreating, setIsCreating] = useState(false)
   const [editingUserId, setEditingUserId] = useState<string | null>(null)
@@ -32,7 +36,7 @@ export default function ManageUsersPage() {
     password: '',
     role: 'Staff',
   })
-
+  console.log('Current user ID:', userId)
   const { data, isLoading, error } = useQuery({
     queryKey: ['adminUsers'],
     queryFn: async () => {
@@ -90,6 +94,14 @@ export default function ManageUsersPage() {
 
   const handleUpdateRole = async (userId: string, newRole: string) => {
     await updateRoleMutation.mutateAsync({ userId, role: newRole })
+  }
+
+  const handleUpdateName = async (userId: string, newName: string) => {
+    if (newName.trim()) {
+      await userService.updateUser(userId, { name: newName })
+      queryClient.invalidateQueries({ queryKey: ['adminUsers'] })
+      setEditingUserId(null)
+    }
   }
 
   const handleDeleteUser = (userId: string) => {
@@ -245,7 +257,17 @@ export default function ManageUsersPage() {
                       {user.email}
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-900">
-                      {user.name}
+                      {editingUserId === user.id ? (
+                        <input
+                          type="text"
+                          defaultValue={user.name}
+                          onBlur={(e) =>
+                            handleUpdateName(user.id, e.target.value)
+                          }
+                        />
+                      ) : (
+                        <>{user.name}</>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-sm">
                       {editingUserId === user.id ? (
@@ -276,30 +298,47 @@ export default function ManageUsersPage() {
                       )}
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-600">
-                      {user.department || '—'}
+                      {editingUserId === user.id ? (
+                        <select
+                          value={
+                            users.find((u) => u.id === user.id)?.department ||
+                            user.department ||
+                            ''
+                          }
+                          onChange={(e) =>
+                            userService.updateUser(user.id, {
+                              department: e.target.value,
+                            })
+                          }
+                        />
+                      ) : (
+                        <>{user.department || '—'}</>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-sm">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() =>
-                            setEditingUserId(
-                              editingUserId === user.id ? null : user.id,
-                            )
-                          }
-                          className="rounded-lg p-2 hover:bg-slate-100"
-                          title="Edit role"
-                        >
-                          <Edit2 className="h-4 w-4 text-slate-600" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteUser(user.id)}
-                          disabled={deleteUserMutation.isPending}
-                          className="rounded-lg p-2 hover:bg-red-50 disabled:opacity-50"
-                          title="Delete user"
-                        >
-                          <Trash2 className="h-4 w-4 text-red-600" />
-                        </button>
-                      </div>
+                      {user.role != 'Administrator' && user.id !== userId && (
+                        <div className="flex gap-2">
+                          <ActionButton
+                            action="edit"
+                            onClick={() =>
+                              setEditingUserId(
+                                editingUserId === user.id ? null : user.id,
+                              )
+                            }
+                            className="rounded-lg p-2 hover:bg-slate-100"
+                            title="Edit role"
+                          ></ActionButton>
+                          <ActionButton
+                            action="delete"
+                            onClick={() => handleDeleteUser(user.id)}
+                            disabled={deleteUserMutation.isPending}
+                            className="rounded-lg p-2 hover:bg-red-50 disabled:opacity-50"
+                            title="Delete user"
+                          >
+                            <Trash2 className="h-4 w-4 text-red-600" />
+                          </ActionButton>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}

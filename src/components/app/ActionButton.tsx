@@ -1,5 +1,6 @@
 import { Edit2, Ghost, Plus, Trash2 } from 'lucide-react'
 import type { ButtonHTMLAttributes } from 'react'
+
 interface AppButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   action?: 'edit' | 'delete' | 'add' | 'ghost'
 }
