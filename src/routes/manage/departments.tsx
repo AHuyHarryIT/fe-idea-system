@@ -4,7 +4,7 @@ import ManageDepartmentsPage from '@/pages/admin/ManageDepartmentsPage'
 
 function RouteComponent() {
   return (
-    <ProtectedPage requiredRoles={['admin']}>
+    <ProtectedPage allowedRoles={['admin']}>
       <ManageDepartmentsPage />
     </ProtectedPage>
   )

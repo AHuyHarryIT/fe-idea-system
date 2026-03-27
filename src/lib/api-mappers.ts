@@ -1,4 +1,4 @@
-import type { Category } from '@/api/categories'
+import type { IdeaCategory } from '@/api/categories'
 import type { Submission } from '@/api/submissions'
 import type { IdeaDetailModel, IdeaSummary } from '@/types/idea'
 
@@ -280,7 +280,7 @@ export function mapIdeaDetail(value: unknown): IdeaDetailModel {
   }
 }
 
-export function mapCategory(value: unknown): Category {
+export function mapCategory(value: unknown): IdeaCategory {
   const record = extractRecord(value) ?? {}
 
   return {
