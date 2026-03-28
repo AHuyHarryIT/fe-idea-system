@@ -42,10 +42,7 @@ function formatDate(dateString?: string) {
   }
 }
 
-function getCommentText(comment: {
-  text?: string
-  content?: string
-}) {
+function getCommentText(comment: { text?: string; content?: string }) {
   return comment.text || comment.content || 'No comment content available.'
 }
 
@@ -97,8 +94,8 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
       isLiked
         ? 'Your like has been removed.'
         : isDisliked
-        ? 'Your vote has been changed to like.'
-        : 'Thanks! Your like has been recorded.',
+          ? 'Your vote has been changed to like.'
+          : 'Thanks! Your like has been recorded.',
     )
   }
 
@@ -120,8 +117,8 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
       isDisliked
         ? 'Your dislike has been removed.'
         : isLiked
-        ? 'Your vote has been changed to dislike.'
-        : 'Thanks! Your dislike has been recorded.',
+          ? 'Your vote has been changed to dislike.'
+          : 'Thanks! Your dislike has been recorded.',
     )
   }
 
@@ -267,6 +264,43 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
 
       <div className="grid grid-cols-1 gap-6 2xl:grid-cols-[minmax(0,2.2fr)_380px]">
         <div className="space-y-6">
+          <SectionCard title="Main content" description="">
+            <div className="space-y-4 text-sm leading-7 text-slate-600">
+              <div className="rounded-2xl bg-slate-50 p-5">
+                <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                  Idea Title
+                </p>
+                <p className="mt-2 text-base font-medium text-slate-900">
+                  {isLoading
+                    ? 'Loading text...'
+                    : idea?.title || 'No text provided'}
+                </p>
+              </div>
+
+              <div className="rounded-2xl bg-slate-50 p-5">
+                <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                  Description
+                </p>
+                <p className="mt-2">
+                  {isLoading
+                    ? 'Loading description...'
+                    : idea?.description || 'No description available.'}
+                </p>
+                {/* <p className="mt-2">
+                  {idea?.attachment ? (
+                    <a
+                      href={idea.attachment}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 hover:text-blue-700"
+                    >
+                      View attachment
+                    </a>
+                  ) : null}
+                </p> */}
+              </div>
+            </div>
+          </SectionCard>
           {canReview ? (
             <SectionCard
               title="Review decision"
@@ -332,33 +366,6 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
               </div>
             </SectionCard>
           ) : null}
-
-          <SectionCard title="Main content" description="">
-            <div className="space-y-4 text-sm leading-7 text-slate-600">
-              <div className="rounded-2xl bg-slate-50 p-5">
-                <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                  Idea Title
-                </p>
-                <p className="mt-2 text-base font-medium text-slate-900">
-                  {isLoading
-                    ? 'Loading text...'
-                    : idea?.title || 'No text provided'}
-                </p>
-              </div>
-
-              <div className="rounded-2xl bg-slate-50 p-5">
-                <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
-                  Description
-                </p>
-                <p className="mt-2">
-                  {isLoading
-                    ? 'Loading description...'
-                    : idea?.description || 'No description available.'}
-                </p>
-              </div>
-            </div>
-          </SectionCard>
-
           <SectionCard
             title="Comments"
             description="View existing comments and post a new one."
