@@ -41,13 +41,13 @@ export interface QAManagerDashboard {
 export const dashboardService = {
   // General stats
   getGeneralDashboard: (): Promise<ApiResponse<DashboardStats>> =>
-    apiClient.get<DashboardStats>('/Stats/dashboard'),
+    apiClient.get<DashboardStats>('/stats/dashboard'),
 
   getDepartmentStats: (): Promise<ApiResponse<Array<DepartmentStat>>> =>
-    apiClient.get<Array<DepartmentStat>>('/Stats/departments'),
+    apiClient.get<Array<DepartmentStat>>('/stats/departments'),
 
   getIdeasWithoutComments: (): Promise<ApiResponse<Array<{ id: string; text: string }>>> =>
-    apiClient.get<Array<{ id: string; text: string }>>('/Stats/ideas-without-comments'),
+    apiClient.get<Array<{ id: string; text: string }>>('/stats/ideas-without-comments'),
 
   // Staff dashboard
   getStaffDashboard: (): Promise<ApiResponse<StaffDashboard>> =>
@@ -55,22 +55,22 @@ export const dashboardService = {
 
   // Admin dashboard
   getAdminDashboard: (): Promise<ApiResponse<AdminDashboard>> =>
-    apiClient.get<AdminDashboard>('/Stats/dashboard'),
+    apiClient.get<AdminDashboard>('/stats/dashboard'),
 
   getAdminStatistics: (): Promise<ApiResponse<DashboardStats>> =>
-    apiClient.get<DashboardStats>('/Stats/dashboard'),
+    apiClient.get<DashboardStats>('/stats/dashboard'),
 
   // QA Coordinator dashboard
   getQACoordinatorDashboard: (): Promise<ApiResponse<QACoordinatorDashboard>> =>
-    apiClient.get<QACoordinatorDashboard>('/Stats/dashboard'),
+    apiClient.get<QACoordinatorDashboard>('/stats/dashboard'),
 
   getQACoordinatorStatistics: (): Promise<ApiResponse<DashboardStats>> =>
-    apiClient.get<DashboardStats>('/Stats/dashboard'),
+    apiClient.get<DashboardStats>('/stats/dashboard'),
 
   // QA Manager dashboard
   getQAManagerDashboard: (): Promise<ApiResponse<QAManagerDashboard>> =>
-    apiClient.get<QAManagerDashboard>('/Stats/dashboard'),
+    apiClient.get<QAManagerDashboard>('/stats/dashboard'),
 
   getQAManagerStatistics: (): Promise<ApiResponse<DashboardStats>> =>
-    apiClient.get<DashboardStats>('/Stats/dashboard'),
+    apiClient.get<DashboardStats>('/stats/dashboard'),
 }

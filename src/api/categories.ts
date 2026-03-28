@@ -12,19 +12,19 @@ export interface CreateIdeaCategoryRequest {
 
 export const categoryService = {
   getIdeaCategories: (): Promise<ApiResponse<Array<IdeaCategory>>> =>
-    apiClient.get<Array<IdeaCategory>>('/Categories'),
+    apiClient.get<Array<IdeaCategory>>('/categories'),
 
   createIdeaCategory: (
     request: CreateIdeaCategoryRequest,
   ): Promise<ApiResponse<IdeaCategory>> =>
-    apiClient.post<IdeaCategory>('/Categories', request),
+    apiClient.post<IdeaCategory>('/categories', request),
 
   updateIdeaCategory: (
     id: string,
     request: CreateIdeaCategoryRequest,
   ): Promise<ApiResponse<IdeaCategory>> =>
-    apiClient.put<IdeaCategory>(`/Categories/${id}`, request),
+    apiClient.put<IdeaCategory>(`/categories/${id}`, request),
 
   deleteIdeaCategory: (id: string): Promise<ApiResponse<void>> =>
-    apiClient.delete(`/Categories/${id}`),
+    apiClient.delete(`/categories/${id}`),
 }

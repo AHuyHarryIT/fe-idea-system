@@ -67,39 +67,39 @@ export interface VoteRequest {
 export const ideaService = {
   // Common endpoints
   getMyIdeas: (): Promise<ApiResponse<IdeaListResponse>> =>
-    apiClient.get<IdeaListResponse>('/Idea/my-ideas'),
+    apiClient.get<IdeaListResponse>('/ideas/my-ideas'),
 
   getAllIdeas: (): Promise<ApiResponse<IdeaListResponse>> =>
-    apiClient.get<IdeaListResponse>('/Idea'),
+    apiClient.get<IdeaListResponse>('/ideas'),
 
   getPagedIdeas: (
     pageNumber: number = 1,
     pageSize: number = 10,
   ): Promise<ApiResponse<IdeaListResponse>> =>
     apiClient.get<IdeaListResponse>(
-      `/Idea/paged?pageNumber=${pageNumber}&pageSize=${pageSize}`,
+      `/ideas/paged?pageNumber=${pageNumber}&pageSize=${pageSize}`,
     ),
 
   getIdeaById: (id: string): Promise<ApiResponse<Idea>> =>
-    apiClient.get<Idea>(`/Idea/${id}`),
+    apiClient.get<Idea>(`/ideas/${id}`),
 
   createIdea: (request: IdeaCreateRequest): Promise<ApiResponse<Idea>> =>
-    apiClient.post<Idea>('/Idea', request),
+    apiClient.post<Idea>('/ideas', request),
 
   submitIdea: (formData: FormData): Promise<ApiResponse<Idea>> =>
-    apiClient.uploadFiles<Idea>('/Idea', formData),
+    apiClient.uploadFiles<Idea>('/ideas', formData),
 
   voteOnIdea: (
     ideaId: string,
     request: VoteRequest,
   ): Promise<ApiResponse<void>> =>
-    apiClient.post<void>(`/Idea/${ideaId}/vote`, request),
+    apiClient.post<void>(`/ideas/${ideaId}/vote`, request),
 
   addComment: (
     ideaId: string,
     request: CommentCreateRequest,
   ): Promise<ApiResponse<Comment>> =>
-    apiClient.post<Comment>(`/Idea/${ideaId}/comments`, request),
+    apiClient.post<Comment>(`/ideas/${ideaId}/comments`, request),
 
   // QA Manager endpoints
   getIdeasWithoutComments: (): Promise<ApiResponse<IdeaListResponse>> =>

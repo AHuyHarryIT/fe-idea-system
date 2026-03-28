@@ -28,28 +28,28 @@ async function requestExport(endpoint: string, filename: string): Promise<void> 
 export const exportService = {
   // Admin and QA Manager exports
   exportIdeasAsCSV: async (): Promise<void> => {
-    return requestExport('/Export/csv', 'ideas.csv')
+    return requestExport('/exports/csv', 'ideas.csv')
   },
 
   exportIdeasAsZip: async (): Promise<void> => {
-    return requestExport('/Export/zip', 'ideas.zip')
+    return requestExport('/exports/zip', 'ideas.zip')
   },
 
   // Alias methods for backwards compatibility
   exportAdminIdeasAsCSV: async (): Promise<void> => {
-    return requestExport('/Export/csv', 'ideas.csv')
+    return requestExport('/exports/csv', 'ideas.csv')
   },
 
   exportAdminIdeasAsZip: async (): Promise<void> => {
-    return requestExport('/Export/zip', 'ideas.zip')
+    return requestExport('/exports/zip', 'ideas.zip')
   },
 
   exportQAManagerIdeasAsCSV: async (): Promise<void> => {
-    return requestExport('/Export/csv', 'ideas.csv')
+    return requestExport('/exports/csv', 'ideas.csv')
   },
 
   exportQAManagerIdeasAsZip: async (): Promise<void> => {
-    return requestExport('/Export/zip', 'ideas.zip')
+    return requestExport('/exports/zip', 'ideas.zip')
   },
 }
 

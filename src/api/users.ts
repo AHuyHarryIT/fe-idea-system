@@ -33,23 +33,23 @@ export interface UpdateUserRequest {
 export const userService = {
   // Admin endpoints
   getUsers: (): Promise<ApiResponse<UserListResponse>> =>
-    apiClient.get<UserListResponse>('/User'),
+    apiClient.get<UserListResponse>('/users'),
 
   createUser: (request: CreateUserRequest): Promise<ApiResponse<User>> =>
-    apiClient.post<User>('/User', request),
+    apiClient.post<User>('/users', request),
 
   updateUser: (
     userId: string,
     request: UpdateUserRequest,
   ): Promise<ApiResponse<User>> =>
-    apiClient.put<User>(`/User/${userId}`, request),
+    apiClient.put<User>(`/users/${userId}`, request),
 
   updateUserRole: (
     userId: string,
     request: UpdateUserRequest,
   ): Promise<ApiResponse<User>> =>
-    apiClient.put<User>(`/User/${userId}/role`, request),
+    apiClient.put<User>(`/users/${userId}/role`, request),
 
   deleteUser: (userId: string): Promise<ApiResponse<void>> =>
-    apiClient.delete<void>(`/User/${userId}`),
+    apiClient.delete<void>(`/users/${userId}`),
 }
