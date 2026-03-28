@@ -1,14 +1,28 @@
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { Lightbulb, MessageSquare, ThumbsDown, ThumbsUp } from 'lucide-react'
+import {
+  CheckCircle2,
+  Lightbulb,
+  MessageSquare,
+  ShieldCheck,
+  ThumbsDown,
+  ThumbsUp,
+  XCircle,
+} from 'lucide-react'
 import { AppButton } from '@/components/app/AppButton'
 import { FormField } from '@/components/forms/FormField'
 import { FormTextarea } from '@/components/forms/FormInput'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
-import { useAddComment, useIdeaById, useVoteOnIdea } from '@/hooks/useIdeas'
+import {
+  useAddComment,
+  useIdeaById,
+  useReviewIdea,
+  useVoteOnIdea,
+} from '@/hooks/useIdeas'
+import { auth } from '@/lib/auth'
 
 interface IdeaDetailPageProps {
   ideaId: string
@@ -30,21 +44,29 @@ function formatDate(dateString?: string) {
 
 export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
   const queryClient = useQueryClient()
+  const role = auth.getRole()
   const { data: idea, isLoading, error } = useIdeaById(ideaId)
   const { mutateAsync: addComment, isPending: isCommenting } = useAddComment()
   const { mutateAsync: voteOnIdea, isPending: isVoting } = useVoteOnIdea()
+  const { mutateAsync: reviewIdea, isPending: isReviewing } = useReviewIdea()
   const [commentText, setCommentText] = useState('')
   const [isAnonymous, setIsAnonymous] = useState(false)
   const [feedbackMessage, setFeedbackMessage] = useState('')
+  const [reviewReason, setReviewReason] = useState('')
+  const [reviewFeedbackMessage, setReviewFeedbackMessage] = useState('')
 
   const canLike = !isLoading
   const canComment = !isLoading && (idea?.canComment ?? true)
+  const canReview = role === 'qa_manager' || role === 'admin'
 
   const refreshIdeaQueries = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['idea', ideaId] }),
       queryClient.invalidateQueries({ queryKey: ['allIdeas'] }),
       queryClient.invalidateQueries({ queryKey: ['myIdeas'] }),
+      queryClient.invalidateQueries({ queryKey: ['qaManagerIdeas'] }),
+      queryClient.invalidateQueries({ queryKey: ['qaCoordinatorIdeas'] }),
+      queryClient.invalidateQueries({ queryKey: ['adminIdeas'] }),
     ])
   }
 
@@ -113,6 +135,46 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
     setFeedbackMessage('Comment posted successfully.')
   }
 
+  const handleReview = async (isApproved: boolean) => {
+    if (!canReview) {
+      return
+    }
+
+    if (!isApproved && !reviewReason.trim()) {
+      setReviewFeedbackMessage('Please provide a rejection reason.')
+      return
+    }
+
+    setReviewFeedbackMessage('')
+
+    const response = await reviewIdea({
+      ideaId,
+      request: {
+        isApproved,
+        rejectionReason: isApproved ? undefined : reviewReason.trim(),
+      },
+    })
+
+    if (!response.success) {
+      setReviewFeedbackMessage(
+        response.error ??
+          `Unable to ${isApproved ? 'approve' : 'reject'} this idea.`,
+      )
+      return
+    }
+
+    if (!isApproved) {
+      setReviewReason('')
+    }
+
+    await refreshIdeaQueries()
+    setReviewFeedbackMessage(
+      isApproved
+        ? 'Idea approved successfully.'
+        : 'Idea rejected successfully.',
+    )
+  }
+
   if (error) {
     return (
       <div className="w-full px-6 py-6 lg:px-8">
@@ -175,6 +237,70 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
 
       <div className="grid grid-cols-1 gap-6 2xl:grid-cols-[minmax(0,2.2fr)_380px]">
         <div className="space-y-6">
+          {canReview ? (
+            <SectionCard
+              title="Review decision"
+              description="Approve the idea for publication or reject it with feedback."
+            >
+              {reviewFeedbackMessage ? (
+                <div className="mb-5 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+                  {reviewFeedbackMessage}
+                </div>
+              ) : null}
+
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
+                    <ShieldCheck className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-slate-900">
+                      Moderator controls
+                    </p>
+                    <p className="mt-1 text-sm text-slate-600">
+                      Current status:{' '}
+                      {idea?.status?.replace(/_/g, ' ') ?? 'Pending review'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-5">
+                  <FormField
+                    label="Rejection reason"
+                    hint="Required only if you reject the idea."
+                  >
+                    <FormTextarea
+                      value={reviewReason}
+                      onChange={(event) => setReviewReason(event.target.value)}
+                      placeholder="Explain why the idea was rejected or what must be updated."
+                      disabled={isReviewing}
+                    />
+                  </FormField>
+                </div>
+
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <AppButton
+                    type="button"
+                    onClick={() => handleReview(true)}
+                    disabled={isReviewing}
+                  >
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    {isReviewing ? 'Saving...' : 'Approve idea'}
+                  </AppButton>
+                  <AppButton
+                    type="button"
+                    variant="red"
+                    onClick={() => handleReview(false)}
+                    disabled={isReviewing}
+                  >
+                    <XCircle className="mr-2 h-4 w-4" />
+                    {isReviewing ? 'Saving...' : 'Reject idea'}
+                  </AppButton>
+                </div>
+              </div>
+            </SectionCard>
+          ) : null}
+
           <SectionCard title="Main content" description="">
             <div className="space-y-4 text-sm leading-7 text-slate-600">
               <div className="rounded-2xl bg-slate-50 p-5">

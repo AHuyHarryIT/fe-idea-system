@@ -64,6 +64,11 @@ export interface VoteRequest {
   isThumbsDown?: boolean
 }
 
+export interface ReviewIdeaRequest {
+  isApproved: boolean
+  rejectionReason?: string
+}
+
 export const ideaService = {
   // Common endpoints
   getMyIdeas: (): Promise<ApiResponse<IdeaListResponse>> =>
@@ -100,6 +105,12 @@ export const ideaService = {
     request: CommentCreateRequest,
   ): Promise<ApiResponse<Comment>> =>
     apiClient.post<Comment>(`/ideas/${ideaId}/comments`, request),
+
+  reviewIdea: (
+    ideaId: string,
+    request: ReviewIdeaRequest,
+  ): Promise<ApiResponse<void>> =>
+    apiClient.put<void>(`/Idea/${ideaId}/review`, request),
 
   // QA Manager endpoints
   getIdeasWithoutComments: (): Promise<ApiResponse<IdeaListResponse>> =>

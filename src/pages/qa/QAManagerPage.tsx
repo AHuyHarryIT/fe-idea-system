@@ -1,5 +1,7 @@
 import { useMemo } from 'react'
+import { Link } from '@tanstack/react-router'
 import { BarChart3, Building2, TrendingUp } from 'lucide-react'
+import { AppButton } from '@/components/app/AppButton'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
@@ -29,6 +31,15 @@ export default function QAManagerPage() {
   const ideasWithoutComments = useMemo(
     () => (Array.isArray(withoutCommentsData) ? withoutCommentsData : []),
     [withoutCommentsData],
+  )
+  const reviewQueue = useMemo(
+    () =>
+      ideas.filter((idea) =>
+        ['submitted', 'under_review', 'pending'].includes(
+          idea.status?.toLowerCase() ?? '',
+        ),
+      ),
+    [ideas],
   )
   const engagementRate =
     ideas.length > 0
@@ -71,6 +82,49 @@ export default function QAManagerPage() {
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
         <SectionCard
+          title="Approval queue"
+          description="Open an idea to approve it or reject it with reviewer feedback."
+        >
+          {error ? (
+            <EmptyState
+              icon={BarChart3}
+              title="Approval queue unavailable"
+              description={error.message}
+            />
+          ) : reviewQueue.length > 0 ? (
+            <div className="space-y-4">
+              {reviewQueue.slice(0, 5).map((idea) => (
+                <div
+                  key={idea.id}
+                  className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600"
+                >
+                  <p className="font-medium text-slate-900">
+                    {idea.text || 'Untitled idea'}
+                  </p>
+                  <p className="mt-2">
+                    Status: {idea.status?.replace(/_/g, ' ') || 'Pending'}
+                  </p>
+                  <p>
+                    Category: {idea.categoryName || 'Uncategorized'}
+                  </p>
+                  <div className="mt-4">
+                    <Link to="/ideas/$ideaId" params={{ ideaId: idea.id }}>
+                      <AppButton type="button">Open review view</AppButton>
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              icon={BarChart3}
+              title="No ideas waiting for review"
+              description="Submitted ideas will appear here when moderation is needed."
+            />
+          )}
+        </SectionCard>
+
+        <SectionCard
           title="Reporting widgets"
           description="Ideas that still need comments or follow-up."
         >
@@ -84,11 +138,11 @@ export default function QAManagerPage() {
             <div className="space-y-4">
               {ideasWithoutComments.slice(0, 5).map((idea, index) => (
                 <div
-                  key={String(idea.id ?? index)}
+                  key={String(idea.id || index)}
                   className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600"
                 >
                   <p className="font-medium text-slate-900">
-                    {String(idea.text ?? `Idea ${index + 1}`)}
+                    {String(idea.text || `Idea ${index + 1}`)}
                   </p>
                 </div>
               ))}

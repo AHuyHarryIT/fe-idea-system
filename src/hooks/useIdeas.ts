@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
-import type { CommentCreateRequest, VoteRequest } from '@/api'
+import type { CommentCreateRequest, ReviewIdeaRequest, VoteRequest } from '@/api'
 import { ideaService } from '@/api'
 
 export const useMyIdeas = () => {
@@ -83,6 +83,18 @@ export const useAddComment = () => {
       ideaId: string
       request: CommentCreateRequest
     }) => ideaService.addComment(ideaId, request),
+  })
+}
+
+export const useReviewIdea = () => {
+  return useMutation({
+    mutationFn: ({
+      ideaId,
+      request,
+    }: {
+      ideaId: string
+      request: ReviewIdeaRequest
+    }) => ideaService.reviewIdea(ideaId, request),
   })
 }
 
