@@ -1,7 +1,6 @@
-import { useState } from 'react'
-import TopNav from './TopNavLayout'
-import Sidebar from './Sidebar'
 import type { Role } from '@/types/auth'
+import Sidebar from './Sidebar'
+import TopNav from './TopNavLayout'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -10,13 +9,10 @@ interface LayoutProps {
 }
 
 export default function Layout({ children, userRole, onLogout }: LayoutProps) {
-  const [academicYear, setAcademicYear] = useState('2025-2026')
 
   return (
     <div className="min-h-screen bg-slate-50">
       <TopNav
-        academicYear={academicYear}
-        onAcademicYearChange={setAcademicYear}
         onLogout={onLogout}
         userRole={userRole}
       />

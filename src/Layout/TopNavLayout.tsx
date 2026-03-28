@@ -3,16 +3,11 @@ import { ChevronDown, GraduationCap, LogOut, UserCircle2 } from 'lucide-react'
 import type { Role } from '@/types/auth'
 
 interface TopNavProps {
-  academicYear: string
-  onAcademicYearChange: (year: string) => void
   onLogout: () => void
   userRole: Role
 }
 
-const academicYears = ['2024-2025', '2025-2026', '2026-2027']
-
-export default function TopNav({ academicYear, onAcademicYearChange, onLogout, userRole }: TopNavProps) {
-  const [showYearDropdown, setShowYearDropdown] = useState(false)
+export default function TopNav({ onLogout, userRole }: TopNavProps) {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false)
 
   const roleLabel = useMemo(() => {
@@ -36,7 +31,9 @@ export default function TopNav({ academicYear, onAcademicYearChange, onLogout, u
             <GraduationCap className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-base font-semibold text-slate-900">University Idea Collection System</p>
+            <p className="text-base font-semibold text-slate-900">
+              University Idea Collection System
+            </p>
           </div>
         </div>
 
@@ -49,7 +46,9 @@ export default function TopNav({ academicYear, onAcademicYearChange, onLogout, u
             >
               <UserCircle2 className="h-8 w-8 text-slate-500" />
               <div className="hidden text-left sm:block">
-                <p className="text-sm font-medium text-slate-800">{roleLabel}</p>
+                <p className="text-sm font-medium text-slate-800">
+                  {roleLabel}
+                </p>
                 <p className="text-xs text-slate-500">Workspace account</p>
               </div>
               <ChevronDown className="h-4 w-4 text-slate-500" />
