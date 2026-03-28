@@ -37,44 +37,10 @@ export default function TopNav({ academicYear, onAcademicYearChange, onLogout, u
           </div>
           <div>
             <p className="text-base font-semibold text-slate-900">University Idea Collection System</p>
-            <p className="text-xs text-slate-500">Frontend skeleton for role-based portal</p>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="relative hidden sm:block">
-            <button
-              type="button"
-              onClick={() => setShowYearDropdown((prev) => !prev)}
-              className="inline-flex items-center gap-2 rounded-xl bg-slate-100 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-200"
-            >
-              Academic Year: {academicYear}
-              <ChevronDown className="h-4 w-4" />
-            </button>
-
-            {showYearDropdown ? (
-              <div className="absolute right-0 mt-2 w-44 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg">
-                {academicYears.map((year) => (
-                  <button
-                    key={year}
-                    type="button"
-                    onClick={() => {
-                      onAcademicYearChange(year)
-                      setShowYearDropdown(false)
-                    }}
-                    className={`block w-full px-4 py-3 text-left text-sm transition ${
-                      year === academicYear
-                        ? 'bg-blue-50 text-blue-700'
-                        : 'text-slate-700 hover:bg-slate-50'
-                    }`}
-                  >
-                    {year}
-                  </button>
-                ))}
-              </div>
-            ) : null}
-          </div>
-
           <div className="relative">
             <button
               type="button"
