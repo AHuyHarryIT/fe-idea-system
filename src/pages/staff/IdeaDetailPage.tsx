@@ -55,7 +55,9 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
   const [reviewReason, setReviewReason] = useState('')
   const [reviewFeedbackMessage, setReviewFeedbackMessage] = useState('')
 
-  const canLike = !isLoading
+  const thumbStatus = idea?.thumbStatus ?? -1
+  const isLiked = thumbStatus === 1
+  const isDisliked = thumbStatus === 0
   const canComment = !isLoading && (idea?.canComment ?? true)
   const canReview = role === 'qa_manager' || role === 'admin'
 
@@ -84,14 +86,21 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
     }
 
     await refreshIdeaQueries()
-    setFeedbackMessage('Thanks! Your vote has been recorded.')
+    setFeedbackMessage(
+      isLiked
+        ? 'Your like has been removed.'
+        : isDisliked
+        ? 'Your vote has been changed to like.'
+        : 'Thanks! Your like has been recorded.',
+    )
   }
+
   const handleDislike = async () => {
     setFeedbackMessage('')
 
     const response = await voteOnIdea({
       ideaId,
-      request: { isThumbsDown: true },
+      request: { isThumbsUp: false },
     })
 
     if (!response.success) {
@@ -100,7 +109,13 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
     }
 
     await refreshIdeaQueries()
-    setFeedbackMessage('Thanks! Your vote has been recorded.')
+    setFeedbackMessage(
+      isDisliked
+        ? 'Your dislike has been removed.'
+        : isLiked
+        ? 'Your vote has been changed to dislike.'
+        : 'Thanks! Your dislike has been recorded.',
+    )
   }
 
   const handleCommentSubmit = async () => {
@@ -203,16 +218,24 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
             </Link>
 
             <AppButton
-              variant="ghost"
+              variant={isLiked ? 'primary' : 'ghost'}
               onClick={handleLike}
-              disabled={isLoading || isVoting || !canLike}
+              disabled={isLoading || isVoting}
+              aria-pressed={isLiked}
+              className={isLiked ? 'ring-2 ring-blue-200' : ''}
             >
               <ThumbsUp className="mr-2 h-4 w-4" />
-              Like
+              {isLiked ? 'Liked' : 'Like'}
             </AppButton>
-            <AppButton variant="red" onClick={handleDislike}>
+            <AppButton
+              variant={isDisliked ? 'red' : 'ghost'}
+              onClick={handleDislike}
+              disabled={isLoading || isVoting}
+              aria-pressed={isDisliked}
+              className={isDisliked ? 'ring-2 ring-red-200' : ''}
+            >
               <ThumbsDown className="mr-2 h-4 w-4" />
-              Dislike
+              {isDisliked ? 'Disliked' : 'Dislike'}
             </AppButton>
             <AppButton
               onClick={() => {
@@ -270,6 +293,8 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
                     hint="Required only if you reject the idea."
                   >
                     <FormTextarea
+                      id="review-reason"
+                      name="review-reason"
                       value={reviewReason}
                       onChange={(event) => setReviewReason(event.target.value)}
                       placeholder="Explain why the idea was rejected or what must be updated."
@@ -369,6 +394,7 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
                 <FormField label="Write a comment">
                   <FormTextarea
                     id="comment-form"
+                    name="comment-form"
                     placeholder={
                       canComment
                         ? 'Enter comment content'
@@ -382,6 +408,8 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
 
                 <label className="mt-4 flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
                   <input
+                    id="comment-anonymous"
+                    name="comment-anonymous"
                     type="checkbox"
                     checked={isAnonymous}
                     onChange={(event) => setIsAnonymous(event.target.checked)}

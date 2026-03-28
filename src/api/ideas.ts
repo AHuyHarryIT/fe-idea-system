@@ -14,6 +14,7 @@ export interface Idea {
   commentsCount?: number
   thumbsUpCount?: number
   thumbsDownCount?: number
+  thumbStatus?: number
   commentCount?: number
   isAnonymous: boolean
   createdBy?: string
@@ -61,7 +62,6 @@ export interface CommentCreateRequest {
 
 export interface VoteRequest {
   isThumbsUp?: boolean
-  isThumbsDown?: boolean
 }
 
 export interface ReviewIdeaRequest {

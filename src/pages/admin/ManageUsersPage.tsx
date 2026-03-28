@@ -58,8 +58,6 @@ export default function ManageUsersPage() {
     },
   })
 
-  console.log('Departments data:', departmentsData) // Debugging log
-
   const users = useMemo(() => data?.users ?? [], [data])
 
   // Create user mutation
