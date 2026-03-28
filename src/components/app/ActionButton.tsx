@@ -8,7 +8,7 @@ interface AppButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const variant: Record<NonNullable<AppButtonProps['action']>, string> = {
   edit: 'bg-blue-600 text-white hover:bg-blue-700',
   ghost: 'bg-slate-50 text-black hover:bg-slate-100',
-  delete: 'bg-red-600 text-black hover:bg-red-800',
+  delete: 'bg-red-600 text-white  hover:bg-red-800',
   add: 'bg-slate-50 text-slate-700 hover:bg-slate-100',
 }
 const icon: Record<NonNullable<AppButtonProps['action']>, React.ReactNode> = {
