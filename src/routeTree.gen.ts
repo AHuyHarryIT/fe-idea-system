@@ -20,6 +20,7 @@ import { Route as IdeasIndexRouteImport } from './routes/ideas.index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as ManageUsersRouteImport } from './routes/manage/users'
 import { Route as ManageSubmissionsRouteImport } from './routes/manage/submissions'
+import { Route as ManageReviewRouteImport } from './routes/manage/review'
 import { Route as ManageDepartmentsRouteImport } from './routes/manage/departments'
 import { Route as ManageCategoriesRouteImport } from './routes/manage/categories'
 import { Route as IdeasIdeaIdRouteImport } from './routes/ideas.$ideaId'
@@ -79,6 +80,11 @@ const ManageSubmissionsRoute = ManageSubmissionsRouteImport.update({
   path: '/manage/submissions',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ManageReviewRoute = ManageReviewRouteImport.update({
+  id: '/manage/review',
+  path: '/manage/review',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ManageDepartmentsRoute = ManageDepartmentsRouteImport.update({
   id: '/manage/departments',
   path: '/manage/departments',
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/ideas/$ideaId': typeof IdeasIdeaIdRoute
   '/manage/categories': typeof ManageCategoriesRoute
   '/manage/departments': typeof ManageDepartmentsRoute
+  '/manage/review': typeof ManageReviewRoute
   '/manage/submissions': typeof ManageSubmissionsRoute
   '/manage/users': typeof ManageUsersRoute
   '/admin': typeof AdminIndexRoute
@@ -121,6 +128,7 @@ export interface FileRoutesByTo {
   '/ideas/$ideaId': typeof IdeasIdeaIdRoute
   '/manage/categories': typeof ManageCategoriesRoute
   '/manage/departments': typeof ManageDepartmentsRoute
+  '/manage/review': typeof ManageReviewRoute
   '/manage/submissions': typeof ManageSubmissionsRoute
   '/manage/users': typeof ManageUsersRoute
   '/admin': typeof AdminIndexRoute
@@ -138,6 +146,7 @@ export interface FileRoutesById {
   '/ideas/$ideaId': typeof IdeasIdeaIdRoute
   '/manage/categories': typeof ManageCategoriesRoute
   '/manage/departments': typeof ManageDepartmentsRoute
+  '/manage/review': typeof ManageReviewRoute
   '/manage/submissions': typeof ManageSubmissionsRoute
   '/manage/users': typeof ManageUsersRoute
   '/admin/': typeof AdminIndexRoute
@@ -156,6 +165,7 @@ export interface FileRouteTypes {
     | '/ideas/$ideaId'
     | '/manage/categories'
     | '/manage/departments'
+    | '/manage/review'
     | '/manage/submissions'
     | '/manage/users'
     | '/admin'
@@ -171,6 +181,7 @@ export interface FileRouteTypes {
     | '/ideas/$ideaId'
     | '/manage/categories'
     | '/manage/departments'
+    | '/manage/review'
     | '/manage/submissions'
     | '/manage/users'
     | '/admin'
@@ -187,6 +198,7 @@ export interface FileRouteTypes {
     | '/ideas/$ideaId'
     | '/manage/categories'
     | '/manage/departments'
+    | '/manage/review'
     | '/manage/submissions'
     | '/manage/users'
     | '/admin/'
@@ -203,6 +215,7 @@ export interface RootRouteChildren {
   SubmitIdeaRoute: typeof SubmitIdeaRoute
   ManageCategoriesRoute: typeof ManageCategoriesRoute
   ManageDepartmentsRoute: typeof ManageDepartmentsRoute
+  ManageReviewRoute: typeof ManageReviewRoute
   ManageSubmissionsRoute: typeof ManageSubmissionsRoute
   ManageUsersRoute: typeof ManageUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -287,6 +300,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ManageSubmissionsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/manage/review': {
+      id: '/manage/review'
+      path: '/manage/review'
+      fullPath: '/manage/review'
+      preLoaderRoute: typeof ManageReviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/manage/departments': {
       id: '/manage/departments'
       path: '/manage/departments'
@@ -333,6 +353,7 @@ const rootRouteChildren: RootRouteChildren = {
   SubmitIdeaRoute: SubmitIdeaRoute,
   ManageCategoriesRoute: ManageCategoriesRoute,
   ManageDepartmentsRoute: ManageDepartmentsRoute,
+  ManageReviewRoute: ManageReviewRoute,
   ManageSubmissionsRoute: ManageSubmissionsRoute,
   ManageUsersRoute: ManageUsersRoute,
   AdminIndexRoute: AdminIndexRoute,

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus, Trash2, Users } from 'lucide-react'
-import { userService } from '@/api'
+import { departmentService, userService } from '@/api'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -36,7 +36,6 @@ export default function ManageUsersPage() {
     password: '',
     role: 'Staff',
   })
-  console.log('Current user ID:', userId)
   const { data, isLoading, error } = useQuery({
     queryKey: ['adminUsers'],
     queryFn: async () => {
@@ -47,6 +46,19 @@ export default function ManageUsersPage() {
       return response.data
     },
   })
+
+  const { data: departmentsData } = useQuery({
+    queryKey: ['departments'],
+    queryFn: async () => {
+      const response = await departmentService.getDepartments()
+      if (!response.success) {
+        throw new Error(response.error ?? 'Failed to load departments')
+      }
+      return response.data
+    },
+  })
+
+  console.log('Departments data:', departmentsData) // Debugging log
 
   const users = useMemo(() => data?.users ?? [], [data])
 
@@ -300,9 +312,11 @@ export default function ManageUsersPage() {
                     <td className="px-6 py-4 text-sm text-slate-600">
                       {editingUserId === user.id ? (
                         <select
+                          className="rounded-lg border border-slate-300 px-2 py-1 text-sm"
                           value={
-                            users.find((u) => u.id === user.id)?.department ||
-                            user.department ||
+                            users.find((u) => u.id === user.id)
+                              ?.departmentName ||
+                            user.departmentName ||
                             ''
                           }
                           onChange={(e) =>
@@ -310,9 +324,20 @@ export default function ManageUsersPage() {
                               department: e.target.value,
                             })
                           }
-                        />
+                        >
+                          <option value="">No department</option>
+                          {departmentsData?.map((dept: any) => (
+                            <option
+                              key={dept.id}
+                              value={dept.name}
+                              selected={user.departmentName === dept.name}
+                            >
+                              {dept.name}
+                            </option>
+                          ))}
+                        </select>
                       ) : (
-                        <>{user.department || '—'}</>
+                        <>{user.departmentName || '—'}</>
                       )}
                     </td>
                     <td className="px-6 py-4 text-sm">

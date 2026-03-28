@@ -23,8 +23,8 @@ export interface UpdateDepartmentPayload {
 }
 
 export const departmentService = {
-  getDepartments: (): Promise<ApiResponse<Array<Department>>> =>
-    apiClient.get<Array<Department>>('/departments'),
+  getDepartments: async (): Promise<ApiResponse<Array<Department>>> =>
+    await apiClient.get<Department[]>('/departments'),
 
   createDepartment: (
     payload: CreateDepartmentPayload,

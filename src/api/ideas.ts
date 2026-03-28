@@ -82,7 +82,7 @@ export const ideaService = {
     pageSize: number = 10,
   ): Promise<ApiResponse<IdeaListResponse>> =>
     apiClient.get<IdeaListResponse>(
-      `/ideas/paged?pageNumber=${pageNumber}&pageSize=${pageSize}`,
+      `/ideas?pageNumber=${pageNumber}&pageSize=${pageSize}`,
     ),
 
   getIdeaById: (id: string): Promise<ApiResponse<Idea>> =>
@@ -110,7 +110,7 @@ export const ideaService = {
     ideaId: string,
     request: ReviewIdeaRequest,
   ): Promise<ApiResponse<void>> =>
-    apiClient.put<void>(`/Idea/${ideaId}/review`, request),
+    apiClient.put<void>(`/ideas/${ideaId}/review`, request),
 
   // QA Manager endpoints
   getIdeasWithoutComments: (): Promise<ApiResponse<IdeaListResponse>> =>

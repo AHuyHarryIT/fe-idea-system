@@ -13,6 +13,18 @@ import {
 import { useQAManagerIdeas } from '@/hooks/useIdeas'
 import { normalizeIdeaResponse } from '@/lib/idea-response-mapper'
 
+function isReviewableIdea(status?: string) {
+  if (!status) return true
+
+  return [
+    'submitted',
+    'under_review',
+    'pending',
+    'pending_review',
+    'awaiting_review',
+  ].includes(status.toLowerCase().replace(/\s+/g, '_'))
+}
+
 export default function QAManagerPage() {
   const { data: ideaData, isLoading, error } = useQAManagerIdeas()
   const { data: departmentData } = useDepartmentStats()
@@ -33,12 +45,7 @@ export default function QAManagerPage() {
     [withoutCommentsData],
   )
   const reviewQueue = useMemo(
-    () =>
-      ideas.filter((idea) =>
-        ['submitted', 'under_review', 'pending'].includes(
-          idea.status?.toLowerCase() ?? '',
-        ),
-      ),
+    () => ideas.filter((idea) => isReviewableIdea(idea.status)),
     [ideas],
   )
   const engagementRate =
@@ -108,7 +115,7 @@ export default function QAManagerPage() {
                     Category: {idea.categoryName || 'Uncategorized'}
                   </p>
                   <div className="mt-4">
-                    <Link to="/ideas/$ideaId" params={{ ideaId: idea.id }}>
+                    <Link to="/manage/review">
                       <AppButton type="button">Open review view</AppButton>
                     </Link>
                   </div>

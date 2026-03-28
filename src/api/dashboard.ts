@@ -51,7 +51,7 @@ export const dashboardService = {
 
   // Staff dashboard
   getStaffDashboard: (): Promise<ApiResponse<StaffDashboard>> =>
-    apiClient.get<StaffDashboard>('/Idea/my-ideas'),
+    apiClient.get<StaffDashboard>('/ideas/my-ideas'),
 
   // Admin dashboard
   getAdminDashboard: (): Promise<ApiResponse<AdminDashboard>> =>
