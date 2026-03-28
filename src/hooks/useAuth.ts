@@ -12,6 +12,11 @@ export const useLogin = () => {
 
       if (response.success && session && role) {
         auth.setToken(session.token)
+        if (session.userId) {
+          auth.setUserId(session.userId)
+        } else {
+          auth.clearUserId()
+        }
         auth.setRole(role)
       }
     },
@@ -27,6 +32,11 @@ export const useRegister = () => {
 
       if (response.success && session && role) {
         auth.setToken(session.token)
+        if (session.userId) {
+          auth.setUserId(session.userId)
+        } else {
+          auth.clearUserId()
+        }
         auth.setRole(role)
       }
     },

@@ -83,6 +83,20 @@ function getRoleFromClaims(claims: UnknownRecord | null) {
   )
 }
 
+function getUserIdFromClaims(claims: UnknownRecord | null) {
+  if (!claims) {
+    return ''
+  }
+
+  return getString(
+    claims.sub ??
+      claims.nameid ??
+      claims[
+        'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'
+      ],
+  )
+}
+
 export function extractAuthResponse(payload: unknown): AuthResponse | null {
   const record = isRecord(payload)
     ? payload
@@ -115,7 +129,9 @@ export function extractAuthResponse(payload: unknown): AuthResponse | null {
   return {
     token,
     role,
-    userId: getString(record.userId ?? record.id ?? userRecord?.id),
+    userId: getString(
+      record.userId ?? record.id ?? userRecord?.id ?? getUserIdFromClaims(claims),
+    ),
     email: getString(record.email ?? userRecord?.email),
     name: getString(record.name ?? record.fullName ?? userRecord?.name),
   }
