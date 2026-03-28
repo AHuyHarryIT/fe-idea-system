@@ -48,15 +48,17 @@ export interface IdeaCreateRequest {
 
 export interface Comment {
   id: string
-  text: string
+  text?: string
+  content?: string
   isAnonymous: boolean
   createdBy?: string
   authorName?: string
-  createdAt: string
+  createdAt?: string
+  createdDate?: string
 }
 
 export interface CommentCreateRequest {
-  text: string
+  content: string
   isAnonymous: boolean
 }
 

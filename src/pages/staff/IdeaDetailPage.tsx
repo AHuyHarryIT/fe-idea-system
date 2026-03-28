@@ -42,6 +42,13 @@ function formatDate(dateString?: string) {
   }
 }
 
+function getCommentText(comment: {
+  text?: string
+  content?: string
+}) {
+  return comment.text || comment.content || 'No comment content available.'
+}
+
 export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
   const queryClient = useQueryClient()
   const role = auth.getRole()
@@ -134,7 +141,7 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
     const response = await addComment({
       ideaId,
       request: {
-        text: commentText.trim(),
+        content: commentText.trim(),
         isAnonymous,
       },
     })
@@ -378,9 +385,13 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
                               comment.createdBy ||
                               'Unknown author'}
                         </span>
-                        <span>{formatDate(comment.createdAt)}</span>
+                        <span>
+                          {formatDate(comment.createdAt || comment.createdDate)}
+                        </span>
                       </div>
-                      <p className="mt-3 whitespace-pre-wrap">{comment.text}</p>
+                      <p className="mt-3 whitespace-pre-wrap">
+                        {getCommentText(comment)}
+                      </p>
                     </div>
                   ))}
                 </div>
