@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { ChevronDown, GraduationCap, LogOut, UserCircle2 } from 'lucide-react'
 import type { Role } from '@/types/auth'
+import { auth } from '@/lib/auth'
 
 interface TopNavProps {
   onLogout: () => void
@@ -9,6 +10,10 @@ interface TopNavProps {
 
 export default function TopNav({ onLogout, userRole }: TopNavProps) {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false)
+  const displayName = useMemo(
+    () => auth.getDisplayName() ?? 'User',
+    [],
+  )
 
   const roleLabel = useMemo(() => {
     switch (userRole) {
@@ -47,9 +52,9 @@ export default function TopNav({ onLogout, userRole }: TopNavProps) {
               <UserCircle2 className="h-8 w-8 text-slate-500" />
               <div className="hidden text-left sm:block">
                 <p className="text-sm font-medium text-slate-800">
-                  {roleLabel}
+                  {displayName}
                 </p>
-                <p className="text-xs text-slate-500">Workspace account</p>
+                <p className="text-xs text-slate-500">{roleLabel}</p>
               </div>
               <ChevronDown className="h-4 w-4 text-slate-500" />
             </button>

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { ArrowLeft, CalendarRange, FileUp, Send } from 'lucide-react'
@@ -12,6 +12,7 @@ import { useIdeaCategories } from '@/hooks/useCategories'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { useSubmitIdea } from '@/hooks/useIdeas'
 import { useSubmissions } from '@/hooks/useSubmissions'
+import { auth } from '@/lib/auth'
 
 const initialForm: IdeaSubmitPayload = {
   title: '',
@@ -39,9 +40,17 @@ function isSubmissionClosed(closureDate?: string) {
   return new Date(closureDate).getTime() < new Date().setHours(0, 0, 0, 0)
 }
 
+function isPdfFile(file: File) {
+  const normalizedType = file.type.toLowerCase()
+  const normalizedName = file.name.toLowerCase()
+
+  return normalizedType === 'application/pdf' || normalizedName.endsWith('.pdf')
+}
+
 export default function SubmitIdeaPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
   const { data: categoryData, isLoading: categoriesLoading } =
     useIdeaCategories()
   const {
@@ -52,6 +61,7 @@ export default function SubmitIdeaPage() {
   const { mutateAsync: submitIdea, isPending } = useSubmitIdea()
   const [form, setForm] = useState<IdeaSubmitPayload>(initialForm)
   const [feedbackMessage, setFeedbackMessage] = useState('')
+  const [fileValidationMessage, setFileValidationMessage] = useState('')
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [selectedSubmissionId, setSelectedSubmissionId] = useState<
     string | null
@@ -75,12 +85,18 @@ export default function SubmitIdeaPage() {
     setForm(initialForm)
     setAgreedToTerms(false)
     setFeedbackMessage('')
+    setFileValidationMessage('')
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
   }
 
   const openSubmissionDetails = (submissionId: string) => {
     setSelectedSubmissionId(submissionId)
     setShowSubmitForm(false)
     setFeedbackMessage('')
+    setFileValidationMessage('')
     setForm((prev) => ({ ...prev, submissionId }))
   }
 
@@ -88,6 +104,7 @@ export default function SubmitIdeaPage() {
     if (!selectedSubmission) return
     setForm((prev) => ({ ...prev, submissionId: selectedSubmission.id }))
     setFeedbackMessage('')
+    setFileValidationMessage('')
     setShowSubmitForm(true)
   }
 
@@ -100,6 +117,35 @@ export default function SubmitIdeaPage() {
   const handleBackToDetails = () => {
     setShowSubmitForm(false)
     setFeedbackMessage('')
+    setFileValidationMessage('')
+  }
+
+  const handleFileChange = (files: FileList | null) => {
+    const selectedFiles = Array.from(files ?? [])
+
+    if (!selectedFiles.length) {
+      setForm((prev) => ({ ...prev, uploadFiles: [] }))
+      setFileValidationMessage('')
+      return
+    }
+
+    const invalidFile = selectedFiles.find((file) => !isPdfFile(file))
+
+    if (invalidFile) {
+      setForm((prev) => ({ ...prev, uploadFiles: [] }))
+      setFileValidationMessage(
+        `File '${invalidFile.name}' is invalid. Only PDF files are allowed.`,
+      )
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+
+      return
+    }
+
+    setForm((prev) => ({ ...prev, uploadFiles: selectedFiles }))
+    setFileValidationMessage('')
   }
 
   const handleSubmit = async () => {
@@ -129,6 +175,11 @@ export default function SubmitIdeaPage() {
       return
     }
 
+    if (fileValidationMessage) {
+      setFeedbackMessage(fileValidationMessage)
+      return
+    }
+
     const formData = new FormData()
     formData.append('Title', form.title.trim())
     formData.append('Description', form.description.trim())
@@ -136,9 +187,14 @@ export default function SubmitIdeaPage() {
     formData.append('CategoryId', form.categoryId)
     formData.append('SubmissionId', selectedSubmission.id)
     formData.append('IsAnonymous', String(form.isAnonymous))
+    const departmentId = auth.getDepartmentId()
+
+    if (departmentId) {
+      formData.append('DepartmentId', departmentId)
+    }
 
     form.uploadFiles?.forEach((file) => {
-      formData.append('Files', file)
+      formData.append('UploadedFiles', file)
     })
 
     const response = await submitIdea(formData)
@@ -326,6 +382,8 @@ export default function SubmitIdeaPage() {
             <div className="grid gap-5">
               <FormField label="Idea title" required>
                 <FormInput
+                  id="idea-title"
+                  name="title"
                   value={form.title}
                   onChange={(event) =>
                     setForm((prev) => ({ ...prev, title: event.target.value }))
@@ -342,6 +400,8 @@ export default function SubmitIdeaPage() {
                 hint="Useful for card preview, moderation queue, or search result snippet."
               >
                 <FormTextarea
+                  id="idea-description"
+                  name="description"
                   value={form.description}
                   onChange={(event) =>
                     setForm((prev) => ({
@@ -362,6 +422,8 @@ export default function SubmitIdeaPage() {
             <div className="grid gap-5 md:grid-cols-2">
               <FormField label="Category" required>
                 <select
+                  id="idea-category"
+                  name="categoryId"
                   value={form.categoryId}
                   onChange={(event) =>
                     setForm((prev) => ({
@@ -401,6 +463,8 @@ export default function SubmitIdeaPage() {
               <FormField label="Anonymous submission">
                 <label className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
                   <input
+                    id="idea-is-anonymous"
+                    name="isAnonymous"
                     type="checkbox"
                     checked={form.isAnonymous}
                     onChange={(event) =>
@@ -427,24 +491,28 @@ export default function SubmitIdeaPage() {
                     Choose supporting files
                   </p>
                   <p className="mt-1 text-xs text-slate-500">
-                    PDF, DOCX, images, or other allowed formats.
+                    PDF files only.
                   </p>
                 </div>
                 <input
+                  ref={fileInputRef}
+                  id="idea-uploaded-files"
+                  name="uploadedFiles"
                   multiple
                   type="file"
+                  accept=".pdf,application/pdf"
                   className="hidden"
-                  onChange={(event) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      attachments: Array.from(event.target.files ?? []),
-                    }))
-                  }
+                  onChange={(event) => handleFileChange(event.target.files)}
                 />
               </label>
               <p className="mt-4 text-sm text-slate-600">
                 {fileNames || 'No files selected yet.'}
               </p>
+              {fileValidationMessage ? (
+                <p className="mt-3 text-sm text-red-600">
+                  {fileValidationMessage}
+                </p>
+              ) : null}
             </div>
           </SectionCard>
 
@@ -469,6 +537,8 @@ export default function SubmitIdeaPage() {
               </ul>
               <label className="flex items-start gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
                 <input
+                  id="idea-has-accepted-terms"
+                  name="hasAcceptedTerms"
                   type="checkbox"
                   checked={agreedToTerms}
                   onChange={(event) => setAgreedToTerms(event.target.checked)}

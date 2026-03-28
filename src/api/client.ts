@@ -63,6 +63,31 @@ class ApiClient {
 
     if (payload && typeof payload === 'object') {
       const record = payload as Record<string, unknown>
+      const validationErrors = record.errors
+
+      if (validationErrors && typeof validationErrors === 'object') {
+        const messages = Object.values(validationErrors)
+          .flatMap((value) => {
+            if (Array.isArray(value)) {
+              return value.filter(
+                (item): item is string =>
+                  typeof item === 'string' && item.trim().length > 0,
+              )
+            }
+
+            if (typeof value === 'string' && value.trim()) {
+              return [value]
+            }
+
+            return []
+          })
+          .filter((message, index, list) => list.indexOf(message) === index)
+
+        if (messages.length) {
+          return messages.join(' ')
+        }
+      }
+
       const message =
         record.message ?? record.error ?? record.title ?? record.detail
 

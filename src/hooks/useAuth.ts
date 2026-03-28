@@ -17,6 +17,11 @@ export const useLogin = () => {
         } else {
           auth.clearUserId()
         }
+        if (session.name.trim()) {
+          auth.setDisplayName(session.name.trim())
+        } else {
+          auth.clearDisplayName()
+        }
         auth.setRole(role)
       }
     },

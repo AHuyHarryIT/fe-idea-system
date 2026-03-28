@@ -97,6 +97,19 @@ function getUserIdFromClaims(claims: UnknownRecord | null) {
   )
 }
 
+function getNameFromClaims(claims: UnknownRecord | null) {
+  if (!claims) {
+    return ''
+  }
+
+  return getFirstString(
+    claims.name ??
+      claims.fullName ??
+      claims.unique_name ??
+      claims['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'],
+  )
+}
+
 export function extractAuthResponse(payload: unknown): AuthResponse | null {
   const record = isRecord(payload)
     ? payload
@@ -133,7 +146,13 @@ export function extractAuthResponse(payload: unknown): AuthResponse | null {
       record.userId ?? record.id ?? userRecord?.id ?? getUserIdFromClaims(claims),
     ),
     email: getString(record.email ?? userRecord?.email),
-    name: getString(record.name ?? record.fullName ?? userRecord?.name),
+    name: getString(
+      record.name ??
+        record.fullName ??
+        userRecord?.name ??
+        userRecord?.fullName ??
+        getNameFromClaims(claims),
+    ),
   }
 }
 
