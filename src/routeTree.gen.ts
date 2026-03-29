@@ -16,14 +16,14 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as IdeasRouteImport } from './routes/ideas'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as IdeasIndexRouteImport } from './routes/ideas.index'
+import { Route as IdeasIndexRouteImport } from './routes/ideas/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as ManageUsersRouteImport } from './routes/manage/users'
 import { Route as ManageSubmissionsRouteImport } from './routes/manage/submissions'
 import { Route as ManageReviewRouteImport } from './routes/manage/review'
 import { Route as ManageDepartmentsRouteImport } from './routes/manage/departments'
 import { Route as ManageCategoriesRouteImport } from './routes/manage/categories'
-import { Route as IdeasIdeaIdRouteImport } from './routes/ideas.$ideaId'
+import { Route as IdeasIdeaIdRouteImport } from './routes/ideas/$ideaId'
 
 const SubmitIdeaRoute = SubmitIdeaRouteImport.update({
   id: '/submit-idea',

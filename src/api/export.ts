@@ -4,7 +4,60 @@ const API_BASE_URL =
   import.meta.env.VITE_API_URL ??
   'http://localhost:5000/api'
 
-async function requestExport(endpoint: string, filename: string): Promise<void> {
+function sanitizeFilename(value: string) {
+  return value.replace(/[^a-z0-9._-]+/gi, '-').replace(/-+/g, '-')
+}
+
+function getFilenameFromDisposition(value: string | null) {
+  if (!value) {
+    return null
+  }
+
+  const utf8Match = value.match(/filename\*=UTF-8''([^;]+)/i)
+
+  if (utf8Match?.[1]) {
+    return decodeURIComponent(utf8Match[1])
+  }
+
+  const basicMatch = value.match(/filename="?([^"]+)"?/i)
+
+  return basicMatch?.[1] ?? null
+}
+
+async function getErrorMessage(response: Response) {
+  const contentType = response.headers.get('content-type') ?? ''
+
+  if (contentType.includes('application/json')) {
+    try {
+      const payload = (await response.json()) as Record<string, unknown>
+      const message =
+        payload.message ?? payload.error ?? payload.title ?? payload.detail
+
+      if (typeof message === 'string' && message.trim()) {
+        return message
+      }
+    } catch {
+      return `Export failed (HTTP ${response.status})`
+    }
+  }
+
+  try {
+    const text = await response.text()
+
+    if (text.trim()) {
+      return text
+    }
+  } catch {
+    return `Export failed (HTTP ${response.status})`
+  }
+
+  return `Export failed (HTTP ${response.status})`
+}
+
+async function requestExport(
+  endpoint: string,
+  fallbackFilename: string,
+): Promise<void> {
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: 'GET',
@@ -14,11 +67,15 @@ async function requestExport(endpoint: string, filename: string): Promise<void> 
     })
 
     if (!response.ok) {
-      throw new Error(`Export failed (HTTP ${response.status})`)
+      throw new Error(await getErrorMessage(response))
     }
 
     const blob = await response.blob()
-    downloadBlob(blob, filename)
+    const headerFilename = getFilenameFromDisposition(
+      response.headers.get('content-disposition'),
+    )
+
+    downloadBlob(blob, headerFilename ?? fallbackFilename)
   } catch (error) {
     console.error('Export error:', error)
     throw error
@@ -26,30 +83,44 @@ async function requestExport(endpoint: string, filename: string): Promise<void> 
 }
 
 export const exportService = {
-  // Admin and QA Manager exports
   exportIdeasAsCSV: async (): Promise<void> => {
-    return requestExport('/exports/csv', 'ideas.csv')
+    return requestExport('/export/csv', 'ideas.csv')
   },
 
   exportIdeasAsZip: async (): Promise<void> => {
-    return requestExport('/exports/zip', 'ideas.zip')
+    return requestExport('/export/zip', 'ideas.zip')
   },
 
-  // Alias methods for backwards compatibility
+  exportSubmissionAsCSV: async (
+    submissionId: string,
+    submissionName?: string,
+  ): Promise<void> => {
+    const filename = sanitizeFilename(submissionName || submissionId)
+    return requestExport(`/export/csv/${submissionId}`, `${filename}.csv`)
+  },
+
+  exportSubmissionAsZip: async (
+    submissionId: string,
+    submissionName?: string,
+  ): Promise<void> => {
+    const filename = sanitizeFilename(submissionName || submissionId)
+    return requestExport(`/export/zip/${submissionId}`, `${filename}.zip`)
+  },
+
   exportAdminIdeasAsCSV: async (): Promise<void> => {
-    return requestExport('/exports/csv', 'ideas.csv')
+    return requestExport('/export/csv', 'ideas.csv')
   },
 
   exportAdminIdeasAsZip: async (): Promise<void> => {
-    return requestExport('/exports/zip', 'ideas.zip')
+    return requestExport('/export/zip', 'ideas.zip')
   },
 
   exportQAManagerIdeasAsCSV: async (): Promise<void> => {
-    return requestExport('/exports/csv', 'ideas.csv')
+    return requestExport('/export/csv', 'ideas.csv')
   },
 
   exportQAManagerIdeasAsZip: async (): Promise<void> => {
-    return requestExport('/exports/zip', 'ideas.zip')
+    return requestExport('/export/zip', 'ideas.zip')
   },
 }
 

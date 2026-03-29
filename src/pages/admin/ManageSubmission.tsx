@@ -26,7 +26,7 @@ interface SubmissionFormState {
 
 const initialForm: SubmissionFormState = {
   name: '',
-  academicYear: '2025-2026',
+  academicYear: new Date().getFullYear().toString(),
   closureDate: '',
   finalClosureDate: '',
 }
@@ -303,7 +303,7 @@ export default function ManageSubmissionPage() {
                   academicYear: event.target.value,
                 }))
               }
-              placeholder="e.g., 2025-2026"
+              placeholder="e.g., 2026"
             />
           </FormField>
 

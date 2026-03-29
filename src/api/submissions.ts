@@ -4,9 +4,12 @@ import type { ApiResponse } from './client'
 export interface Submission {
   id: string
   name: string
+  description?: string | null
   academicYear: string
   closureDate: string
   finalClosureDate: string
+  ideaCount?: number
+  isActive?: boolean
 }
 
 export interface SubmissionCreateRequest {

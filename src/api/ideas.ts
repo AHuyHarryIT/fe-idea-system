@@ -71,6 +71,71 @@ export interface ReviewIdeaRequest {
   rejectionReason?: string
 }
 
+function getIdeasFromListResponse(data?: IdeaListResponse): Array<Idea> {
+  if (!data) {
+    return []
+  }
+
+  if (Array.isArray(data.items)) {
+    return data.items
+  }
+
+  if (Array.isArray(data.ideas)) {
+    return data.ideas
+  }
+
+  return []
+}
+
+async function findIdeaByIdFromPagedList(
+  id: string,
+): Promise<ApiResponse<Idea>> {
+  const pageSize = 100
+  const firstPageResponse = await apiClient.get<IdeaListResponse>(
+    `/ideas?PageNumber=1&PageSize=${pageSize}`,
+  )
+
+  if (!firstPageResponse.success) {
+    return { success: false, error: firstPageResponse.error }
+  }
+
+  const firstPageIdeas = getIdeasFromListResponse(firstPageResponse.data)
+  const firstMatch = firstPageIdeas.find((idea) => idea.id === id)
+
+  if (firstMatch) {
+    return { success: true, data: firstMatch } satisfies ApiResponse<Idea>
+  }
+
+  const totalPages =
+    firstPageResponse.data?.totalPages ??
+    Math.max(
+      1,
+      Math.ceil((firstPageResponse.data?.totalCount ?? firstPageIdeas.length) / pageSize),
+    )
+
+  for (let pageNumber = 2; pageNumber <= totalPages; pageNumber += 1) {
+    const pageResponse = await apiClient.get<IdeaListResponse>(
+      `/ideas?PageNumber=${pageNumber}&PageSize=${pageSize}`,
+    )
+
+    if (!pageResponse.success) {
+      return { success: false, error: pageResponse.error }
+    }
+
+    const pageIdeas = getIdeasFromListResponse(pageResponse.data)
+    const match = pageIdeas.find((idea) => idea.id === id)
+
+    if (match) {
+      return { success: true, data: match } satisfies ApiResponse<Idea>
+    }
+  }
+
+  return {
+    success: false,
+    error: 'Idea not found in the current idea list.',
+  } satisfies ApiResponse<Idea>
+}
+
 export const ideaService = {
   // Common endpoints
   getMyIdeas: (): Promise<ApiResponse<IdeaListResponse>> =>
@@ -87,8 +152,15 @@ export const ideaService = {
       `/ideas?pageNumber=${pageNumber}&pageSize=${pageSize}`,
     ),
 
-  getIdeaById: (id: string): Promise<ApiResponse<Idea>> =>
-    apiClient.get<Idea>(`/ideas/${id}`),
+  getIdeaById: async (id: string): Promise<ApiResponse<Idea>> => {
+    const directResponse = await apiClient.get<Idea>(`/ideas/${id}`)
+
+    if (directResponse.success || directResponse.error !== 'HTTP 404') {
+      return directResponse
+    }
+
+    return findIdeaByIdFromPagedList(id)
+  },
 
   createIdea: (request: IdeaCreateRequest): Promise<ApiResponse<Idea>> =>
     apiClient.post<Idea>('/ideas', request),
