@@ -19,6 +19,10 @@ class ApiClient {
     this.baseURL = baseURL
   }
 
+  private isLoginEndpoint(endpoint: string) {
+    return endpoint === '/Auth/login'
+  }
+
   private getHeaders(): HeadersInit {
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
@@ -114,13 +118,19 @@ class ApiClient {
         },
       })
 
-      if (response.status === 401) {
-        auth.logout()
-        window.location.href = '/login'
-        return { success: false, error: 'Unauthorized' }
-      }
-
       const data = await this.parseResponseBody(response)
+
+      if (response.status === 401) {
+        if (!this.isLoginEndpoint(endpoint)) {
+          auth.logout()
+          window.location.href = '/login'
+        }
+
+        return {
+          success: false,
+          error: this.getErrorMessage(data, response.status),
+        }
+      }
 
       if (!response.ok) {
         return {

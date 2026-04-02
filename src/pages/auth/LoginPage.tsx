@@ -8,6 +8,22 @@ import { FormInput } from '@/components/forms/FormInput'
 import { useLogin } from '@/hooks/useAuth'
 import { auth, getHomeRouteForRole } from '@/lib/auth'
 
+function getLoginErrorMessage(error?: string) {
+  const normalizedError = error?.trim().toLowerCase() ?? ''
+
+  if (
+    normalizedError === 'unauthorized' ||
+    normalizedError.includes('invalid email') ||
+    normalizedError.includes('invalid password') ||
+    normalizedError.includes('invalid credentials') ||
+    normalizedError.includes('email or password')
+  ) {
+    return 'Email or password not match'
+  }
+
+  return error ?? 'Unable to sign in.'
+}
+
 export default function LoginPage() {
   const navigate = useNavigate()
   const { mutateAsync: login, isPending } = useLogin()
@@ -25,7 +41,7 @@ export default function LoginPage() {
     const response = await login(formValues)
 
     if (!response.success) {
-      setErrorMessage(response.error ?? 'Unable to sign in.')
+      setErrorMessage(getLoginErrorMessage(response.error))
       return
     }
 
