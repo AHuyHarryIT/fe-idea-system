@@ -249,7 +249,7 @@ export const ideaService = {
       }
     }
 
-    if (directResponse.success || directResponse.error !== 'HTTP 404') {
+    if (directResponse.error !== 'HTTP 404') {
       return directResponse
     }
 

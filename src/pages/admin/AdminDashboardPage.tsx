@@ -8,11 +8,13 @@ import {
   submissionService,
   userService,
 } from '@/api'
+import type { Idea, IdeaListResponse } from '@/api'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { StatCard } from '@/components/shared/StatCard'
 import { ManageButton } from '@/components/app/ManageButton'
+import { normalizeIdeaResponse } from '@/lib/idea-response-mapper'
 
 export default function AdminDashboardPage() {
   const navigate = useNavigate()
@@ -49,21 +51,9 @@ export default function AdminDashboardPage() {
       // Handle API response formats
       // API returns direct array: [{id, title, ...}]
       // But code expects: {ideas: [...]} or {items: [...]}
-      const ideaData = ideasResponse.data
-      let ideas: Array<any> = []
-      if (Array.isArray(ideaData)) {
-        ideas = ideaData
-      } else if (ideaData?.ideas) {
-        ideas = ideaData.ideas
-      } else if (ideaData?.items) {
-        ideas = ideaData.items
-      }
-
-      // Map title to text for compatibility with frontend
-      const mappedIdeas = ideas.map((idea: any) => ({
-        ...idea,
-        text: idea.text || idea.title,
-      }))
+      const mappedIdeas = normalizeIdeaResponse(
+        ideasResponse.data as IdeaListResponse | Array<Idea> | undefined,
+      )
 
       return {
         users: usersResponse.data?.users ?? [],
