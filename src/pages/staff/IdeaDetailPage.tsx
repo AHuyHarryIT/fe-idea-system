@@ -47,6 +47,30 @@ function getCommentText(comment: { text?: string; content?: string }) {
   return comment.text || comment.content || 'No comment content available.'
 }
 
+function getThumbStatusMeta(thumbStatus: number) {
+  if (thumbStatus === 1) {
+    return {
+      label: 'Liked',
+      description: 'You have upvoted this idea.',
+      className: 'bg-blue-50 text-blue-700',
+    }
+  }
+
+  if (thumbStatus === 0) {
+    return {
+      label: 'Disliked',
+      description: 'You have downvoted this idea.',
+      className: 'bg-rose-50 text-rose-700',
+    }
+  }
+
+  return {
+    label: 'No reaction',
+    description: 'You have not voted on this idea yet.',
+    className: 'bg-slate-100 text-slate-600',
+  }
+}
+
 export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
   const queryClient = useQueryClient()
   const role = auth.getRole()
@@ -60,10 +84,14 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
   const [feedbackMessage, setFeedbackMessage] = useState('')
   const [reviewReason, setReviewReason] = useState('')
   const [reviewFeedbackMessage, setReviewFeedbackMessage] = useState('')
+  const [currentThumbStatus, setCurrentThumbStatus] = useState(-1)
+  const [thumbsUpCount, setThumbsUpCount] = useState(0)
+  const [thumbsDownCount, setThumbsDownCount] = useState(0)
 
-  const thumbStatus = idea?.thumbStatus ?? -1
+  const thumbStatus = currentThumbStatus
   const isLiked = thumbStatus === 1
   const isDisliked = thumbStatus === 0
+  const thumbStatusMeta = getThumbStatusMeta(thumbStatus)
   const canComment = !isLoading && (idea?.canComment ?? true)
   const canReview = role === 'admin'
   const visibleComments = useMemo(() => {
@@ -87,6 +115,12 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
     setPostedComments([])
   }, [ideaId])
 
+  useEffect(() => {
+    setCurrentThumbStatus(idea?.thumbStatus ?? -1)
+    setThumbsUpCount(idea?.thumbsUpCount ?? 0)
+    setThumbsDownCount(idea?.thumbsDownCount ?? 0)
+  }, [idea?.id])
+
   const refreshIdeaQueries = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['idea', ideaId] }),
@@ -100,6 +134,7 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
 
   const handleLike = async () => {
     setFeedbackMessage('')
+    const previousThumbStatus = currentThumbStatus
 
     const response = await voteOnIdea({
       ideaId,
@@ -111,11 +146,23 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
       return
     }
 
+    if (previousThumbStatus === 1) {
+      setCurrentThumbStatus(-1)
+      setThumbsUpCount((value) => Math.max(0, value - 1))
+    } else if (previousThumbStatus === 0) {
+      setCurrentThumbStatus(1)
+      setThumbsDownCount((value) => Math.max(0, value - 1))
+      setThumbsUpCount((value) => value + 1)
+    } else {
+      setCurrentThumbStatus(1)
+      setThumbsUpCount((value) => value + 1)
+    }
+
     await refreshIdeaQueries()
     setFeedbackMessage(
-      isLiked
+      previousThumbStatus === 1
         ? 'Your like has been removed.'
-        : isDisliked
+        : previousThumbStatus === 0
           ? 'Your vote has been changed to like.'
           : 'Thanks! Your like has been recorded.',
     )
@@ -123,6 +170,7 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
 
   const handleDislike = async () => {
     setFeedbackMessage('')
+    const previousThumbStatus = currentThumbStatus
 
     const response = await voteOnIdea({
       ideaId,
@@ -134,11 +182,23 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
       return
     }
 
+    if (previousThumbStatus === 0) {
+      setCurrentThumbStatus(-1)
+      setThumbsDownCount((value) => Math.max(0, value - 1))
+    } else if (previousThumbStatus === 1) {
+      setCurrentThumbStatus(0)
+      setThumbsUpCount((value) => Math.max(0, value - 1))
+      setThumbsDownCount((value) => value + 1)
+    } else {
+      setCurrentThumbStatus(0)
+      setThumbsDownCount((value) => value + 1)
+    }
+
     await refreshIdeaQueries()
     setFeedbackMessage(
-      isDisliked
+      previousThumbStatus === 0
         ? 'Your dislike has been removed.'
-        : isLiked
+        : previousThumbStatus === 1
           ? 'Your vote has been changed to dislike.'
           : 'Thanks! Your dislike has been recorded.',
     )
@@ -251,7 +311,7 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
               onClick={handleLike}
               disabled={isLoading || isVoting}
               aria-pressed={isLiked}
-              className={isLiked ? 'ring-2 ring-blue-200' : ''}
+              className={isLiked ? 'ring-2 ring-blue-200 shadow-sm' : ''}
             >
               <ThumbsUp className="mr-2 h-4 w-4" />
               {isLiked ? 'Liked' : 'Like'}
@@ -261,7 +321,7 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
               onClick={handleDislike}
               disabled={isLoading || isVoting}
               aria-pressed={isDisliked}
-              className={isDisliked ? 'ring-2 ring-red-200' : ''}
+              className={isDisliked ? 'ring-2 ring-red-200 shadow-sm' : ''}
             >
               <ThumbsDown className="mr-2 h-4 w-4" />
               {isDisliked ? 'Disliked' : 'Dislike'}
@@ -479,6 +539,13 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
             description="Category, author, dates, and engagement metrics."
           >
             <div className="space-y-3 text-sm text-slate-600">
+              <div className={`rounded-2xl px-4 py-4 ${thumbStatusMeta.className}`}>
+                <p className="text-xs font-medium uppercase tracking-wide opacity-80">
+                  Your reaction
+                </p>
+                <p className="mt-1 text-base font-semibold">{thumbStatusMeta.label}</p>
+                <p className="mt-1 text-sm opacity-90">{thumbStatusMeta.description}</p>
+              </div>
               <div className="rounded-2xl bg-slate-50 p-4">
                 Category: {idea?.categoryName || 'Uncategorized'}
               </div>
@@ -498,10 +565,10 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
                 Views: {idea?.viewCount ?? 0}
               </div>
               <div className="rounded-2xl bg-slate-50 p-4">
-                Upvotes: {idea?.thumbsUpCount ?? 0}
+                Upvotes: {thumbsUpCount}
               </div>
               <div className="rounded-2xl bg-slate-50 p-4">
-                Downvotes: {idea?.thumbsDownCount ?? 0}
+                Downvotes: {thumbsDownCount}
               </div>
               <div className="rounded-2xl bg-slate-50 p-4">
                 Comments: {visibleCommentCount}
