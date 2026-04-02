@@ -70,7 +70,7 @@ export default function AdminDashboardPage() {
   )
 
   return (
-    <div className="mx-auto max-w-7xl">
+    <div className="mx-auto w-full max-w-7xl">
       <PageHeader
         title="Administration"
         description="Live admin control center for users, categories, submissions, and university ideas."

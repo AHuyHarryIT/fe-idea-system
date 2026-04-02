@@ -104,7 +104,7 @@ export default function QAManagerPage() {
       : '0.0'
 
   return (
-    <div className="mx-auto max-w-7xl">
+    <div className="mx-auto w-full max-w-7xl">
       <PageHeader
         title="QA Manager Dashboard"
         description="Read-only analytics and export workspace aligned with the live backend permissions."

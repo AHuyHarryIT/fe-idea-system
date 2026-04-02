@@ -65,7 +65,7 @@ export default function IdeaListPage() {
   }, [currentPage, filteredIdeas])
 
   return (
-    <div className="mx-auto max-w-7xl">
+    <div className="mx-auto w-full max-w-7xl">
       <PageHeader
         title="Idea Listing"
         description={`${filteredIdeas.length} ideas matched from the live catalogue.`}
@@ -81,6 +81,8 @@ export default function IdeaListPage() {
           <label className="relative block">
             <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
+              id="idea-search"
+              name="idea-search"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search ideas by title, content, category..."
@@ -88,6 +90,8 @@ export default function IdeaListPage() {
             />
           </label>
           <select
+            id="idea-category-filter"
+            name="idea-category-filter"
             value={category}
             onChange={(event) => setCategory(event.target.value)}
             className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"

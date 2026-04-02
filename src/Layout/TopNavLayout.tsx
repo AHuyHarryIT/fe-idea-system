@@ -4,18 +4,23 @@ import type { Role } from '@/types/auth'
 import { auth } from '@/lib/auth'
 
 interface TopNavProps {
-  onLogout: () => void
-  userRole: Role
+  onLogout?: () => void
+  userRole?: Role
 }
 
 export default function TopNav({ onLogout, userRole }: TopNavProps) {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false)
+  const showProfileMenu = Boolean(userRole && onLogout)
   const displayName = useMemo(
     () => auth.getDisplayName() ?? 'User',
     [],
   )
 
   const roleLabel = useMemo(() => {
+    if (!userRole) {
+      return ''
+    }
+
     switch (userRole) {
       case 'admin':
         return 'Administrator'
@@ -43,35 +48,41 @@ export default function TopNav({ onLogout, userRole }: TopNavProps) {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setShowProfileDropdown((prev) => !prev)}
-              className="inline-flex items-center gap-3 rounded-xl px-3 py-2 transition hover:bg-slate-100"
-            >
-              <UserCircle2 className="h-8 w-8 text-slate-500" />
-              <div className="hidden text-left sm:block">
-                <p className="text-sm font-medium text-slate-800">
-                  {displayName}
-                </p>
-                <p className="text-xs text-slate-500">{roleLabel}</p>
-              </div>
-              <ChevronDown className="h-4 w-4 text-slate-500" />
-            </button>
+          {showProfileMenu ? (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowProfileDropdown((prev) => !prev)}
+                className="inline-flex items-center gap-3 rounded-xl px-3 py-2 transition hover:bg-slate-100"
+              >
+                <UserCircle2 className="h-8 w-8 text-slate-500" />
+                <div className="hidden text-left sm:block">
+                  <p className="text-sm font-medium text-slate-800">
+                    {displayName}
+                  </p>
+                  <p className="text-xs text-slate-500">{roleLabel}</p>
+                </div>
+                <ChevronDown className="h-4 w-4 text-slate-500" />
+              </button>
 
-            {showProfileDropdown ? (
-              <div className="absolute right-0 mt-2 w-52 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg">
-                <button
-                  type="button"
-                  onClick={onLogout}
-                  className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
-                >
-                  <LogOut className="h-4 w-4" />
-                  Sign out
-                </button>
-              </div>
-            ) : null}
-          </div>
+              {showProfileDropdown ? (
+                <div className="absolute right-0 mt-2 w-52 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg">
+                  <button
+                    type="button"
+                    onClick={onLogout}
+                    className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sign out
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          ) : (
+            <div className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-slate-500">
+              Guest Access
+            </div>
+          )}
         </div>
       </div>
     </header>

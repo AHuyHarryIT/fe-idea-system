@@ -63,7 +63,7 @@ export default function DashboardPage() {
   )
 
   return (
-    <div className="mx-auto max-w-7xl">
+    <div className="mx-auto w-full max-w-7xl">
       <PageHeader
         title="Dashboard"
         description="Your recent submissions and engagement from the live idea API."

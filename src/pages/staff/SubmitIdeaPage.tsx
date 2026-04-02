@@ -215,7 +215,7 @@ export default function SubmitIdeaPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="mx-auto w-full max-w-7xl">
       <PageHeader
         title="Submit Idea"
         description="Browse available submission windows, review the details, then open the idea form when you are ready to submit."

@@ -161,7 +161,7 @@ export default function ManageSubmissionPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl">
+    <div className="mx-auto w-full max-w-7xl">
       <PageHeader
         title="Manage Submissions"
         description="Create and maintain academic-year submission windows, closure dates, and final closure dates."

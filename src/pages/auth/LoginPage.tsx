@@ -57,8 +57,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-white to-blue-50 px-4 py-10">
-      <div className="mx-auto grid min-h-[calc(100vh-5rem)] max-w-6xl gap-8 lg:grid-cols-[1.15fr_0.85fr]">
+    <div className="mx-auto grid min-h-[calc(100dvh-8rem)] max-w-6xl gap-8 py-6 lg:grid-cols-[1.15fr_0.85fr] lg:py-10">
         <div className="rounded-[2rem] bg-slate-900 p-8 text-white shadow-2xl lg:p-12">
           <div className="flex h-full flex-col justify-between gap-10">
             <div>
@@ -138,6 +137,5 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
-    </div>
   )
 }

@@ -23,7 +23,7 @@ export default function QACoordinatorPage() {
   ).size
 
   return (
-    <div className="mx-auto max-w-7xl">
+    <div className="mx-auto w-full max-w-7xl">
       <PageHeader
         title="QA Coordinator Dashboard"
         description="Department-focused view using the QA coordinator idea feed."

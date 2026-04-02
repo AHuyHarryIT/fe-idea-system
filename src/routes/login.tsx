@@ -1,4 +1,5 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
+import { PublicPage } from '@/components/app/PublicPage'
 import LoginPage from '@/pages/auth/LoginPage'
 import { auth } from '@/lib/auth'
 
@@ -8,5 +9,13 @@ export const Route = createFileRoute('/login')({
       throw redirect({ to: '/' })
     }
   },
-  component: LoginPage,
+  component: RouteComponent,
 })
+
+function RouteComponent() {
+  return (
+    <PublicPage>
+      <LoginPage />
+    </PublicPage>
+  )
+}

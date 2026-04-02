@@ -122,7 +122,7 @@ export default function ManageCategoryPage() {
   }
 
   return (
-    <div className="w-full px-6 py-6 lg:px-8">
+    <div className="mx-auto w-full max-w-7xl">
       <PageHeader
         title="Manage Idea Categories"
         description="Create, review, update, and remove thematic categories used to classify submitted ideas."

@@ -437,7 +437,7 @@ export default function ManageUsersPage() {
       : 'border-emerald-200 bg-emerald-50 text-emerald-700'
 
   return (
-    <div className="mx-auto max-w-7xl">
+    <div className="mx-auto w-full max-w-7xl">
       <PageHeader
         title="Manage Users"
         description="Create accounts, keep roles clean, and update department assignments from one admin workspace."

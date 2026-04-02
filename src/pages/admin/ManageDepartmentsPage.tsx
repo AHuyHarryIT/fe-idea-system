@@ -168,7 +168,7 @@ export default function ManageDepartmentsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="mx-auto w-full max-w-7xl">
       <PageHeader
         title="Manage Departments"
         description="Create, update, and manage departments across the platform."
