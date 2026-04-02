@@ -16,6 +16,15 @@ import { StatCard } from '@/components/shared/StatCard'
 import { ManageButton } from '@/components/app/ManageButton'
 import { normalizeIdeaResponse } from '@/lib/idea-response-mapper'
 
+function getDateTimestamp(value?: string) {
+  if (!value) {
+    return 0
+  }
+
+  const timestamp = Date.parse(value)
+  return Number.isNaN(timestamp) ? 0 : timestamp
+}
+
 export default function AdminDashboardPage() {
   const navigate = useNavigate()
   const { data, isLoading, error } = useQuery({
@@ -65,7 +74,14 @@ export default function AdminDashboardPage() {
   })
 
   const recentSubmissions = useMemo(
-    () => data?.submissions.slice(0, 4) ?? [],
+    () =>
+      [...(data?.submissions ?? [])]
+        .sort(
+          (left, right) =>
+            getDateTimestamp(right.finalClosureDate) -
+            getDateTimestamp(left.finalClosureDate),
+        )
+        .slice(0, 4),
     [data],
   )
 

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { CalendarRange } from 'lucide-react'
+import { CalendarRange, Search } from 'lucide-react'
 import { ActionButton } from '@/components/app/ActionButton'
 import { AppButton } from '@/components/app/AppButton'
 import { FormField } from '@/components/forms/FormField'
@@ -42,6 +42,54 @@ function formatDateLabel(value: string) {
   }).format(date)
 }
 
+type SubmissionLifecycle = 'open' | 'closed' | 'archived'
+
+function getDateTimestamp(value: string) {
+  if (!value) return 0
+  const timestamp = Date.parse(value)
+  return Number.isNaN(timestamp) ? 0 : timestamp
+}
+
+function getSubmissionLifecycle(submission: {
+  closureDate: string
+  finalClosureDate: string
+}): SubmissionLifecycle {
+  const now = Date.now()
+  const closureDate = getDateTimestamp(submission.closureDate)
+  const finalClosureDate = getDateTimestamp(submission.finalClosureDate)
+
+  if (finalClosureDate && now > finalClosureDate) {
+    return 'archived'
+  }
+
+  if (closureDate && now > closureDate) {
+    return 'closed'
+  }
+
+  return 'open'
+}
+
+function getSubmissionLifecycleMeta(lifecycle: SubmissionLifecycle) {
+  switch (lifecycle) {
+    case 'archived':
+      return {
+        label: 'Archived',
+        className: 'bg-slate-200 text-slate-700',
+      }
+    case 'closed':
+      return {
+        label: 'Closed',
+        className: 'bg-amber-100 text-amber-800',
+      }
+    case 'open':
+    default:
+      return {
+        label: 'Open',
+        className: 'bg-emerald-100 text-emerald-700',
+      }
+  }
+}
+
 export default function ManageSubmissionPage() {
   const queryClient = useQueryClient()
   const { data, isLoading, error } = useSubmissions()
@@ -57,8 +105,36 @@ export default function ManageSubmissionPage() {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const [feedbackMessage, setFeedbackMessage] = useState('')
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
+  const [searchValue, setSearchValue] = useState('')
+  const [statusFilter, setStatusFilter] = useState<
+    'all' | SubmissionLifecycle
+  >('all')
 
   const submissions = useMemo(() => data ?? [], [data])
+  const filteredSubmissions = useMemo(() => {
+    const normalizedSearch = searchValue.trim().toLowerCase()
+
+    return [...submissions]
+      .sort(
+        (left, right) =>
+          getDateTimestamp(right.finalClosureDate) -
+          getDateTimestamp(left.finalClosureDate),
+      )
+      .filter((submission) => {
+        const matchesSearch =
+          normalizedSearch.length === 0 ||
+          [submission.name, submission.academicYear]
+            .filter(Boolean)
+            .some((value) =>
+              String(value).toLowerCase().includes(normalizedSearch),
+            )
+        const lifecycle = getSubmissionLifecycle(submission)
+        const matchesLifecycle =
+          statusFilter === 'all' || lifecycle === statusFilter
+
+        return matchesSearch && matchesLifecycle
+      })
+  }, [searchValue, statusFilter, submissions])
 
   const closeFormModal = () => {
     setIsFormModalOpen(false)
@@ -133,7 +209,7 @@ export default function ManageSubmissionPage() {
     setEditingId(submission.id)
     setForm({
       name: submission.name,
-      academicYear: submission.academicYear,
+      academicYear: String(submission.academicYear ?? ''),
       closureDate: submission.closureDate.slice(0, 10),
       finalClosureDate: submission.finalClosureDate.slice(0, 10),
     })
@@ -174,7 +250,47 @@ export default function ManageSubmissionPage() {
       ) : null}
 
       <SectionCard>
-        <div className="mb-5 flex justify-end">
+        <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="grid gap-4 lg:min-w-[38rem] lg:grid-cols-[minmax(0,1.3fr)_220px_auto]">
+            <label className="relative block">
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                id="submission-search"
+                name="submission-search"
+                type="search"
+                value={searchValue}
+                onChange={(event) => setSearchValue(event.target.value)}
+                placeholder="Search by submission name or academic year"
+                className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-11 pr-4 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+              />
+            </label>
+            <select
+              id="submission-status-filter"
+              name="submission-status-filter"
+              value={statusFilter}
+              onChange={(event) =>
+                setStatusFilter(
+                  event.target.value as 'all' | SubmissionLifecycle,
+                )
+              }
+              className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+            >
+              <option value="all">All lifecycle states</option>
+              <option value="open">Open</option>
+              <option value="closed">Closed</option>
+              <option value="archived">Archived</option>
+            </select>
+            <ActionButton
+              type="button"
+              action="ghost"
+              label="Reset filters"
+              onClick={() => {
+                setSearchValue('')
+                setStatusFilter('all')
+              }}
+            />
+          </div>
+
           <ActionButton
             type="button"
             action="add"
@@ -182,6 +298,10 @@ export default function ManageSubmissionPage() {
             onClick={openCreateModal}
           />
         </div>
+        <p className="mb-5 text-sm text-slate-500">
+          Showing {filteredSubmissions.length} of {submissions.length} submission
+          windows, sorted by most recent final closure date.
+        </p>
 
         {error ? (
           <EmptyState
@@ -193,9 +313,13 @@ export default function ManageSubmissionPage() {
           <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600">
             Loading submission windows...
           </div>
-        ) : submissions.length > 0 ? (
+        ) : filteredSubmissions.length > 0 ? (
           <div className="space-y-4">
-            {submissions.map((submission) => {
+            {filteredSubmissions.map((submission) => {
+              const lifecycleMeta = getSubmissionLifecycleMeta(
+                getSubmissionLifecycle(submission),
+              )
+
               return (
                 <div
                   key={submission.id}
@@ -209,6 +333,11 @@ export default function ManageSubmissionPage() {
                         </p>
                         <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
                           {submission.academicYear}
+                        </span>
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-medium ${lifecycleMeta.className}`}
+                        >
+                          {lifecycleMeta.label}
                         </span>
                       </div>
                       <div className="grid gap-2 text-sm text-slate-600 md:grid-cols-2">
@@ -247,8 +376,16 @@ export default function ManageSubmissionPage() {
         ) : (
           <EmptyState
             icon={CalendarRange}
-            title="No submission windows found"
-            description="Create the first submission window to let staff submit ideas within a controlled campaign period."
+            title={
+              submissions.length > 0
+                ? 'No submissions match this filter'
+                : 'No submission windows found'
+            }
+            description={
+              submissions.length > 0
+                ? 'Try another keyword or lifecycle filter.'
+                : 'Create the first submission window to let staff submit ideas within a controlled campaign period.'
+            }
           />
         )}
       </SectionCard>
@@ -288,6 +425,8 @@ export default function ManageSubmissionPage() {
         >
           <FormField label="Submission name" required>
             <FormInput
+              id="submission-name"
+              name="submission-name"
               value={form.name}
               onChange={(event) =>
                 setForm((prev) => ({ ...prev, name: event.target.value }))
@@ -298,6 +437,8 @@ export default function ManageSubmissionPage() {
 
           <FormField label="Academic year" required>
             <FormInput
+              id="submission-academic-year"
+              name="submission-academic-year"
               value={form.academicYear}
               onChange={(event) =>
                 setForm((prev) => ({
@@ -312,6 +453,8 @@ export default function ManageSubmissionPage() {
           <div className="grid gap-4 md:grid-cols-2">
             <FormField label="Closure date" required>
               <FormInput
+                id="submission-closure-date"
+                name="submission-closure-date"
                 type="date"
                 value={form.closureDate}
                 onChange={(event) =>
@@ -325,6 +468,8 @@ export default function ManageSubmissionPage() {
 
             <FormField label="Final closure date" required>
               <FormInput
+                id="submission-final-closure-date"
+                name="submission-final-closure-date"
                 type="date"
                 value={form.finalClosureDate}
                 onChange={(event) =>

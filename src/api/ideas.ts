@@ -23,6 +23,7 @@ export interface Idea {
   createdDate?: string
   status?: string
   reviewStatus?: number
+  rejectionReason?: string
   viewCount?: number
   canComment?: boolean
   departmentName?: string
@@ -194,20 +195,57 @@ async function findIdeaByIdFromPagedList(
   } satisfies ApiResponse<Idea>
 }
 
+async function getAllMyIdeas(): Promise<ApiResponse<IdeaListResponse>> {
+  const pageSize = 100
+  const firstPageResponse = await apiClient.get<IdeaListResponse>(
+    `/ideas/my-ideas?PageNumber=1&PageSize=${pageSize}`,
+  )
+
+  if (!firstPageResponse.success) {
+    return firstPageResponse
+  }
+
+  const normalizedFirstPage = normalizeIdeaListResponse(firstPageResponse.data)
+  const collectedIdeas = getIdeasFromListResponse(normalizedFirstPage)
+  const totalPages =
+    normalizedFirstPage?.totalPages ??
+    Math.max(
+      1,
+      Math.ceil(
+        (normalizedFirstPage?.totalCount ?? collectedIdeas.length) / pageSize,
+      ),
+    )
+
+  for (let pageNumber = 2; pageNumber <= totalPages; pageNumber += 1) {
+    const pageResponse = await apiClient.get<IdeaListResponse>(
+      `/ideas/my-ideas?PageNumber=${pageNumber}&PageSize=${pageSize}`,
+    )
+
+    if (!pageResponse.success) {
+      return { success: false, error: pageResponse.error }
+    }
+
+    const normalizedPage = normalizeIdeaListResponse(pageResponse.data)
+    collectedIdeas.push(...getIdeasFromListResponse(normalizedPage))
+  }
+
+  return {
+    success: true,
+    data: {
+      ...normalizedFirstPage,
+      items: collectedIdeas,
+      ideas: collectedIdeas,
+      totalCount: normalizedFirstPage?.totalCount ?? collectedIdeas.length,
+      pageNumber: 1,
+      pageSize: collectedIdeas.length,
+      totalPages: 1,
+    },
+  } satisfies ApiResponse<IdeaListResponse>
+}
+
 export const ideaService = {
   // Common endpoints
-  getMyIdeas: async (): Promise<ApiResponse<IdeaListResponse>> => {
-    const response = await apiClient.get<IdeaListResponse>('/ideas/my-ideas')
-
-    if (!response.success) {
-      return response
-    }
-
-    return {
-      ...response,
-      data: normalizeIdeaListResponse(response.data),
-    }
-  },
+  getMyIdeas: async (): Promise<ApiResponse<IdeaListResponse>> => getAllMyIdeas(),
 
   getAllIdeas: async (): Promise<ApiResponse<IdeaListResponse>> => {
     const response = await apiClient.get<IdeaListResponse>('/ideas')
