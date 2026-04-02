@@ -173,10 +173,7 @@ export default function ManageSubmissionPage() {
         </div>
       ) : null}
 
-      <SectionCard
-        title="Submission windows"
-        description="Review all configured submission campaigns and update them when academic dates change."
-      >
+      <SectionCard>
         <div className="mb-5 flex justify-end">
           <ActionButton
             type="button"

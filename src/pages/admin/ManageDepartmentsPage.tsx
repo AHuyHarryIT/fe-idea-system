@@ -188,10 +188,7 @@ export default function ManageDepartmentsPage() {
         </div>
       ) : null}
 
-      <SectionCard
-        title="Departments"
-        description="Review department names, descriptions, and open their forms in a focused modal."
-      >
+      <SectionCard>
         {error ? (
           <EmptyState
             icon={Building2}

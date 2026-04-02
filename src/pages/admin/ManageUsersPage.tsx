@@ -519,10 +519,7 @@ export default function ManageUsersPage() {
         })}
       </div>
 
-      <SectionCard
-        title="User directory"
-        description="Search the live directory, review role balance, and open create or edit forms in a focused modal."
-      >
+      <SectionCard>
           {error ? (
             <EmptyState
               icon={Users}

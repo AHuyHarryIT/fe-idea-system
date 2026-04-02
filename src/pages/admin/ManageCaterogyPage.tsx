@@ -142,10 +142,7 @@ export default function ManageCategoryPage() {
         </div>
       ) : null}
 
-      <SectionCard
-        title="Category list"
-        description="All idea categories currently available in the system."
-      >
+      <SectionCard>
         {error ? (
           <EmptyState
             icon={Tag}
