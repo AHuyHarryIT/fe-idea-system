@@ -1,7 +1,9 @@
 import type { ButtonHTMLAttributes } from 'react'
 
+export type AppButtonVariant = 'primary' | 'secondary' | 'ghost' | 'red'
+
 interface AppButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'red'
+  variant?: AppButtonVariant
 }
 
 const variantClassNames: Record<

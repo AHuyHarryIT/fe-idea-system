@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { CalendarRange, Plus } from 'lucide-react'
+import { CalendarRange } from 'lucide-react'
 import { ActionButton } from '@/components/app/ActionButton'
 import { AppButton } from '@/components/app/AppButton'
 import { FormField } from '@/components/forms/FormField'
@@ -178,14 +178,12 @@ export default function ManageSubmissionPage() {
         description="Review all configured submission campaigns and update them when academic dates change."
       >
         <div className="mb-5 flex justify-end">
-          <AppButton
+          <ActionButton
             type="button"
-            variant="secondary"
+            action="add"
+            label="Add submission"
             onClick={openCreateModal}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Add submission
-          </AppButton>
+          />
         </div>
 
         {error ? (

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Building2, Plus } from 'lucide-react'
+import { Building2 } from 'lucide-react'
 import type { Department } from '@/api/departments'
 import { departmentService } from '@/api/departments'
 import { ActionButton } from '@/components/app/ActionButton'
@@ -173,14 +173,12 @@ export default function ManageDepartmentsPage() {
         title="Manage Departments"
         description="Create, update, and manage departments across the platform."
         actions={
-          <AppButton
+          <ActionButton
             type="button"
-            variant="secondary"
+            action="add"
+            label="Add department"
             onClick={openCreateModal}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Add department
-          </AppButton>
+          />
         }
       />
 
@@ -210,14 +208,12 @@ export default function ManageDepartmentsPage() {
             title="No departments found"
             description="Create the first department to organise users and idea ownership."
             action={
-              <AppButton
+              <ActionButton
                 type="button"
-                variant="secondary"
+                action="add"
+                label="Create first department"
                 onClick={openCreateModal}
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Create first department
-              </AppButton>
+              />
             }
           />
         ) : (

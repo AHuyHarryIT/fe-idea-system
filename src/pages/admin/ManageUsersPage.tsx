@@ -5,15 +5,13 @@ import {
   Building2,
   Filter,
   Mail,
-  PencilLine,
   Search,
   ShieldCheck,
-  Trash2,
-  UserPlus2,
   Users,
 } from 'lucide-react'
 import { departmentService, userService } from '@/api'
 import type { UpdateUserRequest, User } from '@/api'
+import { ActionButton } from '@/components/app/ActionButton'
 import { AppButton } from '@/components/app/AppButton'
 import { FormField } from '@/components/forms/FormField'
 import { FormInput } from '@/components/forms/FormInput'
@@ -445,17 +443,18 @@ export default function ManageUsersPage() {
         description="Create accounts, keep roles clean, and update department assignments from one admin workspace."
         actions={
           <>
-            <AppButton type="button" variant="ghost" onClick={resetFilters}>
-              Reset filters
-            </AppButton>
-            <AppButton
+            <ActionButton
               type="button"
-              variant="secondary"
+              action="ghost"
+              label="Reset filters"
+              onClick={resetFilters}
+            />
+            <ActionButton
+              type="button"
+              action="add"
+              label="New user"
               onClick={openCreateModal}
-            >
-              <UserPlus2 className="mr-2 h-4 w-4" />
-              New user
-            </AppButton>
+            />
           </>
         }
       />
@@ -642,24 +641,18 @@ export default function ManageUsersPage() {
                           </div>
 
                           <div className="flex flex-wrap gap-2">
-                            <AppButton
+                            <ActionButton
                               type="button"
-                              variant="ghost"
+                              action="edit"
                               onClick={() => handleEditStart(user)}
                               disabled={isEditLocked}
-                            >
-                              <PencilLine className="mr-2 h-4 w-4" />
-                              Edit
-                            </AppButton>
-                            <AppButton
+                            />
+                            <ActionButton
                               type="button"
-                              variant="red"
+                              action="delete"
                               onClick={() => setDeleteConfirmUser(user)}
                               disabled={isDeleteLocked || deleteUserMutation.isPending}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Delete
-                            </AppButton>
+                            />
                           </div>
                         </div>
 

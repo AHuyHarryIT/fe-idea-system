@@ -127,14 +127,12 @@ export default function ManageCategoryPage() {
         title="Manage Idea Categories"
         description="Create, review, update, and remove thematic categories used to classify submitted ideas."
         actions={
-          <AppButton
+          <ActionButton
             type="button"
-            variant="secondary"
+            action="add"
+            label="Add category"
             onClick={openCreateModal}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Add category
-          </AppButton>
+          />
         }
       />
 
@@ -194,14 +192,12 @@ export default function ManageCategoryPage() {
             title="No categories available"
             description="Create a category to start organising ideas by topic."
             action={
-              <AppButton
+              <ActionButton
                 type="button"
-                variant="secondary"
+                action="add"
+                label="Create first category"
                 onClick={openCreateModal}
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Create first category
-              </AppButton>
+              />
             }
           />
         )}
