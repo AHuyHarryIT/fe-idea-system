@@ -17,7 +17,7 @@ import { StatCard } from '@/components/shared/StatCard'
 import { useMyIdeas } from '@/hooks/useIdeas'
 import { normalizeIdeaResponse } from '@/lib/idea-response-mapper'
 
-type IdeaStatusFilter = 'all' | 'submitted' | 'approved' | 'rejected'
+type IdeaStatusFilter = 'all' | 'pending' | 'approved' | 'rejected'
 
 function getTimestamp(value?: string) {
   if (!value) {
@@ -39,7 +39,7 @@ function getIdeaStatusValue(idea: Idea): Exclude<IdeaStatusFilter, 'all'> {
     case 'pending':
     case 'pending_review':
     default:
-      return 'submitted'
+      return 'pending'
   }
 }
 
@@ -55,10 +55,10 @@ function getIdeaStatusMeta(status: Exclude<IdeaStatusFilter, 'all'>) {
         label: 'Rejected',
         className: 'bg-rose-100 text-rose-700',
       }
-    case 'submitted':
+    case 'pending':
     default:
       return {
-        label: 'Submitted',
+        label: 'Pending',
         className: 'bg-amber-100 text-amber-800',
       }
   }
@@ -89,7 +89,15 @@ function getRejectionReason(idea?: Idea | null) {
   return 'No rejection reason was returned by the backend for this idea.'
 }
 
-export default function DashboardPage() {
+interface DashboardPageProps {
+  title?: string
+  description?: string
+}
+
+export default function DashboardPage({
+  title = 'Dashboard',
+  description = 'Track your pending ideas, review outcomes, and open detailed status notes from one place.',
+}: DashboardPageProps) {
   const { data, isLoading, error } = useMyIdeas()
   const [statusFilter, setStatusFilter] = useState<IdeaStatusFilter>('all')
   const [searchValue, setSearchValue] = useState('')
@@ -110,8 +118,8 @@ export default function DashboardPage() {
     [ideas],
   )
 
-  const submittedCount = sortedIdeas.filter(
-    (idea) => getIdeaStatusValue(idea) === 'submitted',
+  const pendingCount = sortedIdeas.filter(
+    (idea) => getIdeaStatusValue(idea) === 'pending',
   ).length
   const approvedCount = sortedIdeas.filter(
     (idea) => getIdeaStatusValue(idea) === 'approved',
@@ -144,14 +152,14 @@ export default function DashboardPage() {
 
   const selectedIdeaStatus = selectedIdea
     ? getIdeaStatusValue(selectedIdea)
-    : 'submitted'
+    : 'pending'
   const selectedIdeaStatusMeta = getIdeaStatusMeta(selectedIdeaStatus)
 
   return (
     <div className="mx-auto w-full max-w-7xl">
       <PageHeader
-        title="Dashboard"
-        description="Track your submitted ideas, review outcomes, and open detailed status notes from one place."
+        title={title}
+        description={description}
         actions={
           <>
             <Link to="/submit-idea">
@@ -174,7 +182,7 @@ export default function DashboardPage() {
         <StatCard
           icon={Clock3}
           title="Pending review"
-          value={isLoading ? '...' : `${submittedCount}`}
+          value={isLoading ? '...' : `${pendingCount}`}
           description="Ideas that are still waiting for an approval decision."
         />
         <StatCard
@@ -194,7 +202,7 @@ export default function DashboardPage() {
       <div className="mt-6">
         <SectionCard
           title="My idea tracker"
-          description="Filter your ideas by submitted, approved, or rejected status. Open details to inspect the full record and rejection note."
+          description="Filter your ideas by pending, approved, or rejected status. Open details to inspect the full record and rejection note."
         >
           <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <label className="relative block w-full lg:max-w-md">
@@ -214,7 +222,7 @@ export default function DashboardPage() {
               {(
                 [
                   ['all', 'All ideas'],
-                  ['submitted', 'Submitted'],
+                  ['pending', 'Pending'],
                   ['approved', 'Approved'],
                   ['rejected', 'Rejected'],
                 ] as [IdeaStatusFilter, string][]
