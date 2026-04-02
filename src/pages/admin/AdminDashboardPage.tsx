@@ -148,7 +148,7 @@ export default function AdminDashboardPage() {
               </ManageButton>
               <ManageButton
                 variant="blue"
-                onClick={() => navigate({ to: '/ideas' })}
+                onClick={() => navigate({ to: '/manage/review' })}
               >
                 Review ideas · {data?.ideas.length ?? 0}
               </ManageButton>

@@ -77,7 +77,10 @@ export default function LoginPage() {
             <form className="space-y-5" onSubmit={handleSubmit}>
               <FormField label="University email" required>
                 <FormInput
+                  id="login-email"
+                  name="email"
                   type="email"
+                  autoComplete="email"
                   placeholder="name@university.edu"
                   value={formValues.email}
                   onChange={(event) =>
@@ -91,7 +94,10 @@ export default function LoginPage() {
 
               <FormField label="Password" required>
                 <FormInput
+                  id="login-password"
+                  name="password"
                   type="password"
+                  autoComplete="current-password"
                   placeholder="Enter password"
                   value={formValues.password}
                   onChange={(event) =>

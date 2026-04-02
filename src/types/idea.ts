@@ -9,7 +9,15 @@ export interface IdeaSummary {
   totalViews?: number
   totalComments?: number
   createdAt?: string
-  status?: 'draft' | 'submitted' | 'under_review' | 'published' | 'closed'
+  status?:
+    | 'draft'
+    | 'submitted'
+    | 'under_review'
+    | 'pending_review'
+    | 'approved'
+    | 'rejected'
+    | 'published'
+    | 'closed'
 }
 
 export interface IdeaDetailModel extends IdeaSummary {

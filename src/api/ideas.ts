@@ -22,6 +22,7 @@ export interface Idea {
   createdAt?: string
   createdDate?: string
   status?: string
+  reviewStatus?: number
   viewCount?: number
   canComment?: boolean
   departmentName?: string
@@ -77,14 +78,71 @@ function getIdeasFromListResponse(data?: IdeaListResponse): Array<Idea> {
   }
 
   if (Array.isArray(data.items)) {
-    return data.items
+    return data.items.map(normalizeIdea)
   }
 
   if (Array.isArray(data.ideas)) {
-    return data.ideas
+    return data.ideas.map(normalizeIdea)
   }
 
   return []
+}
+
+function mapReviewStatusToStatus(value: unknown) {
+  if (typeof value === 'number') {
+    switch (value) {
+      case 0:
+        return 'pending_review'
+      case 1:
+        return 'approved'
+      case 2:
+        return 'rejected'
+      default:
+        return undefined
+    }
+  }
+
+  if (typeof value === 'string' && value.trim()) {
+    const numericValue = Number(value)
+
+    if (Number.isFinite(numericValue)) {
+      return mapReviewStatusToStatus(numericValue)
+    }
+  }
+
+  return undefined
+}
+
+function normalizeIdea(idea: Idea): Idea {
+  return {
+    ...idea,
+    text: idea.text ?? idea.title,
+    status: idea.status ?? mapReviewStatusToStatus(idea.reviewStatus),
+    commentCount:
+      idea.commentCount ?? idea.commentsCount ?? idea.comments?.length ?? 0,
+  }
+}
+
+function normalizeComment(comment: Comment): Comment {
+  return {
+    ...comment,
+    content: comment.content ?? comment.text,
+    createdDate: comment.createdDate ?? comment.createdAt,
+  }
+}
+
+function normalizeIdeaListResponse(
+  data?: IdeaListResponse,
+): IdeaListResponse | undefined {
+  if (!data) {
+    return data
+  }
+
+  return {
+    ...data,
+    items: Array.isArray(data.items) ? data.items.map(normalizeIdea) : data.items,
+    ideas: Array.isArray(data.ideas) ? data.ideas.map(normalizeIdea) : data.ideas,
+  }
 }
 
 async function findIdeaByIdFromPagedList(
@@ -138,22 +196,58 @@ async function findIdeaByIdFromPagedList(
 
 export const ideaService = {
   // Common endpoints
-  getMyIdeas: (): Promise<ApiResponse<IdeaListResponse>> =>
-    apiClient.get<IdeaListResponse>('/ideas/my-ideas'),
+  getMyIdeas: async (): Promise<ApiResponse<IdeaListResponse>> => {
+    const response = await apiClient.get<IdeaListResponse>('/ideas/my-ideas')
 
-  getAllIdeas: (): Promise<ApiResponse<IdeaListResponse>> =>
-    apiClient.get<IdeaListResponse>('/ideas'),
+    if (!response.success) {
+      return response
+    }
+
+    return {
+      ...response,
+      data: normalizeIdeaListResponse(response.data),
+    }
+  },
+
+  getAllIdeas: async (): Promise<ApiResponse<IdeaListResponse>> => {
+    const response = await apiClient.get<IdeaListResponse>('/ideas')
+
+    if (!response.success) {
+      return response
+    }
+
+    return {
+      ...response,
+      data: normalizeIdeaListResponse(response.data),
+    }
+  },
 
   getPagedIdeas: (
     pageNumber: number = 1,
     pageSize: number = 10,
   ): Promise<ApiResponse<IdeaListResponse>> =>
-    apiClient.get<IdeaListResponse>(
+    apiClient
+      .get<IdeaListResponse>(
       `/ideas?pageNumber=${pageNumber}&pageSize=${pageSize}`,
-    ),
+      )
+      .then((response) =>
+        response.success
+          ? {
+              ...response,
+              data: normalizeIdeaListResponse(response.data),
+            }
+          : response,
+      ),
 
   getIdeaById: async (id: string): Promise<ApiResponse<Idea>> => {
     const directResponse = await apiClient.get<Idea>(`/ideas/${id}`)
+
+    if (directResponse.success) {
+      return {
+        ...directResponse,
+        data: directResponse.data ? normalizeIdea(directResponse.data) : undefined,
+      }
+    }
 
     if (directResponse.success || directResponse.error !== 'HTTP 404') {
       return directResponse
@@ -178,13 +272,35 @@ export const ideaService = {
     ideaId: string,
     request: CommentCreateRequest,
   ): Promise<ApiResponse<Comment>> =>
-    apiClient.post<Comment>(`/ideas/${ideaId}/comments`, request),
+    apiClient
+      .post<Comment | { data?: Comment }>(`/ideas/${ideaId}/comments`, request)
+      .then((response) => {
+        if (!response.success) {
+          return response as ApiResponse<Comment>
+        }
+
+        const comment =
+          response.data &&
+          typeof response.data === 'object' &&
+          'data' in response.data &&
+          response.data.data
+            ? response.data.data
+            : (response.data as Comment | undefined)
+
+        return {
+          ...response,
+          data: comment ? normalizeComment(comment) : undefined,
+        }
+      }),
 
   reviewIdea: (
     ideaId: string,
     request: ReviewIdeaRequest,
   ): Promise<ApiResponse<void>> =>
-    apiClient.put<void>(`/ideas/${ideaId}/review`, request),
+    apiClient.put<void>(`/ideas/${ideaId}/review`, {
+      status: request.isApproved ? 1 : 2,
+      rejectionReason: request.isApproved ? undefined : request.rejectionReason,
+    }),
 
   // QA Manager endpoints
   getIdeasWithoutComments: (): Promise<ApiResponse<IdeaListResponse>> =>

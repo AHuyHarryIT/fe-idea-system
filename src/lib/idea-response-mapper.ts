@@ -1,5 +1,22 @@
 import type { Idea } from '@/api'
 
+function mapReviewStatusToStatus(value: unknown): Idea['status'] {
+  if (typeof value === 'number') {
+    switch (value) {
+      case 0:
+        return 'pending_review'
+      case 1:
+        return 'approved'
+      case 2:
+        return 'rejected'
+      default:
+        return undefined
+    }
+  }
+
+  return undefined
+}
+
 /**
  * Normalize API responses for ideas
  * Handles multiple response formats from the backend:
@@ -31,5 +48,8 @@ function mapIdeaFields(idea: any): Idea {
     ...idea,
     // Map title to text if text doesn't exist
     text: idea.text || idea.title,
+    status: idea.status || mapReviewStatusToStatus(idea.reviewStatus),
+    commentCount:
+      idea.commentCount ?? idea.commentsCount ?? idea.comments?.length ?? 0,
   }
 }

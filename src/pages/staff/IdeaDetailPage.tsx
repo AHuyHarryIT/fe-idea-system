@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import {
@@ -10,6 +10,7 @@ import {
   ThumbsUp,
   XCircle,
 } from 'lucide-react'
+import type { Comment as IdeaComment } from '@/api'
 import { AppButton } from '@/components/app/AppButton'
 import { FormField } from '@/components/forms/FormField'
 import { FormTextarea } from '@/components/forms/FormInput'
@@ -55,6 +56,7 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
   const { mutateAsync: reviewIdea, isPending: isReviewing } = useReviewIdea()
   const [commentText, setCommentText] = useState('')
   const [isAnonymous, setIsAnonymous] = useState(false)
+  const [postedComments, setPostedComments] = useState<Array<IdeaComment>>([])
   const [feedbackMessage, setFeedbackMessage] = useState('')
   const [reviewReason, setReviewReason] = useState('')
   const [reviewFeedbackMessage, setReviewFeedbackMessage] = useState('')
@@ -63,7 +65,27 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
   const isLiked = thumbStatus === 1
   const isDisliked = thumbStatus === 0
   const canComment = !isLoading && (idea?.canComment ?? true)
-  const canReview = role === 'qa_manager' || role === 'admin'
+  const canReview = role === 'admin'
+  const visibleComments = useMemo(() => {
+    const apiComments = idea?.comments ?? []
+    const mergedComments = [...postedComments]
+
+    for (const comment of apiComments) {
+      if (!mergedComments.some((postedComment) => postedComment.id === comment.id)) {
+        mergedComments.push(comment)
+      }
+    }
+
+    return mergedComments
+  }, [idea?.comments, postedComments])
+  const visibleCommentCount = Math.max(
+    idea?.commentCount ?? 0,
+    visibleComments.length,
+  )
+
+  useEffect(() => {
+    setPostedComments([])
+  }, [ideaId])
 
   const refreshIdeaQueries = async () => {
     await Promise.all([
@@ -150,6 +172,9 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
 
     setCommentText('')
     setIsAnonymous(false)
+    if (response.data) {
+      setPostedComments((prev) => [response.data!, ...prev])
+    }
     await refreshIdeaQueries()
     setFeedbackMessage('Comment posted successfully.')
   }
@@ -377,9 +402,9 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
             ) : null}
 
             <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.8fr)_360px]">
-              {idea?.comments && idea.comments.length > 0 ? (
+              {visibleComments.length > 0 ? (
                 <div className="space-y-4">
-                  {idea.comments.map((comment) => (
+                  {visibleComments.map((comment) => (
                     <div
                       key={comment.id}
                       className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600"
@@ -479,7 +504,7 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
                 Downvotes: {idea?.thumbsDownCount ?? 0}
               </div>
               <div className="rounded-2xl bg-slate-50 p-4">
-                Comments: {idea?.commentCount ?? idea?.comments?.length ?? 0}
+                Comments: {visibleCommentCount}
               </div>
             </div>
           </SectionCard>

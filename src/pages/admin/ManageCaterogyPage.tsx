@@ -7,6 +7,7 @@ import { FormField } from '@/components/forms/FormField'
 import { FormInput } from '@/components/forms/FormInput'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { EmptyState } from '@/components/shared/EmptyState'
+import { Modal } from '@/components/shared/Modal'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
 import {
@@ -31,6 +32,7 @@ export default function ManageCategoryPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [feedbackMessage, setFeedbackMessage] = useState('')
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false)
 
   const categories = useMemo(
     () =>
@@ -47,9 +49,24 @@ export default function ManageCategoryPage() {
     ])
   }
 
-  const resetForm = () => {
+  const closeFormModal = () => {
+    setIsFormModalOpen(false)
     setName('')
     setEditingId(null)
+  }
+
+  const openCreateModal = () => {
+    setFeedbackMessage('')
+    setName('')
+    setEditingId(null)
+    setIsFormModalOpen(true)
+  }
+
+  const handleEdit = (categoryId: string, categoryName: string) => {
+    setFeedbackMessage('')
+    setEditingId(categoryId)
+    setName(categoryName)
+    setIsFormModalOpen(true)
   }
 
   const handleSaveCategory = async () => {
@@ -69,8 +86,8 @@ export default function ManageCategoryPage() {
         setFeedbackMessage('Category created successfully.')
       }
 
-      resetForm()
       await refreshCategoryQueries()
+      closeFormModal()
     } catch (err) {
       setFeedbackMessage(
         err instanceof Error
@@ -91,7 +108,10 @@ export default function ManageCategoryPage() {
       await deleteIdeaCategory(deleteConfirmId)
       await refreshCategoryQueries()
       setFeedbackMessage('Category deleted successfully.')
-      if (editingId === deleteConfirmId) resetForm()
+
+      if (editingId === deleteConfirmId) {
+        closeFormModal()
+      }
     } catch (err) {
       setFeedbackMessage(
         err instanceof Error ? err.message : 'Unable to delete category.',
@@ -106,6 +126,16 @@ export default function ManageCategoryPage() {
       <PageHeader
         title="Manage Idea Categories"
         description="Create, review, update, and remove thematic categories used to classify submitted ideas."
+        actions={
+          <AppButton
+            type="button"
+            variant="secondary"
+            onClick={openCreateModal}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Add category
+          </AppButton>
+        }
       />
 
       {feedbackMessage ? (
@@ -114,95 +144,112 @@ export default function ManageCategoryPage() {
         </div>
       ) : null}
 
-      <div className="space-y-6">
-        <SectionCard
-          title={editingId ? 'Edit category' : 'Create category'}
-          description="Add a new thematic category for idea classification or rename an existing one."
-        >
-          <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-end">
-            <FormField label="Category name">
-              <FormInput
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                placeholder="Enter category name"
-              />
-            </FormField>
+      <SectionCard
+        title="Category list"
+        description="All idea categories currently available in the system."
+      >
+        {error ? (
+          <EmptyState
+            icon={Tag}
+            title="Unable to load categories"
+            description={error.message}
+          />
+        ) : isLoading ? (
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600">
+            Loading categories...
+          </div>
+        ) : categories.length > 0 ? (
+          <div className="space-y-4">
+            {categories.map((category) => (
+              <div
+                key={category.id}
+                className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 md:flex-row md:items-start md:justify-between"
+              >
+                <div className="min-w-0">
+                  <p className="text-base font-medium text-slate-900">
+                    {category.name}
+                  </p>
+                  <p className="mt-2 text-xs text-slate-400">
+                    Category ID: {category.id}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <ActionButton
+                    action="edit"
+                    onClick={() => handleEdit(category.id, category.name)}
+                    disabled={isUpdating}
+                  />
+                  <ActionButton
+                    action="delete"
+                    onClick={() => setDeleteConfirmId(category.id)}
+                    disabled={isDeleting}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            icon={Tag}
+            title="No categories available"
+            description="Create a category to start organising ideas by topic."
+            action={
+              <AppButton
+                type="button"
+                variant="secondary"
+                onClick={openCreateModal}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Create first category
+              </AppButton>
+            }
+          />
+        )}
+      </SectionCard>
 
+      <Modal
+        isOpen={isFormModalOpen}
+        title={editingId ? 'Edit category' : 'Create category'}
+        description="Add a new thematic category for idea classification or rename an existing one."
+        onClose={closeFormModal}
+        footer={
+          <>
+            <AppButton type="button" variant="ghost" onClick={closeFormModal}>
+              Cancel
+            </AppButton>
             <AppButton
-              onClick={handleSaveCategory}
+              type="submit"
+              form="category-form"
               disabled={isCreating || isUpdating}
-              className="h-12 min-w-44"
             >
               <Plus className="mr-2 h-4 w-4" />
               {isCreating || isUpdating
                 ? 'Saving...'
                 : editingId
-                  ? 'Update category'
-                  : 'Add category'}
+                  ? 'Save changes'
+                  : 'Create category'}
             </AppButton>
-
-            <AppButton type="button" variant="ghost" onClick={resetForm}>
-              Reset
-            </AppButton>
-          </div>
-        </SectionCard>
-
-        <SectionCard
-          title="Category list"
-          description="All idea categories currently available in the system."
+          </>
+        }
+      >
+        <form
+          id="category-form"
+          onSubmit={(event) => {
+            event.preventDefault()
+            void handleSaveCategory()
+          }}
         >
-          {error ? (
-            <EmptyState
-              icon={Tag}
-              title="Unable to load categories"
-              description={error.message}
+          <FormField label="Category name" required>
+            <FormInput
+              id="category-name"
+              name="category-name"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              placeholder="Enter category name"
             />
-          ) : isLoading ? (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600">
-              Loading categories...
-            </div>
-          ) : categories.length > 0 ? (
-            <div className="space-y-4">
-              {categories.map((category) => (
-                <div
-                  key={category.id}
-                  className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 md:flex-row md:items-start md:justify-between"
-                >
-                  <div className="min-w-0">
-                    <p className="text-base font-medium text-slate-900">
-                      {category.name}
-                    </p>
-                    <p className="mt-2 text-xs text-slate-400">
-                      Category ID: {category.id}
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <ActionButton
-                      action="edit"
-                      onClick={() => {
-                        setEditingId(category.id)
-                        setName(category.name)
-                      }}
-                      disabled={editingId === category.id}
-                    />
-                    <ActionButton
-                      action="delete"
-                      onClick={() => setDeleteConfirmId(category.id)}
-                      disabled={isDeleting}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <EmptyState
-              icon={Tag}
-              title="No categories available"
-              description="Create a category to start organising ideas by topic."
-            />
-          )}
-        </SectionCard>
-      </div>
+          </FormField>
+        </form>
+      </Modal>
 
       <ConfirmDialog
         isOpen={!!deleteConfirmId}

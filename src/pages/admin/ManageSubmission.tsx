@@ -269,9 +269,9 @@ export default function ManageSubmissionPage() {
               Cancel
             </AppButton>
             <AppButton
-              type="button"
+              type="submit"
+              form="submission-form"
               variant="secondary"
-              onClick={handleSubmit}
               disabled={isCreating || isUpdating}
             >
               {isCreating || isUpdating
@@ -283,7 +283,14 @@ export default function ManageSubmissionPage() {
           </>
         }
       >
-        <div className="space-y-4">
+        <form
+          id="submission-form"
+          className="space-y-4"
+          onSubmit={(event) => {
+            event.preventDefault()
+            void handleSubmit()
+          }}
+        >
           <FormField label="Submission name" required>
             <FormInput
               value={form.name}
@@ -334,7 +341,7 @@ export default function ManageSubmissionPage() {
               />
             </FormField>
           </div>
-        </div>
+        </form>
       </Modal>
 
       <ConfirmDialog

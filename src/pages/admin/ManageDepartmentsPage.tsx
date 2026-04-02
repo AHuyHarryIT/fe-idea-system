@@ -1,14 +1,17 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Building2, Plus } from 'lucide-react'
 import type { Department } from '@/api/departments'
 import { departmentService } from '@/api/departments'
+import { ActionButton } from '@/components/app/ActionButton'
 import { AppButton } from '@/components/app/AppButton'
 import { FormField } from '@/components/forms/FormField'
 import { FormInput, FormTextarea } from '@/components/forms/FormInput'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { EmptyState } from '@/components/shared/EmptyState'
+import { Modal } from '@/components/shared/Modal'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
-import { ActionButton } from '@/components/app/ActionButton'
 
 interface DepartmentForm {
   name: string
@@ -22,12 +25,17 @@ const initialForm: DepartmentForm = {
 
 export default function ManageDepartmentsPage() {
   const queryClient = useQueryClient()
-  const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<DepartmentForm>(initialForm)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [feedbackMessage, setFeedbackMessage] = useState('')
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false)
 
-  const { data: departments = [], isLoading } = useQuery({
+  const {
+    data: departments = [],
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ['departments'],
     queryFn: async () => {
       const response = await departmentService.getDepartments()
@@ -39,77 +47,124 @@ export default function ManageDepartmentsPage() {
   })
 
   const createMutation = useMutation({
-    mutationFn: (payload: typeof form) =>
-      departmentService.createDepartment(payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['departments'] })
-      setForm(initialForm)
-      setShowForm(false)
+    mutationFn: async (payload: DepartmentForm) => {
+      const response = await departmentService.createDepartment(payload)
+
+      if (!response.success) {
+        throw new Error(response.error ?? 'Unable to create department.')
+      }
+
+      return response.data
     },
   })
 
   const updateMutation = useMutation({
-    mutationFn: (payload: typeof form) => {
+    mutationFn: async (payload: DepartmentForm) => {
       if (!editingId) throw new Error('No department selected')
-      return departmentService.updateDepartment(editingId, payload)
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['departments'] })
-      setForm(initialForm)
-      setEditingId(null)
-      setShowForm(false)
+
+      const response = await departmentService.updateDepartment(editingId, payload)
+
+      if (!response.success) {
+        throw new Error(response.error ?? 'Unable to update department.')
+      }
+
+      return response.data
     },
   })
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => departmentService.deleteDepartment(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['departments'] })
+    mutationFn: async (id: string) => {
+      const response = await departmentService.deleteDepartment(id)
+
+      if (!response.success) {
+        throw new Error(response.error ?? 'Unable to delete department.')
+      }
     },
   })
 
+  const refreshDepartments = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['departments'] })
+  }
+
+  const closeFormModal = () => {
+    setIsFormModalOpen(false)
+    setEditingId(null)
+    setForm(initialForm)
+  }
+
+  const openCreateModal = () => {
+    setFeedbackMessage('')
+    setEditingId(null)
+    setForm(initialForm)
+    setIsFormModalOpen(true)
+  }
+
   const handleSubmit = async () => {
     if (!form.name.trim()) {
-      alert('Department name is required')
+      setFeedbackMessage('Department name is required.')
       return
     }
 
-    if (editingId) {
-      await updateMutation.mutateAsync(form)
-    } else {
-      await createMutation.mutateAsync(form)
+    setFeedbackMessage('')
+
+    try {
+      if (editingId) {
+        await updateMutation.mutateAsync({
+          name: form.name.trim(),
+          description: form.description.trim(),
+        })
+        setFeedbackMessage('Department updated successfully.')
+      } else {
+        await createMutation.mutateAsync({
+          name: form.name.trim(),
+          description: form.description.trim(),
+        })
+        setFeedbackMessage('Department created successfully.')
+      }
+
+      await refreshDepartments()
+      closeFormModal()
+    } catch (mutationError) {
+      setFeedbackMessage(
+        mutationError instanceof Error
+          ? mutationError.message
+          : editingId
+            ? 'Unable to update department.'
+            : 'Unable to create department.',
+      )
     }
   }
 
-  const handleEdit = (dept: Department) => {
-    setEditingId(dept.id)
+  const handleEdit = (department: Department) => {
+    setFeedbackMessage('')
+    setEditingId(department.id)
     setForm({
-      name: dept.name,
-      description: dept.description || '',
+      name: department.name,
+      description: department.description || '',
     })
-    setShowForm(true)
+    setIsFormModalOpen(true)
   }
 
-  const handleDelete = (id: string) => {
-    setDeleteConfirm(id)
-  }
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirm) return
 
-  const handleCancel = () => {
-    setForm(initialForm)
-    setEditingId(null)
-    setShowForm(false)
-  }
+    try {
+      await deleteMutation.mutateAsync(deleteConfirm)
+      await refreshDepartments()
+      setFeedbackMessage('Department deleted successfully.')
 
-  if (isLoading) {
-    return (
-      <div className="mx-auto max-w-5xl">
-        <PageHeader
-          title="Manage Departments"
-          description="Create, update, and manage departments across the platform."
-        />
-        <p className="text-slate-500">Loading departments...</p>
-      </div>
-    )
+      if (editingId === deleteConfirm) {
+        closeFormModal()
+      }
+    } catch (mutationError) {
+      setFeedbackMessage(
+        mutationError instanceof Error
+          ? mutationError.message
+          : 'Unable to delete department.',
+      )
+    } finally {
+      setDeleteConfirm(null)
+    }
   }
 
   return (
@@ -117,87 +172,54 @@ export default function ManageDepartmentsPage() {
       <PageHeader
         title="Manage Departments"
         description="Create, update, and manage departments across the platform."
+        actions={
+          <AppButton
+            type="button"
+            variant="secondary"
+            onClick={openCreateModal}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Add department
+          </AppButton>
+        }
       />
 
-      <div className="space-y-6">
-        {showForm && (
-          <SectionCard
-            title={editingId ? 'Edit Department' : 'Create New Department'}
-          >
-            <div className="space-y-4">
-              <FormField label="Department name" required>
-                <FormInput
-                  value={form.name}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, name: e.target.value }))
-                  }
-                  placeholder="e.g., Engineering, Design, Marketing"
-                />
-              </FormField>
-              <FormField label="Description">
-                <FormTextarea
-                  value={form.description}
-                  onChange={(e) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      description: e.target.value,
-                    }))
-                  }
-                  placeholder="Department description (optional)"
-                />
-              </FormField>
-              <div className="flex gap-3">
-                <AppButton
-                  type="button"
-                  variant="secondary"
-                  onClick={handleSubmit}
-                  disabled={
-                    createMutation.isPending || updateMutation.isPending
-                  }
-                >
-                  {createMutation.isPending || updateMutation.isPending
-                    ? 'Saving...'
-                    : editingId
-                      ? 'Update Department'
-                      : 'Create Department'}
-                </AppButton>
-                <AppButton type="button" variant="ghost" onClick={handleCancel}>
-                  Cancel
-                </AppButton>
-              </div>
-            </div>
-          </SectionCard>
-        )}
-
-        <div className="flex justify-between items-center">
-          <h2 className="text-lg font-semibold text-slate-900">
-            Departments ({departments.length})
-          </h2>
-          {!showForm && (
-            <AppButton
-              type="button"
-              variant="secondary"
-              onClick={() => setShowForm(true)}
-            >
-              + Add New Department
-            </AppButton>
-          )}
+      {feedbackMessage ? (
+        <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+          {feedbackMessage}
         </div>
+      ) : null}
 
-        {departments.length === 0 ? (
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-8 text-center">
-            <p className="text-slate-600">No departments found.</p>
-            {!showForm && (
+      <SectionCard
+        title="Departments"
+        description="Review department names, descriptions, and open their forms in a focused modal."
+      >
+        {error ? (
+          <EmptyState
+            icon={Building2}
+            title="Unable to load departments"
+            description={error instanceof Error ? error.message : 'Unknown error'}
+          />
+        ) : isLoading ? (
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600">
+            Loading departments...
+          </div>
+        ) : departments.length === 0 ? (
+          <EmptyState
+            icon={Building2}
+            title="No departments found"
+            description="Create the first department to organise users and idea ownership."
+            action={
               <AppButton
                 type="button"
                 variant="secondary"
-                onClick={() => setShowForm(true)}
-                className="mt-4"
+                onClick={openCreateModal}
               >
-                + Create First Department
+                <Plus className="mr-2 h-4 w-4" />
+                Create first department
               </AppButton>
-            )}
-          </div>
+            }
+          />
         ) : (
           <div className="overflow-x-auto rounded-lg border border-slate-200">
             <table className="w-full text-sm">
@@ -215,28 +237,29 @@ export default function ManageDepartmentsPage() {
                 </tr>
               </thead>
               <tbody>
-                {departments.map((dept) => (
+                {departments.map((department) => (
                   <tr
-                    key={dept.id}
+                    key={department.id}
                     className="border-b border-slate-200 hover:bg-slate-50"
                   >
                     <td className="px-6 py-3 font-medium text-slate-900">
-                      {dept.name}
+                      {department.name}
                     </td>
                     <td className="px-6 py-3 text-slate-600">
-                      {dept.description || '—'}
+                      {department.description || '—'}
                     </td>
                     <td className="px-6 py-3">
                       <div className="flex gap-2">
                         <ActionButton
                           action="edit"
-                          onClick={() => handleEdit(dept)}
-                          disabled={editingId === dept.id}
+                          onClick={() => handleEdit(department)}
+                          disabled={
+                            createMutation.isPending || updateMutation.isPending
+                          }
                         />
-
                         <ActionButton
                           action="delete"
-                          onClick={() => handleDelete(dept.id)}
+                          onClick={() => setDeleteConfirm(department.id)}
                           disabled={deleteMutation.isPending}
                         />
                       </div>
@@ -247,7 +270,69 @@ export default function ManageDepartmentsPage() {
             </table>
           </div>
         )}
-      </div>
+      </SectionCard>
+
+      <Modal
+        isOpen={isFormModalOpen}
+        title={editingId ? 'Edit department' : 'Create department'}
+        description="Keep department details in one focused dialog instead of an inline editor."
+        onClose={closeFormModal}
+        footer={
+          <>
+            <AppButton type="button" variant="ghost" onClick={closeFormModal}>
+              Cancel
+            </AppButton>
+            <AppButton
+              type="submit"
+              form="department-form"
+              variant="secondary"
+              disabled={createMutation.isPending || updateMutation.isPending}
+            >
+              {createMutation.isPending || updateMutation.isPending
+                ? 'Saving...'
+                : editingId
+                  ? 'Save changes'
+                  : 'Create department'}
+            </AppButton>
+          </>
+        }
+      >
+        <form
+          id="department-form"
+          className="space-y-4"
+          onSubmit={(event) => {
+            event.preventDefault()
+            void handleSubmit()
+          }}
+        >
+          <FormField label="Department name" required>
+            <FormInput
+              id="department-name"
+              name="department-name"
+              value={form.name}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, name: event.target.value }))
+              }
+              placeholder="e.g., Engineering, Design, Marketing"
+            />
+          </FormField>
+
+          <FormField label="Description">
+            <FormTextarea
+              id="department-description"
+              name="department-description"
+              value={form.description}
+              onChange={(event) =>
+                setForm((prev) => ({
+                  ...prev,
+                  description: event.target.value,
+                }))
+              }
+              placeholder="Department description (optional)"
+            />
+          </FormField>
+        </form>
+      </Modal>
 
       <ConfirmDialog
         isOpen={!!deleteConfirm}
@@ -257,12 +342,7 @@ export default function ManageDepartmentsPage() {
         cancelText="Cancel"
         isDangerous
         isLoading={deleteMutation.isPending}
-        onConfirm={() => {
-          if (deleteConfirm) {
-            deleteMutation.mutate(deleteConfirm)
-            setDeleteConfirm(null)
-          }
-        }}
+        onConfirm={handleDeleteConfirm}
         onCancel={() => setDeleteConfirm(null)}
       />
     </div>

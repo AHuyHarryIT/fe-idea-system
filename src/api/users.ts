@@ -6,6 +6,7 @@ export interface User {
   email: string
   name: string
   role: string
+  departmentId?: string | null
   departmentName?: string
   avatar?: string
   createdAt?: string
@@ -21,13 +22,13 @@ export interface CreateUserRequest {
   name: string
   password?: string
   role: string
+  departmentId?: string | null
 }
 
 export interface UpdateUserRequest {
   name?: string
-  department?: string
+  departmentId?: string | null
   role?: string
-  // avatar?: string
 }
 
 export const userService = {
@@ -48,7 +49,7 @@ export const userService = {
     userId: string,
     request: UpdateUserRequest,
   ): Promise<ApiResponse<User>> =>
-    apiClient.put<User>(`/users/${userId}/role`, request),
+    apiClient.put<User>(`/users/${userId}`, request),
 
   deleteUser: (userId: string): Promise<ApiResponse<void>> =>
     apiClient.delete<void>(`/users/${userId}`),

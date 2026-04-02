@@ -1,18 +1,22 @@
 import { useMemo, useState } from 'react'
 import { Link } from '@tanstack/react-router'
-import { Archive, BarChart3, Building2, Download, TrendingUp } from 'lucide-react'
+import {
+  Archive,
+  BarChart3,
+  Building2,
+  CircleAlert,
+  Download,
+  TrendingUp,
+} from 'lucide-react'
 import { AppButton } from '@/components/app/AppButton'
 import { exportService } from '@/api/export'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { StatCard } from '@/components/shared/StatCard'
-import {
-  useDepartmentStats,
-  useIdeasWithoutComments,
-} from '@/hooks/useDashboard'
 import { useQAManagerIdeas } from '@/hooks/useIdeas'
 import { useSubmissions } from '@/hooks/useSubmissions'
+import { auth } from '@/lib/auth'
 import { normalizeIdeaResponse } from '@/lib/idea-response-mapper'
 
 function isReviewableIdea(status?: string) {
@@ -28,35 +32,47 @@ function isReviewableIdea(status?: string) {
 }
 
 export default function QAManagerPage() {
+  const role = auth.getRole()
+  const canModerateIdeas = role === 'admin'
   const { data: ideaData, isLoading, error } = useQAManagerIdeas()
-  const { data: departmentData } = useDepartmentStats()
-  const { data: withoutCommentsData } = useIdeasWithoutComments()
   const {
     data: submissionsData,
     isLoading: submissionsLoading,
     error: submissionsError,
   } = useSubmissions()
   const [activeExportKey, setActiveExportKey] = useState<string | null>(null)
-  const [exportFeedback, setExportFeedback] = useState<string>('')
+  const [exportFeedback, setExportFeedback] = useState('')
 
   const ideas = useMemo(() => {
     const ideaList = normalizeIdeaResponse(ideaData)
     return Array.isArray(ideaList) ? ideaList.filter((idea) => idea.id) : []
   }, [ideaData])
 
-  const departmentStats = useMemo(
-    () => (Array.isArray(departmentData) ? departmentData : []),
-    [departmentData],
-  )
-
-  const ideasWithoutComments = useMemo(
-    () => (Array.isArray(withoutCommentsData) ? withoutCommentsData : []),
-    [withoutCommentsData],
-  )
   const reviewQueue = useMemo(
     () => ideas.filter((idea) => isReviewableIdea(idea.status)),
     [ideas],
   )
+
+  const departmentSummaries = useMemo(
+    () =>
+      Array.from(
+        ideas.reduce((counts, idea) => {
+          const key = idea.departmentName?.trim() || 'Unknown'
+          counts.set(key, (counts.get(key) ?? 0) + 1)
+          return counts
+        }, new Map<string, number>()),
+      ).sort((left, right) => right[1] - left[1]),
+    [ideas],
+  )
+
+  const ideasWithoutComments = useMemo(
+    () =>
+      ideas.filter(
+        (idea) => (idea.commentCount ?? idea.comments?.length ?? 0) === 0,
+      ),
+    [ideas],
+  )
+
   const exportableSubmissions = useMemo(() => {
     const submissions = Array.isArray(submissionsData) ? submissionsData : []
     const now = Date.now()
@@ -71,10 +87,15 @@ export default function QAManagerPage() {
           Date.parse(right.finalClosureDate) - Date.parse(left.finalClosureDate),
       )
   }, [submissionsData])
+
   const engagementRate =
     ideas.length > 0
       ? (((ideas.reduce(
-          (total, idea) => total + (idea.thumbsUpCount ?? 0) + (idea.thumbsDownCount ?? 0) + (idea.commentCount ?? 0),
+          (total, idea) =>
+            total +
+            (idea.thumbsUpCount ?? 0) +
+            (idea.thumbsDownCount ?? 0) +
+            (idea.commentCount ?? 0),
           0,
         ) /
           ideas.length) *
@@ -86,8 +107,17 @@ export default function QAManagerPage() {
     <div className="mx-auto max-w-7xl">
       <PageHeader
         title="QA Manager Dashboard"
-        description="Analytics-oriented view powered by QA manager and statistics endpoints."
+        description="Read-only analytics and export workspace aligned with the live backend permissions."
       />
+
+      {!canModerateIdeas ? (
+        <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+          Review decisions are currently rejected for QA Manager accounts by the
+          live backend. This dashboard keeps the queue visible for monitoring, but
+          moderation actions stay administrator-only until the backend policy
+          changes.
+        </div>
+      ) : null}
 
       <div className="grid gap-6 md:grid-cols-3">
         <StatCard
@@ -105,15 +135,19 @@ export default function QAManagerPage() {
         <StatCard
           icon={Building2}
           title="Departments contributing"
-          value={isLoading ? '...' : `${departmentStats.length}`}
-          description="Department count returned by the statistics endpoint."
+          value={isLoading ? '...' : `${departmentSummaries.length}`}
+          description="Departments inferred directly from the idea feed."
         />
       </div>
 
       <div className="mt-6 grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
         <SectionCard
           title="Approval queue"
-          description="Open an idea to approve it or reject it with reviewer feedback."
+          description={
+            canModerateIdeas
+              ? 'Open an idea to approve it or reject it with reviewer feedback.'
+              : 'Use this as a read-only moderation queue until backend review permissions are expanded.'
+          }
         >
           {error ? (
             <EmptyState
@@ -134,13 +168,19 @@ export default function QAManagerPage() {
                   <p className="mt-2">
                     Status: {idea.status?.replace(/_/g, ' ') || 'Pending'}
                   </p>
-                  <p>
-                    Category: {idea.categoryName || 'Uncategorized'}
-                  </p>
+                  <p>Category: {idea.categoryName || 'Uncategorized'}</p>
                   <div className="mt-4">
-                    <Link to="/manage/review">
-                      <AppButton type="button">Open review view</AppButton>
-                    </Link>
+                    {canModerateIdeas ? (
+                      <Link to="/manage/review">
+                        <AppButton type="button">Open review view</AppButton>
+                      </Link>
+                    ) : (
+                      <Link to="/ideas/$ideaId" params={{ ideaId: idea.id }}>
+                        <AppButton type="button" variant="ghost">
+                          Open details
+                        </AppButton>
+                      </Link>
+                    )}
                   </div>
                 </div>
               ))}
@@ -191,7 +231,9 @@ export default function QAManagerPage() {
 
                         try {
                           await exportService.exportQAManagerIdeasAsCSV()
-                          setExportFeedback('Downloaded university-wide CSV export.')
+                          setExportFeedback(
+                            'Downloaded university-wide CSV export.',
+                          )
                         } catch (downloadError) {
                           setExportFeedback(
                             downloadError instanceof Error
@@ -216,7 +258,9 @@ export default function QAManagerPage() {
 
                         try {
                           await exportService.exportQAManagerIdeasAsZip()
-                          setExportFeedback('Downloaded university-wide ZIP export.')
+                          setExportFeedback(
+                            'Downloaded university-wide ZIP export.',
+                          )
                         } catch (downloadError) {
                           setExportFeedback(
                             downloadError instanceof Error
@@ -253,7 +297,9 @@ export default function QAManagerPage() {
                             </p>
                             <p>
                               Final closure:{' '}
-                              {new Date(submission.finalClosureDate).toLocaleDateString()}
+                              {new Date(
+                                submission.finalClosureDate,
+                              ).toLocaleDateString()}
                             </p>
                             <p>Ideas captured: {submission.ideaCount ?? 0}</p>
                           </div>
@@ -286,7 +332,9 @@ export default function QAManagerPage() {
                               }}
                             >
                               <Download className="mr-2 h-4 w-4" />
-                              {activeExportKey === csvKey ? 'Downloading...' : 'CSV'}
+                              {activeExportKey === csvKey
+                                ? 'Downloading...'
+                                : 'CSV'}
                             </AppButton>
                             <AppButton
                               type="button"
@@ -316,7 +364,9 @@ export default function QAManagerPage() {
                               }}
                             >
                               <Archive className="mr-2 h-4 w-4" />
-                              {activeExportKey === zipKey ? 'Downloading...' : 'ZIP'}
+                              {activeExportKey === zipKey
+                                ? 'Downloading...'
+                                : 'ZIP'}
                             </AppButton>
                           </div>
                         </div>
@@ -342,13 +392,51 @@ export default function QAManagerPage() {
         </SectionCard>
 
         <SectionCard
-          title="Reporting widgets"
-          description="Ideas that still need comments or follow-up."
+          title="Department contribution"
+          description="Contribution summaries derived from the idea feed so the page stays stable without restricted statistics endpoints."
         >
           {error ? (
             <EmptyState
-              icon={BarChart3}
-              title="Analytics widgets unavailable"
+              icon={Building2}
+              title="Department summary unavailable"
+              description={error.message}
+            />
+          ) : departmentSummaries.length > 0 ? (
+            <div className="space-y-4">
+              {departmentSummaries.slice(0, 4).map(([departmentName, ideaCount]) => (
+                <div
+                  key={departmentName}
+                  className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600"
+                >
+                  <p className="font-medium text-slate-900">{departmentName}</p>
+                  <p className="mt-2">Ideas: {ideaCount}</p>
+                  <p>
+                    Share:{' '}
+                    {ideas.length > 0
+                      ? ((ideaCount / ideas.length) * 100).toFixed(1)
+                      : '0.0'}
+                    %
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              icon={Building2}
+              title="No department activity"
+              description="Department summaries will appear here when idea data is available."
+            />
+          )}
+        </SectionCard>
+
+        <SectionCard
+          title="Follow-up candidates"
+          description="Ideas with no recorded comments, derived from the current idea feed."
+        >
+          {error ? (
+            <EmptyState
+              icon={CircleAlert}
+              title="Follow-up queue unavailable"
               description={error.message}
             />
           ) : ideasWithoutComments.length > 0 ? (
@@ -366,27 +454,11 @@ export default function QAManagerPage() {
             </div>
           ) : (
             <EmptyState
-              icon={BarChart3}
-              title="No unmanaged ideas"
+              icon={CircleAlert}
+              title="No ideas without comments"
               description="Ideas without comments will appear here for QA follow-up."
             />
           )}
-        </SectionCard>
-        <SectionCard
-          title="Manager notes"
-          description="Quick summaries generated from department statistics and trending ideas."
-        >
-          <div className="space-y-4 text-sm text-slate-600">
-            <div className="rounded-xl bg-slate-50 p-4">
-              Top idea engagement: {ideas[0]?.text || 'No ideas loaded'}
-            </div>
-            <div className="rounded-xl bg-slate-50 p-4">
-              Department comparison entries: {departmentStats.length}
-            </div>
-            <div className="rounded-xl bg-slate-50 p-4">
-              Ideas awaiting comments: {ideasWithoutComments.length}
-            </div>
-          </div>
         </SectionCard>
       </div>
     </div>

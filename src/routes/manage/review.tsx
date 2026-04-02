@@ -4,7 +4,7 @@ import { createFileRoute } from '@tanstack/react-router'
 
 function RouteComponent() {
   return (
-    <ProtectedPage allowedRoles={['admin', 'qa_manager']}>
+    <ProtectedPage allowedRoles={['admin']}>
       <ReviewIdea />
     </ProtectedPage>
   )
