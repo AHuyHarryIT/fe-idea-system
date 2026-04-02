@@ -30,8 +30,8 @@ export interface Idea {
 }
 
 export interface IdeaListResponse {
-  items?: Array<Idea>
-  ideas?: Array<Idea>
+  items?: Idea[]
+  ideas?: Idea[]
   totalCount?: number
   total?: number
   pageNumber: number
@@ -72,7 +72,7 @@ export interface ReviewIdeaRequest {
   rejectionReason?: string
 }
 
-function getIdeasFromListResponse(data?: IdeaListResponse): Array<Idea> {
+function getIdeasFromListResponse(data?: IdeaListResponse): Idea[] {
   if (!data) {
     return []
   }

@@ -18,7 +18,7 @@ export interface NavItem {
   icon: typeof LayoutDashboard
 }
 
-export const navigationByRole: Record<Role, Array<NavItem>> = {
+export const navigationByRole: Record<Role, NavItem[]> = {
   staff: [
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/submit-idea', label: 'Submit Idea', icon: Lightbulb },

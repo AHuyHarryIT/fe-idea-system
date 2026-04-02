@@ -1,10 +1,10 @@
 import type { Idea } from '@/api'
 
 type IdeaResponseData =
-  | Array<Idea>
+  | Idea[]
   | {
-      ideas?: Array<Idea>
-      items?: Array<Idea>
+      ideas?: Idea[]
+      items?: Idea[]
     }
   | null
   | undefined

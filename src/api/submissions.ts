@@ -20,10 +20,10 @@ export interface SubmissionCreateRequest {
 }
 
 export const submissionService = {
-  getActiveSubmissions: (): Promise<ApiResponse<Array<Submission>>> =>
-    apiClient.get<Array<Submission>>('/submissions'),
-  getSubmissions: (): Promise<ApiResponse<Array<Submission>>> =>
-    apiClient.get<Array<Submission>>('/submissions'),
+  getActiveSubmissions: (): Promise<ApiResponse<Submission[]>> =>
+    apiClient.get<Submission[]>('/submissions'),
+  getSubmissions: (): Promise<ApiResponse<Submission[]>> =>
+    apiClient.get<Submission[]>('/submissions'),
 
   createSubmission: (
     request: SubmissionCreateRequest,

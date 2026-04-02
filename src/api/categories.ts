@@ -11,8 +11,8 @@ export interface CreateIdeaCategoryRequest {
 }
 
 export const categoryService = {
-  getIdeaCategories: (): Promise<ApiResponse<Array<IdeaCategory>>> =>
-    apiClient.get<Array<IdeaCategory>>('/categories'),
+  getIdeaCategories: (): Promise<ApiResponse<IdeaCategory[]>> =>
+    apiClient.get<IdeaCategory[]>('/categories'),
 
   createIdeaCategory: (
     request: CreateIdeaCategoryRequest,

@@ -52,7 +52,7 @@ export default function AdminDashboardPage() {
       // API returns direct array: [{id, title, ...}]
       // But code expects: {ideas: [...]} or {items: [...]}
       const mappedIdeas = normalizeIdeaResponse(
-        ideasResponse.data as IdeaListResponse | Array<Idea> | undefined,
+        ideasResponse.data as IdeaListResponse | Idea[] | undefined,
       )
 
       return {

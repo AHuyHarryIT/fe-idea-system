@@ -18,18 +18,18 @@ export interface DepartmentStat {
 
 export interface StaffDashboard {
   stats: DashboardStats
-  recentIdeas: Array<{ id: string; text: string; createdAt: string }>
+  recentIdeas: { id: string; text: string; createdAt: string }[]
 }
 
 export interface AdminDashboard {
   stats: DashboardStats
-  recentSubmissions: Array<{ id: string; name: string; closureDate: string }>
+  recentSubmissions: { id: string; name: string; closureDate: string }[]
   userCount: number
 }
 
 export interface QACoordinatorDashboard {
   stats: DashboardStats
-  departmentStats: Array<{ department: string; count: number }>
+  departmentStats: { department: string; count: number }[]
 }
 
 export interface QAManagerDashboard {
@@ -43,11 +43,11 @@ export const dashboardService = {
   getGeneralDashboard: (): Promise<ApiResponse<DashboardStats>> =>
     apiClient.get<DashboardStats>('/stats/dashboard'),
 
-  getDepartmentStats: (): Promise<ApiResponse<Array<DepartmentStat>>> =>
-    apiClient.get<Array<DepartmentStat>>('/stats/departments'),
+  getDepartmentStats: (): Promise<ApiResponse<DepartmentStat[]>> =>
+    apiClient.get<DepartmentStat[]>('/stats/departments'),
 
-  getIdeasWithoutComments: (): Promise<ApiResponse<Array<{ id: string; text: string }>>> =>
-    apiClient.get<Array<{ id: string; text: string }>>('/stats/ideas-without-comments'),
+  getIdeasWithoutComments: (): Promise<ApiResponse<{ id: string; text: string }[]>> =>
+    apiClient.get<{ id: string; text: string }[]>('/stats/ideas-without-comments'),
 
   // Staff dashboard
   getStaffDashboard: (): Promise<ApiResponse<StaffDashboard>> =>

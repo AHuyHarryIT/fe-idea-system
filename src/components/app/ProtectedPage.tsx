@@ -6,7 +6,7 @@ import { auth, getHomeRouteForRole } from '@/lib/auth'
 
 interface ProtectedPageProps {
   children: React.ReactNode
-  allowedRoles?: Array<Role>
+  allowedRoles?: Role[]
 }
 
 export function ProtectedPage({ children, allowedRoles }: ProtectedPageProps) {

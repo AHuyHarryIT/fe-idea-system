@@ -5,11 +5,11 @@ export interface Department {
   id: string
   name: string
   description?: string
-  ideas?: Array<{ id: string; text: string }>
+  ideas?: { id: string; text: string }[]
 }
 
 export interface DepartmentListResponse {
-  departments?: Array<Department>
+  departments?: Department[]
 }
 
 export interface CreateDepartmentPayload {
@@ -23,7 +23,7 @@ export interface UpdateDepartmentPayload {
 }
 
 export const departmentService = {
-  getDepartments: async (): Promise<ApiResponse<Array<Department>>> =>
+  getDepartments: async (): Promise<ApiResponse<Department[]>> =>
     await apiClient.get<Department[]>('/departments'),
 
   createDepartment: (

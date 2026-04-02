@@ -56,7 +56,7 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
   const { mutateAsync: reviewIdea, isPending: isReviewing } = useReviewIdea()
   const [commentText, setCommentText] = useState('')
   const [isAnonymous, setIsAnonymous] = useState(false)
-  const [postedComments, setPostedComments] = useState<Array<IdeaComment>>([])
+  const [postedComments, setPostedComments] = useState<IdeaComment[]>([])
   const [feedbackMessage, setFeedbackMessage] = useState('')
   const [reviewReason, setReviewReason] = useState('')
   const [reviewFeedbackMessage, setReviewFeedbackMessage] = useState('')

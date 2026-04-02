@@ -20,7 +20,7 @@ function isRecord(value: unknown): value is UnknownRecord {
   return typeof value === 'object' && value !== null
 }
 
-function getNestedValue(record: UnknownRecord, keys: Array<string>) {
+function getNestedValue(record: UnknownRecord, keys: string[]) {
   let current: unknown = record
 
   for (const key of keys) {
@@ -36,10 +36,10 @@ function getNestedValue(record: UnknownRecord, keys: Array<string>) {
 
 export function extractCollection<T = unknown>(
   value: unknown,
-  keys: Array<string> = defaultCollectionKeys,
-): Array<T> {
+  keys: string[] = defaultCollectionKeys,
+): T[] {
   if (Array.isArray(value)) {
-    return value as Array<T>
+    return value as T[]
   }
 
   if (!isRecord(value)) {
@@ -50,7 +50,7 @@ export function extractCollection<T = unknown>(
     const nested = value[key]
 
     if (Array.isArray(nested)) {
-      return nested as Array<T>
+      return nested as T[]
     }
   }
 

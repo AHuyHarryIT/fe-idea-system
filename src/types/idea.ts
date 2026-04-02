@@ -27,18 +27,18 @@ export interface IdeaDetailModel extends IdeaSummary {
   finalClosureDate?: string
   canComment?: boolean
   canVote?: boolean
-  attachments?: Array<{
+  attachments?: {
     id: string
     fileName: string
     fileSize?: string
-  }>
-  comments?: Array<{
+  }[]
+  comments?: {
     id: string
     authorName?: string
     content: string
     createdAt?: string
     isAnonymous?: boolean
-  }>
+  }[]
 }
 
 export interface IdeaSubmitPayload {
@@ -50,5 +50,5 @@ export interface IdeaSubmitPayload {
   // departmentId: string
   submissionId: string
   isAnonymous: boolean
-  uploadFiles?: Array<File>
+  uploadFiles?: File[]
 }

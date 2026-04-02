@@ -13,8 +13,8 @@ export interface User {
 }
 
 export interface UserListResponse {
-  users: Array<User>
-  availableRoles?: Array<string>
+  users: User[]
+  availableRoles?: string[]
 }
 
 export interface CreateUserRequest {
