@@ -39,12 +39,15 @@ function formatDateLabel(value?: string) {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
   }).format(date)
 }
 
 function isSubmissionClosed(closureDate?: string) {
   if (!closureDate) return false
-  return new Date(closureDate).getTime() < new Date().setHours(0, 0, 0, 0)
+  return new Date(closureDate).getTime() < Date.now()
 }
 
 function isPdfFile(file: File) {
@@ -252,7 +255,7 @@ export default function SubmitIdeaPage() {
       {!selectedSubmission ? (
         <SectionCard
           title="Available submission windows"
-          description="Choose one submission campaign to review its dates and academic year before you continue."
+          description="Choose one submission campaign to review its description and dates before you continue."
         >
           {error ? (
             <EmptyState
@@ -273,7 +276,7 @@ export default function SubmitIdeaPage() {
                     name="submit-idea-search"
                     value={searchValue}
                     onChange={(event) => setSearchValue(event.target.value)}
-                    placeholder="Search by submission name or academic year"
+                    placeholder="Search by submission name or description"
                     allowClear
                     size="large"
                     prefix={<Search className="h-4 w-4 text-slate-400" />}
@@ -303,15 +306,16 @@ export default function SubmitIdeaPage() {
                         <p className="text-base font-semibold text-slate-900">
                           {submission.name}
                         </p>
-                        {/* <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
-                          {submission.academicYear}
-                        </span> */}
                         <span
                           className={`rounded-full px-3 py-1 text-xs font-medium ${closed ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'}`}
                         >
                           {closed ? 'Closed' : 'Open'}
                         </span>
                       </div>
+                      <p className="max-w-3xl text-sm text-slate-600">
+                        {submission.description?.trim() ||
+                          'No description has been added for this submission window yet.'}
+                      </p>
                       <div className="grid gap-2 text-sm text-slate-600 md:grid-cols-2">
                         <p>
                           <span className="font-medium text-slate-800">
@@ -390,9 +394,6 @@ export default function SubmitIdeaPage() {
           >
             <div className="space-y-4">
               <div className="flex flex-wrap items-center gap-2">
-                {/* <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
-                  {selectedSubmission.academicYear}
-                </span> */}
                 <span
                   className={`rounded-full px-3 py-1 text-xs font-medium ${
                     isSubmissionClosed(selectedSubmission.closureDate)
@@ -404,6 +405,16 @@ export default function SubmitIdeaPage() {
                     ? 'Closed for new ideas'
                     : 'Open for submission'}
                 </span>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                <p className="text-sm font-medium text-slate-800">
+                  Description
+                </p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  {selectedSubmission.description?.trim() ||
+                    'No description has been added for this submission window yet.'}
+                </p>
               </div>
 
               <div className="grid gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 md:grid-cols-2">

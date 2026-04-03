@@ -2,7 +2,7 @@ export interface Submission {
   id: string
   name: string
   description?: string | null
-  academicYear: string
+  academicYear?: number | null
   closureDate: string
   finalClosureDate: string
   ideaCount?: number
@@ -11,7 +11,8 @@ export interface Submission {
 
 export interface SubmissionCreateRequest {
   name: string
-  academicYear: string
+  description?: string
+  academicYear?: number
   closureDate: string
   finalClosureDate: string
 }

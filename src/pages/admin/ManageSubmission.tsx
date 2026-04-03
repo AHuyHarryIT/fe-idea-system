@@ -1,5 +1,7 @@
 import { useDeferredValue, useEffect, useMemo, useState } from 'react'
-import { Input } from 'antd'
+import dayjs from 'dayjs'
+import type { Dayjs } from 'dayjs'
+import { DatePicker, Input } from 'antd'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { CalendarRange, Search } from 'lucide-react'
 import { submissionService } from '@/api/submissions'
@@ -7,7 +9,7 @@ import { ActionButton } from '@/components/app/ActionButton'
 import { AppButton } from '@/components/app/AppButton'
 import { AppPagination } from '@/components/shared/AppPagination'
 import { FormField } from '@/components/forms/FormField'
-import { FormInput } from '@/components/forms/FormInput'
+import { FormInput, FormTextarea } from '@/components/forms/FormInput'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { Modal } from '@/components/shared/Modal'
@@ -19,17 +21,18 @@ import {
   useUpdateSubmission,
 } from '@/hooks/useSubmissions'
 import { appNotification } from '@/lib/notifications'
+import type { Submission } from '@/types'
 
 interface SubmissionFormState {
   name: string
-  academicYear: string
+  description: string
   closureDate: string
   finalClosureDate: string
 }
 
 const initialForm: SubmissionFormState = {
   name: '',
-  academicYear: new Date().getFullYear().toString(),
+  description: '',
   closureDate: '',
   finalClosureDate: '',
 }
@@ -45,7 +48,37 @@ function formatDateLabel(value: string) {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
   }).format(date)
+}
+
+function formatDateTimeInputValue(value: string) {
+  if (!value) return ''
+  const date = dayjs(value)
+
+  if (!date.isValid()) {
+    return value.slice(0, 16)
+  }
+
+  return date.format('YYYY-MM-DDTHH:mm')
+}
+
+function parseFormDateTimeValue(value: string): Dayjs | null {
+  if (!value) return null
+
+  const parsed = dayjs(value)
+
+  return parsed.isValid() ? parsed : null
+}
+
+function getSubmissionAcademicYearFallback(closureDate: string) {
+  const fallbackYear = closureDate
+    ? new Date(closureDate).getFullYear()
+    : new Date().getFullYear()
+
+  return Number.isNaN(fallbackYear) ? new Date().getFullYear() : fallbackYear
 }
 
 type SubmissionLifecycle = 'open' | 'closed' | 'archived'
@@ -182,7 +215,6 @@ export default function ManageSubmissionPage() {
   const validateForm = () => {
     if (
       !form.name.trim() ||
-      !form.academicYear.trim() ||
       !form.closureDate ||
       !form.finalClosureDate
     ) {
@@ -205,7 +237,8 @@ export default function ManageSubmissionPage() {
 
     const payload = {
       name: form.name.trim(),
-      academicYear: form.academicYear.trim(),
+      description: form.description.trim() || undefined,
+      academicYear: getSubmissionAcademicYearFallback(form.closureDate),
       closureDate: form.closureDate,
       finalClosureDate: form.finalClosureDate,
     }
@@ -229,13 +262,13 @@ export default function ManageSubmissionPage() {
     }
   }
 
-  const handleEdit = (submission: SubmissionFormState & { id: string }) => {
+  const handleEdit = (submission: Submission) => {
     setEditingId(submission.id)
     setForm({
       name: submission.name,
-      academicYear: String(submission.academicYear),
-      closureDate: submission.closureDate.slice(0, 10),
-      finalClosureDate: submission.finalClosureDate.slice(0, 10),
+      description: submission.description || '',
+      closureDate: formatDateTimeInputValue(submission.closureDate),
+      finalClosureDate: formatDateTimeInputValue(submission.finalClosureDate),
     })
     setIsFormModalOpen(true)
   }
@@ -263,7 +296,7 @@ export default function ManageSubmissionPage() {
     <div className="mx-auto w-full max-w-7xl">
       <PageHeader
         title="Manage Submissions"
-        description="Create and maintain academic-year submission windows, closure dates, and final closure dates."
+        description="Create and maintain submission windows, descriptions, closure dates, and final closure dates."
       />
 
       <SectionCard>
@@ -275,7 +308,7 @@ export default function ManageSubmissionPage() {
                 name="submission-search"
                 value={searchValue}
                 onChange={(event) => setSearchValue(event.target.value)}
-                placeholder="Search by submission name or academic year"
+                placeholder="Search by submission name or description"
                 allowClear
                 size="large"
                 prefix={<Search className="h-4 w-4 text-slate-400" />}
@@ -351,15 +384,16 @@ export default function ManageSubmissionPage() {
                         <p className="text-base font-semibold text-slate-900">
                           {submission.name}
                         </p>
-                        <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
-                          {submission.academicYear}
-                        </span>
                         <span
                           className={`rounded-full px-3 py-1 text-xs font-medium ${lifecycleMeta.className}`}
                         >
                           {lifecycleMeta.label}
                         </span>
                       </div>
+                      <p className="max-w-3xl text-sm text-slate-600">
+                        {submission.description?.trim() ||
+                          'No description has been added for this submission window yet.'}
+                      </p>
                       <div className="grid gap-2 text-sm text-slate-600 md:grid-cols-2">
                         <p>
                           <span className="font-medium text-slate-800">
@@ -463,7 +497,7 @@ export default function ManageSubmissionPage() {
       <Modal
         isOpen={isFormModalOpen}
         title={editingId ? 'Edit submission' : 'Add submission'}
-        description="Configure the submission campaign and academic-year timeline."
+        description="Configure the submission campaign details and timeline."
         onClose={closeFormModal}
         footer={
           <>
@@ -505,49 +539,70 @@ export default function ManageSubmissionPage() {
             />
           </FormField>
 
-          <FormField label="Academic year" required>
-            <FormInput
-              id="submission-academic-year"
-              name="submission-academic-year"
-              value={form.academicYear}
+          <FormField
+            label="Description"
+            hint="Add context so staff understand what this submission window is for."
+          >
+            <FormTextarea
+              id="submission-description"
+              name="submission-description"
+              value={form.description}
               onChange={(event) =>
                 setForm((prev) => ({
                   ...prev,
-                  academicYear: event.target.value,
+                  description: event.target.value,
                 }))
               }
-              placeholder="e.g., 2026"
+              placeholder="e.g., Ideas for improving student services during the spring campaign."
             />
           </FormField>
 
           <div className="grid gap-4 md:grid-cols-2">
-            <FormField label="Closure date" required>
-              <FormInput
+            <FormField
+              label="Closure date and time"
+              hint="Pick the exact time when idea submissions should stop."
+              required
+            >
+              <DatePicker
                 id="submission-closure-date"
-                name="submission-closure-date"
-                type="date"
-                value={form.closureDate}
-                onChange={(event) =>
+                value={parseFormDateTimeValue(form.closureDate)}
+                onChange={(value) =>
                   setForm((prev) => ({
                     ...prev,
-                    closureDate: event.target.value,
+                    closureDate: value
+                      ? value.format('YYYY-MM-DDTHH:mm')
+                      : '',
                   }))
                 }
+                allowClear
+                showTime={{ format: 'HH:mm', minuteStep: 1 }}
+                format="YYYY-MM-DD HH:mm"
+                size="large"
+                className="w-full"
               />
             </FormField>
 
-            <FormField label="Final closure date" required>
-              <FormInput
+            <FormField
+              label="Final closure date and time"
+              hint="Pick the exact time when late comments and follow-up close."
+              required
+            >
+              <DatePicker
                 id="submission-final-closure-date"
-                name="submission-final-closure-date"
-                type="date"
-                value={form.finalClosureDate}
-                onChange={(event) =>
+                value={parseFormDateTimeValue(form.finalClosureDate)}
+                onChange={(value) =>
                   setForm((prev) => ({
                     ...prev,
-                    finalClosureDate: event.target.value,
+                    finalClosureDate: value
+                      ? value.format('YYYY-MM-DDTHH:mm')
+                      : '',
                   }))
                 }
+                allowClear
+                showTime={{ format: 'HH:mm', minuteStep: 1 }}
+                format="YYYY-MM-DD HH:mm"
+                size="large"
+                className="w-full"
               />
             </FormField>
           </div>

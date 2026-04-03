@@ -112,6 +112,30 @@ export function asNumber(value: unknown, fallback = 0) {
   return fallback
 }
 
+function asOptionalString(value: unknown) {
+  if (typeof value === 'string') {
+    return value
+  }
+
+  return undefined
+}
+
+function asOptionalNumber(value: unknown) {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value
+  }
+
+  if (typeof value === 'string') {
+    const parsed = Number(value)
+
+    if (Number.isFinite(parsed)) {
+      return parsed
+    }
+  }
+
+  return undefined
+}
+
 function asBoolean(value: unknown, fallback = false) {
   if (typeof value === 'boolean') {
     return value
@@ -294,7 +318,8 @@ export function mapSubmission(value: unknown): Submission {
   return {
     id: asString(record.id),
     name: asString(record.name, 'Untitled submission'),
-    academicYear: asString(record.academicYear),
+    description: asOptionalString(record.description),
+    academicYear: asOptionalNumber(record.academicYear),
     closureDate: asString(record.closureDate),
     finalClosureDate: asString(record.finalClosureDate),
   }
