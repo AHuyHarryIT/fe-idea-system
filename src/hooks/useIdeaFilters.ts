@@ -3,15 +3,17 @@ import { useMemo, useState } from 'react'
 export function useIdeaFilters() {
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('')
-  const [category, setCategory] = useState('')
+  const [categoryId, setCategoryId] = useState('')
+  const [submissionId, setSubmissionId] = useState('')
 
   const query = useMemo(
     () => ({
       search,
       status,
-      category,
+      categoryId,
+      submissionId,
     }),
-    [category, search, status],
+    [categoryId, search, status, submissionId],
   )
 
   return {
@@ -19,8 +21,10 @@ export function useIdeaFilters() {
     setSearch,
     status,
     setStatus,
-    category,
-    setCategory,
+    categoryId,
+    setCategoryId,
+    submissionId,
+    setSubmissionId,
     query,
   }
 }

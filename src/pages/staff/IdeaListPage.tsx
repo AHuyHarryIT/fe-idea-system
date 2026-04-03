@@ -10,8 +10,10 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
 
 import { CATEGORY_SELECT_PAGE_SIZE } from '@/constants/category'
+import { SUBMISSION_SELECT_PAGE_SIZE } from '@/constants/submission'
 import { useIdeaFilters } from '@/hooks/useIdeaFilters'
 import { useAllIdeas } from '@/hooks/useIdeas'
+import { useSubmissions } from '@/hooks/useSubmissions'
 import { normalizeIdeaResponse } from '@/lib/idea-response-mapper'
 import { useIdeaCategories } from '@/hooks/useCategories'
 
@@ -19,7 +21,14 @@ const DEFAULT_PAGE_SIZE = 5
 const PAGE_SIZE_OPTIONS = ['5', '10', '20', '50']
 
 export default function IdeaListPage() {
-  const { search, setSearch, category, setCategory } = useIdeaFilters()
+  const {
+    search,
+    setSearch,
+    categoryId,
+    setCategoryId,
+    submissionId,
+    setSubmissionId,
+  } = useIdeaFilters()
   const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE)
   const [currentPage, setCurrentPage] = useState(1)
   const deferredSearch = useDeferredValue(search.trim())
@@ -27,10 +36,16 @@ export default function IdeaListPage() {
     pageNumber: currentPage,
     pageSize,
     searchTerm: deferredSearch || undefined,
+    submissionId: submissionId || undefined,
+    categoryId: categoryId || undefined,
   })
   const { data: categoryData } = useIdeaCategories({
     pageNumber: 1,
     pageSize: CATEGORY_SELECT_PAGE_SIZE,
+  })
+  const { data: submissionData } = useSubmissions({
+    pageNumber: 1,
+    pageSize: SUBMISSION_SELECT_PAGE_SIZE,
   })
 
   const ideas = useMemo(() => {
@@ -44,14 +59,21 @@ export default function IdeaListPage() {
       ? categoryList.filter((item) => item.id)
       : []
   }, [categoryData])
-
-  const filteredIdeas = useMemo(() => {
-    return ideas.filter((idea) => {
-      const matchesCategory = !category || idea.categoryName === category
-
-      return matchesCategory
-    })
-  }, [category, ideas])
+  const submissions = useMemo(() => {
+    const submissionList = submissionData?.submissions ?? []
+    return Array.isArray(submissionList)
+      ? submissionList.filter((item) => item.id)
+      : []
+  }, [submissionData])
+  const selectedSubmission = useMemo(
+    () =>
+      submissions.find((submissionOption) => submissionOption.id === submissionId),
+    [submissionId, submissions],
+  )
+  const selectedCategory = useMemo(
+    () => categories.find((categoryOption) => categoryOption.id === categoryId),
+    [categories, categoryId],
+  )
 
   const totalIdeas =
     data?.pagination?.totalCount ??
@@ -59,10 +81,12 @@ export default function IdeaListPage() {
     data?.total ??
     ideas.length
   const totalPages = Math.max(1, Math.ceil(totalIdeas / pageSize))
-  const hasLocalFilters = category.length > 0
-  const listDescription = hasLocalFilters
-    ? `${filteredIdeas.length} ideas matched this page after applying your filters.`
-    : `${totalIdeas} ideas are currently available in the live university catalogue.`
+  const hasCategoryFilter = categoryId.length > 0
+  const hasSubmissionFilter = submissionId.length > 0
+  const listDescription =
+    hasCategoryFilter || hasSubmissionFilter
+      ? `${totalIdeas} ideas matched your current filters.`
+      : `${totalIdeas} ideas are currently available in the live university catalogue.`
 
   useEffect(() => {
     if (currentPage > totalPages) {
@@ -72,7 +96,7 @@ export default function IdeaListPage() {
 
   useEffect(() => {
     setCurrentPage(1)
-  }, [category, deferredSearch])
+  }, [categoryId, submissionId, deferredSearch])
 
   return (
     <div className="mx-auto w-full max-w-7xl">
@@ -88,9 +112,9 @@ export default function IdeaListPage() {
 
       <SectionCard
         title="Discover ideas"
-        description="Search the catalogue, narrow by category, and open any idea to read the full proposal and discussion."
+        description="Search the catalogue, narrow by category or submission window, and open any idea to read the full proposal and discussion."
       >
-        <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr_auto]">
+        <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr_1fr_auto]">
           <label className="block">
             <Input
               id="idea-search"
@@ -105,15 +129,29 @@ export default function IdeaListPage() {
             />
           </label>
           <select
+            id="idea-submission-filter"
+            name="idea-submission-filter"
+            value={submissionId}
+            onChange={(event) => setSubmissionId(event.target.value)}
+            className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+          >
+            <option value="">All submissions</option>
+            {submissions.map((submissionOption) => (
+              <option key={submissionOption.id} value={submissionOption.id}>
+                {submissionOption.name}
+              </option>
+            ))}
+          </select>
+          <select
             id="idea-category-filter"
             name="idea-category-filter"
-            value={category}
-            onChange={(event) => setCategory(event.target.value)}
+            value={categoryId}
+            onChange={(event) => setCategoryId(event.target.value)}
             className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
           >
             <option value="">All categories</option>
             {categories.map((categoryOption) => (
-              <option key={categoryOption.id} value={categoryOption.name}>
+              <option key={categoryOption.id} value={categoryOption.id}>
                 {categoryOption.name}
               </option>
             ))}
@@ -124,7 +162,8 @@ export default function IdeaListPage() {
             className="min-w-36"
             onClick={() => {
               setSearch('')
-              setCategory('')
+              setCategoryId('')
+              setSubmissionId('')
             }}
           >
             Reset
@@ -134,9 +173,14 @@ export default function IdeaListPage() {
           <span className="rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-700">
             {totalIdeas} total ideas
           </span>
-          {category ? (
+          {selectedCategory ? (
             <span className="rounded-full bg-blue-50 px-3 py-1 font-medium text-blue-700">
-              Category: {category}
+              Category: {selectedCategory.name}
+            </span>
+          ) : null}
+          {selectedSubmission ? (
+            <span className="rounded-full bg-emerald-50 px-3 py-1 font-medium text-emerald-700">
+              Submission: {selectedSubmission.name}
             </span>
           ) : null}
         </div>
@@ -153,10 +197,10 @@ export default function IdeaListPage() {
           <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600">
             Loading ideas...
           </div>
-        ) : filteredIdeas.length > 0 ? (
+        ) : ideas.length > 0 ? (
           <>
             <div className="space-y-4">
-              {filteredIdeas.map((idea) => (
+              {ideas.map((idea) => (
                 <IdeaCard key={idea.id} idea={idea} />
               ))}
             </div>
@@ -177,8 +221,8 @@ export default function IdeaListPage() {
                 setCurrentPage(page)
               }}
               showTotal={(total, range) =>
-                category
-                  ? `${filteredIdeas.length} category matches on this page · ${total} total matching ideas`
+                hasCategoryFilter || hasSubmissionFilter
+                  ? `Showing ${range[0]}-${range[1]} of ${total} matching ideas`
                   : `Showing ${range[0]}-${range[1]} of ${total} ideas`
               }
             />
@@ -189,8 +233,8 @@ export default function IdeaListPage() {
               icon={Lightbulb}
               title="No idea records loaded"
               description={
-                category
-                  ? 'Try another category or clear the filters.'
+                hasCategoryFilter || hasSubmissionFilter
+                  ? 'Try another category, submission window, or clear the filters.'
                   : deferredSearch
                     ? 'Try another keyword or clear the search.'
                     : 'Try adjusting your page selection.'
@@ -213,8 +257,8 @@ export default function IdeaListPage() {
                   setCurrentPage(page)
                 }}
                 showTotal={(total) =>
-                  category
-                    ? `${filteredIdeas.length} category matches on this page · ${total} total matching ideas`
+                  hasCategoryFilter || hasSubmissionFilter
+                    ? `${total} total matching ideas`
                     : `${total} total ideas`
                 }
               />

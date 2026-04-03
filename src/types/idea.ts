@@ -60,6 +60,7 @@ export interface IdeaListQueryParams {
   pageSize?: number
   searchTerm?: string
   submissionId?: string
+  categoryId?: string
   sortBy?: string
   departmentId?: string
   reviewStatus?: number
