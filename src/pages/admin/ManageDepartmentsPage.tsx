@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useDeferredValue, useEffect, useState } from 'react'
 import { Input } from 'antd'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Building2, Search } from 'lucide-react'
@@ -38,13 +38,15 @@ export default function ManageDepartmentsPage() {
   const [feedbackMessage, setFeedbackMessage] = useState('')
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
   const [searchValue, setSearchValue] = useState('')
+  const deferredSearch = useDeferredValue(searchValue.trim())
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['departments', currentPage, pageSize],
+    queryKey: ['departments', currentPage, pageSize, deferredSearch],
     queryFn: async () => {
       const response = await departmentService.getDepartments({
         pageNumber: currentPage,
         pageSize,
+        searchTerm: deferredSearch || undefined,
       })
 
       if (!response.success) {
@@ -57,25 +59,16 @@ export default function ManageDepartmentsPage() {
   const departments = data?.departments ?? []
   const totalDepartments = data?.pagination?.totalCount ?? departments.length
   const totalPages = Math.max(1, Math.ceil(totalDepartments / pageSize))
-  const filteredDepartments = useMemo(() => {
-    const normalizedSearch = searchValue.trim().toLowerCase()
-
-    if (!normalizedSearch) {
-      return departments
-    }
-
-    return departments.filter((department) =>
-      [department.name, department.description]
-        .filter(Boolean)
-        .some((value) => value?.toLowerCase().includes(normalizedSearch)),
-    )
-  }, [departments, searchValue])
 
   useEffect(() => {
     if (!isLoading && currentPage > totalPages) {
       setCurrentPage(totalPages)
     }
   }, [currentPage, isLoading, totalPages])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [deferredSearch])
 
   const createMutation = useMutation({
     mutationFn: async (payload: DepartmentForm) => {
@@ -260,16 +253,16 @@ export default function ManageDepartmentsPage() {
           <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600">
             Loading departments...
           </div>
-        ) : filteredDepartments.length === 0 ? (
+        ) : departments.length === 0 ? (
           <EmptyState
             icon={Building2}
             title={
-              departments.length > 0
+              deferredSearch
                 ? 'No departments match this search'
                 : 'No departments found'
             }
             description={
-              departments.length > 0
+              deferredSearch
                 ? 'Try another keyword or clear the search.'
                 : 'Create the first department to organise users and idea ownership.'
             }
@@ -300,7 +293,7 @@ export default function ManageDepartmentsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredDepartments.map((department) => (
+                  {departments.map((department) => (
                     <tr
                       key={department.id}
                       className="border-b border-slate-200 hover:bg-slate-50"
@@ -349,9 +342,7 @@ export default function ManageDepartmentsPage() {
                 setCurrentPage(page)
               }}
               showTotal={(total, range) =>
-                searchValue.trim()
-                  ? `${filteredDepartments.length} matches on this page · ${total} total departments`
-                  : `Showing ${range[0]}-${range[1]} of ${total} departments`
+                `Showing ${range[0]}-${range[1]} of ${total} departments`
               }
             />
           </div>

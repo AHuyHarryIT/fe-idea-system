@@ -27,6 +27,7 @@ export interface UserListResponse {
 export interface UserListQueryParams {
   pageNumber?: number
   pageSize?: number
+  searchTerm?: string
 }
 
 export interface CreateUserRequest {

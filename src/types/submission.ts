@@ -33,4 +33,6 @@ export interface SubmissionListPagination {
 export interface SubmissionListQueryParams {
   pageNumber?: number
   pageSize?: number
+  searchTerm?: string
+  fetchAll?: boolean
 }

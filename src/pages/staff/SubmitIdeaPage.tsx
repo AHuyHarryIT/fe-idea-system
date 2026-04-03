@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { Input } from 'antd'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
@@ -59,13 +59,19 @@ export default function SubmitIdeaPage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
+  const [searchValue, setSearchValue] = useState('')
+  const deferredSearch = useDeferredValue(searchValue.trim())
   const { data: categoryData, isLoading: categoriesLoading } =
     useIdeaCategories({ pageNumber: 1, pageSize: CATEGORY_SELECT_PAGE_SIZE })
   const {
     data: submissionData,
     isLoading: submissionsLoading,
     error,
-  } = useSubmissions({ pageNumber: currentPage, pageSize })
+  } = useSubmissions({
+    pageNumber: currentPage,
+    pageSize,
+    searchTerm: deferredSearch || undefined,
+  })
   const { mutateAsync: submitIdea, isPending } = useSubmitIdea()
   const [form, setForm] = useState<IdeaSubmitPayload>(initialForm)
   const [feedbackMessage, setFeedbackMessage] = useState('')
@@ -75,7 +81,6 @@ export default function SubmitIdeaPage() {
     string | null
   >(null)
   const [showSubmitForm, setShowSubmitForm] = useState(false)
-  const [searchValue, setSearchValue] = useState('')
 
   const fileNames = useMemo(
     () => form.uploadFiles?.map((file) => file.name).join(', ') ?? '',
@@ -89,19 +94,6 @@ export default function SubmitIdeaPage() {
     () => submissionData?.submissions ?? [],
     [submissionData],
   )
-  const filteredSubmissions = useMemo(() => {
-    const normalizedSearch = searchValue.trim().toLowerCase()
-
-    if (!normalizedSearch) {
-      return submissions
-    }
-
-    return submissions.filter((submission) =>
-      [submission.name, submission.academicYear]
-        .filter(Boolean)
-        .some((value) => String(value).toLowerCase().includes(normalizedSearch)),
-    )
-  }, [searchValue, submissions])
   const totalSubmissions =
     submissionData?.pagination?.totalCount ?? submissions.length
   const totalPages = Math.max(1, Math.ceil(totalSubmissions / pageSize))
@@ -117,6 +109,10 @@ export default function SubmitIdeaPage() {
       setCurrentPage(totalPages)
     }
   }, [currentPage, submissionsLoading, totalPages])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [deferredSearch])
 
   const handleReset = () => {
     setForm(initialForm)
@@ -299,8 +295,8 @@ export default function SubmitIdeaPage() {
                 </AppButton>
               </div>
 
-              {filteredSubmissions.length ? (
-                filteredSubmissions.map((submission) => {
+              {submissions.length ? (
+                submissions.map((submission) => {
                 const closed = isSubmissionClosed(submission.closureDate)
                 return (
                   <div
@@ -349,7 +345,7 @@ export default function SubmitIdeaPage() {
                   </div>
                 )
                 })
-              ) : submissions.length ? (
+              ) : deferredSearch ? (
                 <EmptyState
                   icon={CalendarRange}
                   title="No submission windows match this search"
@@ -379,9 +375,7 @@ export default function SubmitIdeaPage() {
                     setCurrentPage(page)
                   }}
                   showTotal={(total, range) =>
-                    searchValue.trim()
-                      ? `${filteredSubmissions.length} matches on this page · ${total} total submission windows`
-                      : `Showing ${range[0]}-${range[1]} of ${total} submission windows`
+                    `Showing ${range[0]}-${range[1]} of ${total} submission windows`
                   }
                 />
               ) : null}

@@ -111,10 +111,18 @@ function normalizeIdeaListResponse(
 
 async function getAllIdeasFromEndpoint(
   endpoint: string,
+  params: IdeaListQueryParams = {},
   pageSize: number = 100,
 ): Promise<ApiResponse<IdeaListResponse>> {
-  const firstPageResponse = await apiClient.get<IdeaListResponse>(
-    `${endpoint}?PageNumber=1&PageSize=${pageSize}`,
+  const firstPageResponse = await apiClient.get<IdeaListResponse, IdeaListQueryParams>(
+    endpoint,
+    {
+      params: {
+        ...params,
+        pageNumber: 1,
+        pageSize,
+      },
+    },
   )
 
   if (!firstPageResponse.success) {
@@ -133,8 +141,15 @@ async function getAllIdeasFromEndpoint(
     )
 
   for (let pageNumber = 2; pageNumber <= totalPages; pageNumber += 1) {
-    const pageResponse = await apiClient.get<IdeaListResponse>(
-      `${endpoint}?PageNumber=${pageNumber}&PageSize=${pageSize}`,
+    const pageResponse = await apiClient.get<IdeaListResponse, IdeaListQueryParams>(
+      endpoint,
+      {
+        params: {
+          ...params,
+          pageNumber,
+          pageSize,
+        },
+      },
     )
 
     if (!pageResponse.success) {
@@ -211,14 +226,17 @@ async function findIdeaByIdFromPagedList(
   } satisfies ApiResponse<Idea>
 }
 
-async function getAllMyIdeas(): Promise<ApiResponse<IdeaListResponse>> {
-  return getAllIdeasFromEndpoint('/ideas/my-ideas')
-}
-
 export const ideaService = {
   // Common endpoints
-  getMyIdeas: async (): Promise<ApiResponse<IdeaListResponse>> =>
-    getAllMyIdeas(),
+  getMyIdeas: async (
+    params?: IdeaListQueryParams,
+  ): Promise<ApiResponse<IdeaListResponse>> =>
+    getAllIdeasFromEndpoint('/ideas/my-ideas', params),
+
+  getAllIdeasMatching: async (
+    params?: IdeaListQueryParams,
+  ): Promise<ApiResponse<IdeaListResponse>> =>
+    getAllIdeasFromEndpoint('/ideas', params),
 
   getAllIdeas: async (
     params?: IdeaListQueryParams,

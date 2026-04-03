@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
 import { Input } from 'antd'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
@@ -16,7 +16,7 @@ import { FormTextarea } from '@/components/forms/FormInput'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
-import { useAllIdeas, useReviewIdea } from '@/hooks/useIdeas'
+import { useAllIdeasMatching, useReviewIdea } from '@/hooks/useIdeas'
 import { normalizeIdeaResponse } from '@/lib/idea-response-mapper'
 
 function formatDate(dateString?: string) {
@@ -67,9 +67,13 @@ function isReviewableIdea(status?: string) {
 
 export default function ReviewIdea() {
   const queryClient = useQueryClient()
-  const { data, isLoading, error } = useAllIdeas()
-  const { mutateAsync: reviewIdea, isPending: isReviewing } = useReviewIdea()
   const [search, setSearch] = useState('')
+  const deferredSearch = useDeferredValue(search.trim())
+  const { data, isLoading, error } = useAllIdeasMatching({
+    reviewStatus: 0,
+    searchTerm: deferredSearch || undefined,
+  })
+  const { mutateAsync: reviewIdea, isPending: isReviewing } = useReviewIdea()
   const [activeIdeaId, setActiveIdeaId] = useState<string | null>(null)
   const [reviewReasons, setReviewReasons] = useState<Record<string, string>>({})
   const [reviewFeedback, setReviewFeedback] = useState<Record<string, string>>(
@@ -82,27 +86,6 @@ export default function ReviewIdea() {
     () => [...ideas].filter((idea) => isReviewableIdea(idea.status)).sort(sortByNewest),
     [ideas],
   )
-
-  const filteredIdeas = useMemo(() => {
-    const normalizedSearch = search.trim().toLowerCase()
-
-    if (!normalizedSearch) {
-      return reviewQueue
-    }
-
-    return reviewQueue.filter((idea) =>
-      [
-        idea.text,
-        idea.title,
-        idea.description,
-        idea.authorName,
-        idea.categoryName,
-        idea.departmentName,
-      ]
-        .filter(Boolean)
-        .some((value) => value?.toLowerCase().includes(normalizedSearch)),
-    )
-  }, [reviewQueue, search])
 
   const handleReview = async (ideaId: string, isApproved: boolean) => {
     const rejectionReason = (reviewReasons[ideaId] || '').trim()
@@ -151,6 +134,7 @@ export default function ReviewIdea() {
 
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['allIdeas'] }),
+      queryClient.invalidateQueries({ queryKey: ['allIdeasMatching'] }),
       queryClient.invalidateQueries({ queryKey: ['qaManagerIdeas'] }),
       queryClient.invalidateQueries({ queryKey: ['adminIdeas'] }),
       queryClient.invalidateQueries({ queryKey: ['idea', ideaId] }),
@@ -163,7 +147,7 @@ export default function ReviewIdea() {
     <div className="mx-auto w-full max-w-7xl">
       <PageHeader
         title="Review Ideas"
-        description={`${filteredIdeas.length} ideas currently need a moderation decision.`}
+        description={`${reviewQueue.length} ideas currently need a moderation decision.`}
       />
 
       <SectionCard>
@@ -191,9 +175,9 @@ export default function ReviewIdea() {
           <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600">
             Loading ideas for review...
           </div>
-        ) : filteredIdeas.length > 0 ? (
+        ) : reviewQueue.length > 0 ? (
           <div className="space-y-5">
-            {filteredIdeas.map((idea) => {
+            {reviewQueue.map((idea) => {
               const isSubmitting = isReviewing && activeIdeaId === idea.id
 
               return (

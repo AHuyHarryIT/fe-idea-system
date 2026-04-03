@@ -15,6 +15,7 @@ export interface IdeaCategoryListPagination {
 export interface IdeaCategoryListQueryParams {
   pageNumber?: number
   pageSize?: number
+  searchTerm?: string
 }
 
 export interface IdeaCategoryListResponse {

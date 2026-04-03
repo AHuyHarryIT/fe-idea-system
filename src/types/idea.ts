@@ -50,6 +50,7 @@ export interface IdeaListPagination {
 export interface IdeaListQueryParams {
   pageNumber?: number
   pageSize?: number
+  searchTerm?: string
   submissionId?: string
   sortBy?: string
   departmentId?: string

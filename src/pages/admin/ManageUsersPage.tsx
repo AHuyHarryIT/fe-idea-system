@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { Input } from 'antd'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
@@ -161,13 +161,15 @@ export default function ManageUsersPage() {
   const [editErrors, setEditErrors] = useState<ValidationErrors>({})
   const [deleteConfirmUser, setDeleteConfirmUser] = useState<User | null>(null)
   const [isUserFormOpen, setIsUserFormOpen] = useState(false)
+  const deferredSearch = useDeferredValue(search.trim())
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['adminUsers', currentPage, pageSize],
+    queryKey: ['adminUsers', currentPage, pageSize, deferredSearch],
     queryFn: async () => {
       const response = await userService.getUsers({
         pageNumber: currentPage,
         pageSize,
+        searchTerm: deferredSearch || undefined,
       })
 
       if (!response.success) {
@@ -287,33 +289,12 @@ export default function ManageUsersPage() {
   }, [totalUsers, users])
 
   const filteredUsers = useMemo(() => {
-    const normalizedSearch = search.trim().toLowerCase()
-
-    return users.filter((user) => {
-      const matchesFilter =
+    return users.filter(
+      (user) =>
         roleFilter === 'all' ||
-        normalizeRoleKey(user.role) === normalizeRoleKey(roleFilter)
-
-      if (!matchesFilter) {
-        return false
-      }
-
-      if (!normalizedSearch) {
-        return true
-      }
-
-      const haystack = [
-        user.email,
-        user.name,
-        formatRoleLabel(user.role),
-        user.departmentName ?? '',
-      ]
-        .join(' ')
-        .toLowerCase()
-
-      return haystack.includes(normalizedSearch)
-    })
-  }, [roleFilter, search, users])
+        normalizeRoleKey(user.role) === normalizeRoleKey(roleFilter),
+    )
+  }, [roleFilter, users])
 
   const editingUser = useMemo(
     () => users.find((user) => user.id === editingUserId) ?? null,
@@ -325,6 +306,10 @@ export default function ManageUsersPage() {
       setCurrentPage(totalPages)
     }
   }, [currentPage, isLoading, totalPages])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [deferredSearch, roleFilter])
 
   const validateCreateForm = () => {
     const nextErrors: ValidationErrors = {}
@@ -592,8 +577,13 @@ export default function ManageUsersPage() {
                 {filteredUsers.length} shown on this page
               </span>
               <span className="rounded-full bg-slate-100 px-3 py-1">
-                {totalUsers} total users
+                {totalUsers} total matching users
               </span>
+              {deferredSearch && (
+                <span className="rounded-full bg-blue-50 px-3 py-1 text-blue-700">
+                  Search: {deferredSearch}
+                </span>
+              )}
               {roleFilter !== 'all' && (
                 <span className="rounded-full bg-blue-50 px-3 py-1 text-blue-700">
                   Filtered by {roleFilter}
@@ -699,8 +689,8 @@ export default function ManageUsersPage() {
                     setCurrentPage(page)
                   }}
                   showTotal={(total, range) =>
-                    search.trim() || roleFilter !== 'all'
-                      ? `${filteredUsers.length} matches on this page · ${total} total users`
+                    roleFilter !== 'all'
+                      ? `${filteredUsers.length} role matches on this page · ${total} total matching users`
                       : `Showing ${range[0]}-${range[1]} of ${total} users`
                   }
                 />
@@ -710,7 +700,11 @@ export default function ManageUsersPage() {
                 <EmptyState
                   icon={Users}
                   title="No matching users"
-                  description="Try a broader search or reset the role filter."
+                  description={
+                    roleFilter !== 'all'
+                      ? 'Try a broader search or reset the role filter.'
+                      : 'Try a broader search.'
+                  }
                 />
 
                 {totalUsers > 0 && (
@@ -729,8 +723,8 @@ export default function ManageUsersPage() {
                       setCurrentPage(page)
                     }}
                     showTotal={(total) =>
-                      search.trim() || roleFilter !== 'all'
-                        ? `${filteredUsers.length} matches on this page · ${total} total users`
+                      roleFilter !== 'all'
+                        ? `${filteredUsers.length} role matches on this page · ${total} total matching users`
                         : `${total} total users`
                     }
                   />

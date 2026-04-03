@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { Input } from 'antd'
 import { useQueryClient } from '@tanstack/react-query'
 import { Plus, Search, Tag } from 'lucide-react'
@@ -27,9 +27,12 @@ export default function ManageCategoryPage() {
   const queryClient = useQueryClient()
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE)
+  const [searchValue, setSearchValue] = useState('')
+  const deferredSearch = useDeferredValue(searchValue.trim())
   const { data, isLoading, error } = useIdeaCategories({
     pageNumber: currentPage,
     pageSize,
+    searchTerm: deferredSearch || undefined,
   })
   const { mutateAsync: createIdeaCategory, isPending: isCreating } =
     useCreateIdeaCategory()
@@ -43,7 +46,6 @@ export default function ManageCategoryPage() {
   const [feedbackMessage, setFeedbackMessage] = useState('')
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
-  const [searchValue, setSearchValue] = useState('')
 
   const categories = useMemo(
     () =>
@@ -52,19 +54,6 @@ export default function ManageCategoryPage() {
         .filter((item) => item.id),
     [data],
   )
-  const filteredCategories = useMemo(() => {
-    const normalizedSearch = searchValue.trim().toLowerCase()
-
-    if (!normalizedSearch) {
-      return categories
-    }
-
-    return categories.filter((category) =>
-      [category.name, category.id]
-        .filter(Boolean)
-        .some((value) => value.toLowerCase().includes(normalizedSearch)),
-    )
-  }, [categories, searchValue])
   const totalCategories = data?.pagination?.totalCount ?? categories.length
   const totalPages = Math.max(1, Math.ceil(totalCategories / pageSize))
 
@@ -73,6 +62,10 @@ export default function ManageCategoryPage() {
       setCurrentPage(totalPages)
     }
   }, [currentPage, isLoading, totalPages])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [deferredSearch])
 
   const refreshCategoryQueries = async () => {
     await Promise.all([
@@ -210,9 +203,9 @@ export default function ManageCategoryPage() {
           <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600">
             Loading categories...
           </div>
-        ) : filteredCategories.length > 0 ? (
+        ) : categories.length > 0 ? (
           <div className="space-y-4">
-            {filteredCategories.map((category) => (
+            {categories.map((category) => (
               <div
                 key={category.id}
                 className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 md:flex-row md:items-start md:justify-between"
@@ -255,9 +248,7 @@ export default function ManageCategoryPage() {
                 setCurrentPage(page)
               }}
               showTotal={(total, range) =>
-                searchValue.trim()
-                  ? `${filteredCategories.length} matches on this page · ${total} total categories`
-                  : `Showing ${range[0]}-${range[1]} of ${total} categories`
+                `Showing ${range[0]}-${range[1]} of ${total} categories`
               }
             />
           </div>
@@ -265,12 +256,12 @@ export default function ManageCategoryPage() {
           <EmptyState
             icon={Tag}
             title={
-              categories.length > 0
+              deferredSearch
                 ? 'No categories match this search'
                 : 'No categories available'
             }
             description={
-              categories.length > 0
+              deferredSearch
                 ? 'Try another keyword or clear the search.'
                 : 'Create a category to start organising ideas by topic.'
             }

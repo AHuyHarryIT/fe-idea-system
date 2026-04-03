@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { Input } from 'antd'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { CalendarRange, Search } from 'lucide-react'
@@ -99,12 +99,15 @@ export default function ManageSubmissionPage() {
   const queryClient = useQueryClient()
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE)
+  const [searchValue, setSearchValue] = useState('')
+  const deferredSearch = useDeferredValue(searchValue.trim())
   const { data, isLoading, error } = useQuery({
-    queryKey: ['submissions', currentPage, pageSize],
+    queryKey: ['submissions', currentPage, pageSize, deferredSearch],
     queryFn: async () => {
       const response = await submissionService.getSubmissions({
         pageNumber: currentPage,
         pageSize,
+        searchTerm: deferredSearch || undefined,
       })
 
       if (!response.success) {
@@ -126,7 +129,6 @@ export default function ManageSubmissionPage() {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const [feedbackMessage, setFeedbackMessage] = useState('')
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
-  const [searchValue, setSearchValue] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | SubmissionLifecycle>(
     'all',
   )
@@ -135,8 +137,6 @@ export default function ManageSubmissionPage() {
   const totalSubmissions = data?.pagination?.totalCount ?? submissions.length
   const totalPages = Math.max(1, Math.ceil(totalSubmissions / pageSize))
   const filteredSubmissions = useMemo(() => {
-    const normalizedSearch = searchValue.trim().toLowerCase()
-
     return [...submissions]
       .sort(
         (left, right) =>
@@ -144,26 +144,23 @@ export default function ManageSubmissionPage() {
           getDateTimestamp(left.finalClosureDate),
       )
       .filter((submission) => {
-        const matchesSearch =
-          normalizedSearch.length === 0 ||
-          [submission.name, submission.academicYear]
-            .filter(Boolean)
-            .some((value) =>
-              String(value).toLowerCase().includes(normalizedSearch),
-            )
         const lifecycle = getSubmissionLifecycle(submission)
         const matchesLifecycle =
           statusFilter === 'all' || lifecycle === statusFilter
 
-        return matchesSearch && matchesLifecycle
+        return matchesLifecycle
       })
-  }, [searchValue, statusFilter, submissions])
+  }, [statusFilter, submissions])
 
   useEffect(() => {
     if (!isLoading && currentPage > totalPages) {
       setCurrentPage(totalPages)
     }
   }, [currentPage, isLoading, totalPages])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [deferredSearch, statusFilter])
 
   const closeFormModal = () => {
     setIsFormModalOpen(false)
@@ -331,8 +328,8 @@ export default function ManageSubmissionPage() {
           />
         </div>
         <p className="mb-5 text-sm text-slate-500">
-          {searchValue.trim() || statusFilter !== 'all'
-            ? `${filteredSubmissions.length} matches on this page, sorted by most recent final closure date.`
+          {statusFilter !== 'all'
+            ? `${filteredSubmissions.length} lifecycle matches on this page, sorted by most recent final closure date.`
             : `${totalSubmissions} submission windows available, sorted by most recent final closure date.`}
         </p>
 
@@ -421,8 +418,8 @@ export default function ManageSubmissionPage() {
                 setCurrentPage(page)
               }}
               showTotal={(total, range) =>
-                searchValue.trim() || statusFilter !== 'all'
-                  ? `${filteredSubmissions.length} matches on this page · ${total} total submission windows`
+                statusFilter !== 'all'
+                  ? `${filteredSubmissions.length} lifecycle matches on this page · ${total} total matching submission windows`
                   : `Showing ${range[0]}-${range[1]} of ${total} submission windows`
               }
             />
@@ -432,14 +429,18 @@ export default function ManageSubmissionPage() {
             <EmptyState
               icon={CalendarRange}
               title={
-                submissions.length > 0
-                  ? 'No submissions match this filter'
-                  : 'No submission windows found'
+                statusFilter !== 'all'
+                  ? 'No submission windows match this lifecycle filter'
+                  : deferredSearch
+                    ? 'No submission windows match this search'
+                    : 'No submission windows found'
               }
               description={
-                submissions.length > 0
-                  ? 'Try another keyword or lifecycle filter.'
-                  : 'Create the first submission window to let staff submit ideas within a controlled campaign period.'
+                statusFilter !== 'all'
+                  ? 'Try another lifecycle filter or clear the filters.'
+                  : deferredSearch
+                    ? 'Try another keyword or clear the search.'
+                    : 'Create the first submission window to let staff submit ideas within a controlled campaign period.'
               }
             />
 
@@ -459,8 +460,8 @@ export default function ManageSubmissionPage() {
                   setCurrentPage(page)
                 }}
                 showTotal={(total) =>
-                  searchValue.trim() || statusFilter !== 'all'
-                    ? `${filteredSubmissions.length} matches on this page · ${total} total submission windows`
+                  statusFilter !== 'all'
+                    ? `${filteredSubmissions.length} lifecycle matches on this page · ${total} total matching submission windows`
                     : `${total} total submission windows`
                 }
               />

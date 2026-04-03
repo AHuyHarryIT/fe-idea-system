@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { Input } from 'antd'
 import { Lightbulb, Search } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
@@ -22,9 +22,11 @@ export default function IdeaListPage() {
   const { search, setSearch, category, setCategory } = useIdeaFilters()
   const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE)
   const [currentPage, setCurrentPage] = useState(1)
+  const deferredSearch = useDeferredValue(search.trim())
   const { data, isLoading, error } = useAllIdeas({
     pageNumber: currentPage,
     pageSize,
+    searchTerm: deferredSearch || undefined,
   })
   const { data: categoryData } = useIdeaCategories({
     pageNumber: 1,
@@ -44,19 +46,12 @@ export default function IdeaListPage() {
   }, [categoryData])
 
   const filteredIdeas = useMemo(() => {
-    const normalizedSearch = search.trim().toLowerCase()
-
     return ideas.filter((idea) => {
-      const matchesSearch =
-        normalizedSearch.length === 0 ||
-        [idea.text, idea.categoryName, idea.departmentName, idea.authorName]
-          .filter(Boolean)
-          .some((value) => value?.toLowerCase().includes(normalizedSearch))
       const matchesCategory = !category || idea.categoryName === category
 
-      return matchesSearch && matchesCategory
+      return matchesCategory
     })
-  }, [category, ideas, search])
+  }, [category, ideas])
 
   const totalIdeas =
     data?.pagination?.totalCount ??
@@ -64,7 +59,7 @@ export default function IdeaListPage() {
     data?.total ??
     ideas.length
   const totalPages = Math.max(1, Math.ceil(totalIdeas / pageSize))
-  const hasLocalFilters = search.trim().length > 0 || category.length > 0
+  const hasLocalFilters = category.length > 0
   const listDescription = hasLocalFilters
     ? `${filteredIdeas.length} ideas matched on this page.`
     : `${totalIdeas} ideas matched from the live catalogue.`
@@ -74,6 +69,10 @@ export default function IdeaListPage() {
       setCurrentPage(totalPages)
     }
   }, [currentPage, totalPages])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [category, deferredSearch])
 
   return (
     <div className="mx-auto w-full max-w-7xl">
@@ -165,8 +164,8 @@ export default function IdeaListPage() {
                 setCurrentPage(page)
               }}
               showTotal={(total, range) =>
-                hasLocalFilters
-                  ? `${filteredIdeas.length} matches on this page · ${total} total ideas`
+                category
+                  ? `${filteredIdeas.length} category matches on this page · ${total} total matching ideas`
                   : `Showing ${range[0]}-${range[1]} of ${total} ideas`
               }
             />
@@ -176,7 +175,13 @@ export default function IdeaListPage() {
             <EmptyState
               icon={Lightbulb}
               title="No idea records loaded"
-              description="Try adjusting your search, category, or page selection."
+              description={
+                category
+                  ? 'Try another category or clear the filters.'
+                  : deferredSearch
+                    ? 'Try another keyword or clear the search.'
+                    : 'Try adjusting your page selection.'
+              }
             />
 
             {totalIdeas > 0 && (
@@ -195,8 +200,8 @@ export default function IdeaListPage() {
                   setCurrentPage(page)
                 }}
                 showTotal={(total) =>
-                  hasLocalFilters
-                    ? `${filteredIdeas.length} matches on this page · ${total} total ideas`
+                  category
+                    ? `${filteredIdeas.length} category matches on this page · ${total} total matching ideas`
                     : `${total} total ideas`
                 }
               />

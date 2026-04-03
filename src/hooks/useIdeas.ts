@@ -7,11 +7,11 @@ import type {
 } from '@/types'
 import { ideaService } from '@/api'
 
-export const useMyIdeas = () => {
+export const useMyIdeas = (params?: IdeaListQueryParams) => {
   return useQuery({
-    queryKey: ['myIdeas'],
+    queryKey: ['myIdeas', params],
     queryFn: async () => {
-      const response = await ideaService.getMyIdeas()
+      const response = await ideaService.getMyIdeas(params)
       if (response.success) return response.data
       throw new Error(response.error)
     },
@@ -29,6 +29,17 @@ export const useAllIdeas = (
       throw new Error(response.error)
     },
     placeholderData: (previousData) => previousData,
+  })
+}
+
+export const useAllIdeasMatching = (params?: IdeaListQueryParams) => {
+  return useQuery({
+    queryKey: ['allIdeasMatching', params],
+    queryFn: async () => {
+      const response = await ideaService.getAllIdeasMatching(params)
+      if (response.success) return response.data
+      throw new Error(response.error)
+    },
   })
 }
 
@@ -100,7 +111,7 @@ export const useQACoordinatorIdeas = () => {
   return useQuery({
     queryKey: ['qaCoordinatorIdeas'],
     queryFn: async () => {
-      const response = await ideaService.getAllIdeas()
+      const response = await ideaService.getAllIdeasMatching()
       if (response.success) return response.data
       throw new Error(response.error)
     },
@@ -111,7 +122,7 @@ export const useAdminIdeas = () => {
   return useQuery({
     queryKey: ['adminIdeas'],
     queryFn: async () => {
-      const response = await ideaService.getAllIdeas()
+      const response = await ideaService.getAllIdeasMatching()
       if (response.success) return response.data
       throw new Error(response.error)
     },
@@ -122,7 +133,7 @@ export const useQAManagerIdeas = () => {
   return useQuery({
     queryKey: ['qaManagerIdeas'],
     queryFn: async () => {
-      const response = await ideaService.getAllIdeas()
+      const response = await ideaService.getAllIdeasMatching()
       if (response.success) return response.data
       throw new Error(response.error)
     },

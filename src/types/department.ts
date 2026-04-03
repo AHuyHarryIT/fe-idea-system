@@ -27,6 +27,8 @@ export interface DepartmentListPagination {
 export interface DepartmentListQueryParams {
   pageNumber?: number
   pageSize?: number
+  searchTerm?: string
+  fetchAll?: boolean
 }
 
 export interface CreateDepartmentPayload {

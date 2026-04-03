@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
 import { Input } from 'antd'
 import { Link } from '@tanstack/react-router'
 import {
@@ -99,9 +99,12 @@ export default function DashboardPage({
   title = 'Dashboard',
   description = 'Track your pending ideas, review outcomes, and open detailed status notes from one place.',
 }: DashboardPageProps) {
-  const { data, isLoading, error } = useMyIdeas()
   const [statusFilter, setStatusFilter] = useState<IdeaStatusFilter>('all')
   const [searchValue, setSearchValue] = useState('')
+  const deferredSearch = useDeferredValue(searchValue.trim())
+  const { data, isLoading, error } = useMyIdeas({
+    searchTerm: deferredSearch || undefined,
+  })
   const [selectedIdea, setSelectedIdea] = useState<Idea | null>(null)
 
   const ideas = useMemo(() => {
@@ -130,26 +133,13 @@ export default function DashboardPage({
   ).length
 
   const filteredIdeas = useMemo(() => {
-    const normalizedSearch = searchValue.trim().toLowerCase()
-
     return sortedIdeas.filter((idea) => {
       const status = getIdeaStatusValue(idea)
       const matchesStatus = statusFilter === 'all' || statusFilter === status
-      const matchesSearch =
-        normalizedSearch.length === 0 ||
-        [
-          getIdeaTitle(idea),
-          idea.description,
-          idea.categoryName,
-          idea.departmentName,
-          idea.submissionName,
-        ]
-          .filter(Boolean)
-          .some((value) => value?.toLowerCase().includes(normalizedSearch))
 
-      return matchesStatus && matchesSearch
+      return matchesStatus
     })
-  }, [searchValue, sortedIdeas, statusFilter])
+  }, [sortedIdeas, statusFilter])
 
   const selectedIdeaStatus = selectedIdea
     ? getIdeaStatusValue(selectedIdea)
