@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { Column, Pie } from '@ant-design/charts'
 import { Link } from '@tanstack/react-router'
 import {
   BarChart3,
@@ -31,9 +32,13 @@ interface CategorySlice {
   label: string
   value: number
   percent: number
-  colorClassName: string
-  textClassName: string
   colorValue: string
+}
+
+interface CoordinatorChartPoint {
+  month: string
+  series: 'Ideas' | 'Comments'
+  value: number
 }
 
 const metricAccentClassNames: Record<
@@ -63,31 +68,26 @@ const metricAccentClassNames: Record<
 
 const categoryPalette = [
   {
-    colorClassName: 'bg-blue-500',
-    textClassName: 'text-blue-600',
     colorValue: '#3b82f6',
   },
   {
-    colorClassName: 'bg-emerald-500',
-    textClassName: 'text-emerald-600',
     colorValue: '#10b981',
   },
   {
-    colorClassName: 'bg-amber-500',
-    textClassName: 'text-amber-600',
     colorValue: '#f59e0b',
   },
   {
-    colorClassName: 'bg-violet-500',
-    textClassName: 'text-violet-600',
     colorValue: '#8b5cf6',
   },
   {
-    colorClassName: 'bg-slate-400',
-    textClassName: 'text-slate-500',
     colorValue: '#94a3b8',
   },
 ]
+
+const trendSeriesColors = {
+  Ideas: '#3b82f6',
+  Comments: '#10b981',
+} as const
 
 function normalizeStatus(status?: string) {
   return status?.toLowerCase().replace(/\s+/g, '_')
@@ -205,27 +205,9 @@ function buildCategoryDistribution(ideas: Idea[]): CategorySlice[] {
       label,
       value,
       percent: Math.round((value / ideas.length) * 100),
-      colorClassName: palette.colorClassName,
-      textClassName: palette.textClassName,
       colorValue: palette.colorValue,
     }
   })
-}
-
-function buildPieBackground(slices: CategorySlice[]) {
-  if (slices.length === 0) {
-    return 'conic-gradient(#e2e8f0 0deg 360deg)'
-  }
-
-  let current = 0
-
-  const stops = slices.map((slice) => {
-    const start = current
-    current += (slice.percent / 100) * 360
-    return `${slice.colorValue} ${start}deg ${current}deg`
-  })
-
-  return `conic-gradient(${stops.join(', ')})`
 }
 
 export default function QACoordinatorPage() {
@@ -260,17 +242,34 @@ export default function QACoordinatorPage() {
   const departmentName =
     auth.getDepartmentName() || latestIdea?.departmentName || 'Your department'
   const monthlyTrend = useMemo(() => buildMonthlyTrend(ideas), [ideas])
+  const trendChartData = useMemo<CoordinatorChartPoint[]>(
+    () =>
+      monthlyTrend.flatMap((point) => [
+        {
+          month: point.label,
+          series: 'Ideas',
+          value: point.ideas,
+        },
+        {
+          month: point.label,
+          series: 'Comments',
+          value: point.comments,
+        },
+      ]),
+    [monthlyTrend],
+  )
   const categoryDistribution = useMemo(
     () => buildCategoryDistribution(ideas),
     [ideas],
   )
-  const pieBackground = useMemo(
-    () => buildPieBackground(categoryDistribution),
+  const categoryChartData = useMemo(
+    () =>
+      categoryDistribution.map((slice) => ({
+        type: slice.label,
+        value: slice.value,
+        color: slice.colorValue,
+      })),
     [categoryDistribution],
-  )
-  const chartMax = Math.max(
-    1,
-    ...monthlyTrend.flatMap((point) => [point.ideas, point.comments]),
   )
 
   return (
@@ -367,47 +366,58 @@ export default function QACoordinatorPage() {
             />
           ) : ideas.length > 0 ? (
             <div>
-              <div className="grid h-72 grid-cols-5 items-end gap-5 rounded-[24px] border border-slate-200 bg-slate-50/70 px-5 pb-5 pt-8">
-                {monthlyTrend.map((point) => (
-                  <div
-                    key={point.label}
-                    className="flex h-full flex-col justify-end gap-3"
-                  >
-                    <div className="flex h-full items-end justify-center gap-2">
-                      <div className="flex flex-col items-center gap-2">
-                        <div
-                          className="w-5 rounded-t-xl bg-blue-500"
-                          style={{
-                            height: `${Math.max(
-                              10,
-                              (point.ideas / chartMax) * 180,
-                            )}px`,
-                          }}
-                        />
-                        <span className="text-[11px] font-medium text-slate-400">
-                          {point.ideas}
-                        </span>
-                      </div>
-                      <div className="flex flex-col items-center gap-2">
-                        <div
-                          className="w-5 rounded-t-xl bg-emerald-500"
-                          style={{
-                            height: `${Math.max(
-                              10,
-                              (point.comments / chartMax) * 180,
-                            )}px`,
-                          }}
-                        />
-                        <span className="text-[11px] font-medium text-slate-400">
-                          {point.comments}
-                        </span>
-                      </div>
-                    </div>
-                    <p className="text-center text-xs font-medium text-slate-500">
-                      {point.label}
-                    </p>
-                  </div>
-                ))}
+              <div className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4">
+                <Column
+                  data={trendChartData}
+                  xField="month"
+                  yField="value"
+                  seriesField="series"
+                  group
+                  colorField="series"
+                  color={[
+                    trendSeriesColors.Ideas,
+                    trendSeriesColors.Comments,
+                  ]}
+                  height={288}
+                  marginLeft={36}
+                  marginTop={28}
+                  marginBottom={40}
+                  paddingBottom={12}
+                  axis={{
+                    x: {
+                      title: false,
+                      tick: false,
+                      labelAutoHide: false,
+                      line: true,
+                      lineStroke: '#cbd5e1',
+                      labelFill: '#64748b',
+                    },
+                    y: {
+                      title: false,
+                      tick: false,
+                      gridLine: true,
+                      gridStroke: '#e2e8f0',
+                      labelFill: '#94a3b8',
+                    },
+                  }}
+                  legend={false}
+                  label={{
+                    text: 'value',
+                    position: 'top',
+                    dy: -14,
+                    style: {
+                      fill: '#0f172a',
+                      fontSize: 12,
+                      fontWeight: 700,
+                    },
+                  }}
+                  interaction={{
+                    elementHighlight: false,
+                  }}
+                  tooltip={{
+                    title: 'month',
+                  }}
+                />
               </div>
 
               <div className="mt-4 flex flex-wrap gap-4 text-sm text-slate-600">
@@ -443,11 +453,32 @@ export default function QACoordinatorPage() {
           ) : categoryDistribution.length > 0 ? (
             <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
               <div className="flex items-center justify-center">
-                <div
-                  className="relative h-56 w-56 rounded-full"
-                  style={{ background: pieBackground }}
-                >
-                  <div className="absolute inset-[22%] rounded-full bg-white shadow-inner" />
+                <div className="h-60 w-full max-w-[280px] rounded-[24px] border border-slate-200 bg-slate-50/70 p-3">
+                  <Pie
+                    data={categoryChartData}
+                    angleField="value"
+                    colorField="type"
+                    height={216}
+                    innerRadius={0.58}
+                    radius={0.9}
+                    padding={0}
+                    legend={false}
+                    tooltip={{
+                      items: [
+                        (datum) => ({
+                          name: datum.type,
+                          value: `${datum.value} ideas`,
+                          color: datum.color,
+                        }),
+                      ],
+                    }}
+                    label={false}
+                    color={categoryChartData.map((slice) => slice.color)}
+                    style={{
+                      stroke: '#ffffff',
+                      lineWidth: 1,
+                    }}
+                  />
                 </div>
               </div>
 
@@ -459,14 +490,18 @@ export default function QACoordinatorPage() {
                   >
                     <div className="flex items-center gap-3">
                       <span
-                        className={`h-3 w-3 rounded-full ${slice.colorClassName}`}
+                        className="h-3 w-3 rounded-full"
+                        style={{ backgroundColor: slice.colorValue }}
                       />
                       <span className="text-sm font-medium text-slate-700">
                         {slice.label}
                       </span>
                     </div>
                     <div className="text-right">
-                      <p className={`text-sm font-semibold ${slice.textClassName}`}>
+                      <p
+                        className="text-sm font-semibold"
+                        style={{ color: slice.colorValue }}
+                      >
                         {slice.percent}%
                       </p>
                       <p className="text-xs text-slate-500">{slice.value} ideas</p>
