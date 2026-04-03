@@ -3,12 +3,39 @@ import type {
   ApiResponse,
   CreateDepartmentPayload,
   Department,
+  DepartmentListResponse,
   UpdateDepartmentPayload,
 } from '@/types'
 
+function normalizeDepartmentsResponse(
+  data?: Department[] | DepartmentListResponse,
+): Department[] {
+  if (Array.isArray(data)) {
+    return data
+  }
+
+  if (data && Array.isArray(data.departments)) {
+    return data.departments
+  }
+
+  return []
+}
+
 export const departmentService = {
-  getDepartments: async (): Promise<ApiResponse<Department[]>> =>
-    await apiClient.get<Department[]>('/departments'),
+  getDepartments: async (): Promise<ApiResponse<Department[]>> => {
+    const response = await apiClient.get<Department[] | DepartmentListResponse>(
+      '/departments',
+    )
+
+    if (!response.success) {
+      return response as ApiResponse<Department[]>
+    }
+
+    return {
+      ...response,
+      data: normalizeDepartmentsResponse(response.data),
+    }
+  },
 
   createDepartment: (
     payload: CreateDepartmentPayload,
