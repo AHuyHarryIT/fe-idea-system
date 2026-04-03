@@ -660,20 +660,21 @@ export default function ManageUsersPage() {
                         </div>
 
                         <div className="flex flex-wrap gap-2">
-                          <ActionButton
-                            type="button"
-                            action="edit"
-                            onClick={() => handleEditStart(user)}
-                            disabled={isEditLocked}
-                          />
-                          <ActionButton
-                            type="button"
-                            action="delete"
-                            onClick={() => setDeleteConfirmUser(user)}
-                            disabled={
-                              isDeleteLocked || deleteUserMutation.isPending
-                            }
-                          />
+                          {!isEditLocked && (
+                            <ActionButton
+                              type="button"
+                              action="edit"
+                              onClick={() => handleEditStart(user)}
+                            />
+                          )}
+                          {!isDeleteLocked && (
+                            <ActionButton
+                              type="button"
+                              action="delete"
+                              onClick={() => setDeleteConfirmUser(user)}
+                              disabled={deleteUserMutation.isPending}
+                            />
+                          )}
                         </div>
                       </div>
                     </article>
