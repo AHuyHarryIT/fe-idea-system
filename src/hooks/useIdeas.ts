@@ -7,14 +7,24 @@ import type {
 } from '@/types'
 import { ideaService } from '@/api'
 
-export const useMyIdeas = (params?: IdeaListQueryParams) => {
+interface UseMyIdeasOptions {
+  fetchAll?: boolean
+}
+
+export const useMyIdeas = (
+  params?: IdeaListQueryParams,
+  options?: UseMyIdeasOptions,
+) => {
   return useQuery({
-    queryKey: ['myIdeas', params],
+    queryKey: ['myIdeas', params, options?.fetchAll ?? false],
     queryFn: async () => {
-      const response = await ideaService.getMyIdeas(params)
+      const response = options?.fetchAll
+        ? await ideaService.getMyIdeasMatching(params)
+        : await ideaService.getMyIdeas(params)
       if (response.success) return response.data
       throw new Error(response.error)
     },
+    placeholderData: (previousData) => previousData,
   })
 }
 

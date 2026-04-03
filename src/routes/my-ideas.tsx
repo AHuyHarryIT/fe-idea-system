@@ -12,6 +12,8 @@ function RouteComponent() {
       <DashboardPage
         title="My Ideas"
         description="Track your pending ideas, review outcomes, and rejection notes in one dedicated view."
+        enablePagination
+        showSummaryCards={false}
       />
     </ProtectedPage>
   )

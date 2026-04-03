@@ -231,6 +231,20 @@ export const ideaService = {
   getMyIdeas: async (
     params?: IdeaListQueryParams,
   ): Promise<ApiResponse<IdeaListResponse>> =>
+    apiClient
+      .get<IdeaListResponse, IdeaListQueryParams>('/ideas/my-ideas', { params })
+      .then((response) =>
+        response.success
+          ? {
+              ...response,
+              data: normalizeIdeaListResponse(response.data),
+            }
+          : response,
+      ),
+
+  getMyIdeasMatching: async (
+    params?: IdeaListQueryParams,
+  ): Promise<ApiResponse<IdeaListResponse>> =>
     getAllIdeasFromEndpoint('/ideas/my-ideas', params),
 
   getAllIdeasMatching: async (

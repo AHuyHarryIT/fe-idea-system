@@ -1,4 +1,4 @@
-import { useDeferredValue, useMemo, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { Input } from 'antd'
 import { Link } from '@tanstack/react-router'
 import {
@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import type { Idea } from '@/types'
 import { AppButton } from '@/components/app/AppButton'
+import { AppPagination } from '@/components/shared/AppPagination'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { Modal } from '@/components/shared/Modal'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -19,6 +20,9 @@ import { useMyIdeas } from '@/hooks/useIdeas'
 import { normalizeIdeaResponse } from '@/lib/idea-response-mapper'
 
 type IdeaStatusFilter = 'all' | 'pending' | 'approved' | 'rejected'
+
+const DEFAULT_MY_IDEA_PAGE_SIZE = 10
+const MY_IDEA_PAGE_SIZE_OPTIONS = ['5', '10', '20', '50']
 
 function getTimestamp(value?: string) {
   if (!value) {
@@ -93,18 +97,42 @@ function getRejectionReason(idea?: Idea | null) {
 interface DashboardPageProps {
   title?: string
   description?: string
+  enablePagination?: boolean
+  showSummaryCards?: boolean
 }
 
 export default function DashboardPage({
   title = 'Dashboard',
   description = 'Track your pending ideas, review outcomes, and open detailed status notes from one place.',
+  enablePagination = false,
+  showSummaryCards = true,
 }: DashboardPageProps) {
   const [statusFilter, setStatusFilter] = useState<IdeaStatusFilter>('all')
   const [searchValue, setSearchValue] = useState('')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(DEFAULT_MY_IDEA_PAGE_SIZE)
   const deferredSearch = useDeferredValue(searchValue.trim())
-  const { data, isLoading, error } = useMyIdeas({
-    searchTerm: deferredSearch || undefined,
-  })
+  const reviewStatus =
+    statusFilter === 'all'
+      ? undefined
+      : statusFilter === 'approved'
+        ? 1
+        : statusFilter === 'rejected'
+          ? 2
+          : 0
+  const { data, isLoading, error } = useMyIdeas(
+    {
+      searchTerm: deferredSearch || undefined,
+      ...(enablePagination
+        ? {
+            pageNumber: currentPage,
+            pageSize,
+            reviewStatus,
+          }
+        : {}),
+    },
+    { fetchAll: !enablePagination },
+  )
   const [selectedIdea, setSelectedIdea] = useState<Idea | null>(null)
 
   const ideas = useMemo(() => {
@@ -133,13 +161,42 @@ export default function DashboardPage({
   ).length
 
   const filteredIdeas = useMemo(() => {
+    if (enablePagination) {
+      return sortedIdeas
+    }
+
     return sortedIdeas.filter((idea) => {
       const status = getIdeaStatusValue(idea)
       const matchesStatus = statusFilter === 'all' || statusFilter === status
 
       return matchesStatus
     })
-  }, [sortedIdeas, statusFilter])
+  }, [enablePagination, sortedIdeas, statusFilter])
+
+  const totalIdeas =
+    data?.pagination?.totalCount ??
+    data?.totalCount ??
+    data?.total ??
+    filteredIdeas.length
+  const totalPages = Math.max(1, Math.ceil(totalIdeas / pageSize))
+  const rangeStart = totalIdeas === 0 ? 0 : (currentPage - 1) * pageSize + 1
+  const rangeEnd = totalIdeas === 0 ? 0 : rangeStart + filteredIdeas.length - 1
+
+  useEffect(() => {
+    if (!enablePagination) {
+      return
+    }
+
+    setCurrentPage(1)
+  }, [deferredSearch, enablePagination, statusFilter])
+
+  useEffect(() => {
+    if (!enablePagination || currentPage <= totalPages) {
+      return
+    }
+
+    setCurrentPage(totalPages)
+  }, [currentPage, enablePagination, totalPages])
 
   const selectedIdeaStatus = selectedIdea
     ? getIdeaStatusValue(selectedIdea)
@@ -163,34 +220,36 @@ export default function DashboardPage({
         }
       />
 
-      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          icon={Lightbulb}
-          title="Ideas submitted"
-          value={isLoading ? '...' : `${sortedIdeas.length}`}
-          description="All ideas loaded from your personal staff workspace."
-        />
-        <StatCard
-          icon={Clock3}
-          title="Pending review"
-          value={isLoading ? '...' : `${pendingCount}`}
-          description="Ideas that are still waiting for an approval decision."
-        />
-        <StatCard
-          icon={CheckCircle2}
-          title="Approved"
-          value={isLoading ? '...' : `${approvedCount}`}
-          description="Ideas that have already been accepted."
-        />
-        <StatCard
-          icon={XCircle}
-          title="Rejected"
-          value={isLoading ? '...' : `${rejectedCount}`}
-          description="Ideas that were rejected and may need revisions."
-        />
-      </div>
+      {showSummaryCards ? (
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+          <StatCard
+            icon={Lightbulb}
+            title="Ideas submitted"
+            value={isLoading ? '...' : `${sortedIdeas.length}`}
+            description="All ideas loaded from your personal staff workspace."
+          />
+          <StatCard
+            icon={Clock3}
+            title="Pending review"
+            value={isLoading ? '...' : `${pendingCount}`}
+            description="Ideas that are still waiting for an approval decision."
+          />
+          <StatCard
+            icon={CheckCircle2}
+            title="Approved"
+            value={isLoading ? '...' : `${approvedCount}`}
+            description="Ideas that have already been accepted."
+          />
+          <StatCard
+            icon={XCircle}
+            title="Rejected"
+            value={isLoading ? '...' : `${rejectedCount}`}
+            description="Ideas that were rejected and may need revisions."
+          />
+        </div>
+      ) : null}
 
-      <div className="mt-6">
+      <div className={showSummaryCards ? 'mt-6' : 'mt-2'}>
         <SectionCard
           title="My idea tracker"
           description="Filter your ideas by pending, approved, or rejected status. Open details to inspect the full record and rejection note."
@@ -232,8 +291,9 @@ export default function DashboardPage({
           </div>
 
           <p className="mb-5 text-sm text-slate-500">
-            Showing {filteredIdeas.length} of {sortedIdeas.length} ideas, sorted
-            by newest submission date.
+            {enablePagination
+              ? `Showing ${rangeStart}-${rangeEnd} of ${totalIdeas} ideas.`
+              : `Showing ${filteredIdeas.length} of ${sortedIdeas.length} ideas, sorted by newest submission date.`}
           </p>
 
           {error ? (
@@ -247,79 +307,127 @@ export default function DashboardPage({
               Loading your idea tracker...
             </div>
           ) : filteredIdeas.length > 0 ? (
-            <div className="space-y-4">
-              {filteredIdeas.map((idea) => {
-                const status = getIdeaStatusValue(idea)
-                const statusMeta = getIdeaStatusMeta(status)
+            <>
+              <div className="space-y-4">
+                {filteredIdeas.map((idea) => {
+                  const status = getIdeaStatusValue(idea)
+                  const statusMeta = getIdeaStatusMeta(status)
 
-                return (
-                  <div
-                    key={idea.id}
-                    className="rounded-2xl border border-slate-200 bg-slate-50 p-5"
-                  >
-                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                      <div className="space-y-3">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="text-base font-semibold text-slate-900">
-                            {getIdeaTitle(idea)}
-                          </p>
-                          <span
-                            className={`rounded-full px-3 py-1 text-xs font-medium ${statusMeta.className}`}
-                          >
-                            {statusMeta.label}
-                          </span>
-                          <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
-                            {idea.categoryName}
-                          </span>
-                        </div>
-                        <p className="text-sm text-slate-600">
-                          {idea.description?.trim() || 'No description provided.'}
-                        </p>
-                        <div className="flex flex-wrap gap-4 text-xs text-slate-500">
-                          <span>
-                            Submitted:{' '}
-                            {formatDateLabel(idea.createdAt || idea.createdDate)}
-                          </span>
-                          <span>
-                            Department: {idea.departmentName || 'Unassigned'}
-                          </span>
-                          <span>
-                            Submission: {idea.submissionName || 'Not provided'}
-                          </span>
-                        </div>
-                        {status === 'rejected' ? (
-                          <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-                            Rejected idea. Open details to review the rejection
-                            note.
+                  return (
+                    <div
+                      key={idea.id}
+                      className="rounded-2xl border border-slate-200 bg-slate-50 p-5"
+                    >
+                      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                        <div className="space-y-3">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="text-base font-semibold text-slate-900">
+                              {getIdeaTitle(idea)}
+                            </p>
+                            <span
+                              className={`rounded-full px-3 py-1 text-xs font-medium ${statusMeta.className}`}
+                            >
+                              {statusMeta.label}
+                            </span>
+                            <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
+                              {idea.categoryName}
+                            </span>
                           </div>
-                        ) : null}
-                      </div>
+                          <p className="text-sm text-slate-600">
+                            {idea.description?.trim() ||
+                              'No description provided.'}
+                          </p>
+                          <div className="flex flex-wrap gap-4 text-xs text-slate-500">
+                            <span>
+                              Submitted:{' '}
+                              {formatDateLabel(
+                                idea.createdAt || idea.createdDate,
+                              )}
+                            </span>
+                            <span>
+                              Department: {idea.departmentName || 'Unassigned'}
+                            </span>
+                            <span>
+                              Submission: {idea.submissionName || 'Not provided'}
+                            </span>
+                          </div>
+                          {status === 'rejected' ? (
+                            <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                              Rejected idea. Open details to review the
+                              rejection note.
+                            </div>
+                          ) : null}
+                        </div>
 
-                      <div className="flex flex-wrap gap-2">
-                        <AppButton
-                          type="button"
-                          variant="ghost"
-                          onClick={() => setSelectedIdea(idea)}
-                        >
-                          Show details
-                        </AppButton>
-                        <Link to="/ideas/$ideaId" params={{ ideaId: idea.id }}>
-                          <AppButton type="button" variant="ghost">
-                            Open idea
+                        <div className="flex flex-wrap gap-2">
+                          <AppButton
+                            type="button"
+                            variant="ghost"
+                            onClick={() => setSelectedIdea(idea)}
+                          >
+                            Show details
                           </AppButton>
-                        </Link>
+                          <Link to="/ideas/$ideaId" params={{ ideaId: idea.id }}>
+                            <AppButton type="button" variant="ghost">
+                              Open idea
+                            </AppButton>
+                          </Link>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )
-              })}
-            </div>
+                  )
+                })}
+              </div>
+
+              {enablePagination ? (
+                <AppPagination
+                  containerClassName="mt-6"
+                  current={currentPage}
+                  total={totalIdeas}
+                  pageSize={pageSize}
+                  pageSizeOptions={MY_IDEA_PAGE_SIZE_OPTIONS}
+                  onChange={(page, nextPageSize) => {
+                    if (nextPageSize !== pageSize) {
+                      setPageSize(nextPageSize)
+                      setCurrentPage(1)
+                      return
+                    }
+
+                    setCurrentPage(page)
+                  }}
+                  showTotal={(total, range) =>
+                    `Showing ${range[0]}-${range[1]} of ${total} ideas`
+                  }
+                />
+              ) : null}
+            </>
           ) : (
-            <EmptyState
-              icon={Lightbulb}
-              title="No ideas match this filter"
-              description="Try another status tab or adjust the search terms."
-            />
+            <div className="space-y-6">
+              <EmptyState
+                icon={Lightbulb}
+                title="No ideas match this filter"
+                description="Try another status tab or adjust the search terms."
+              />
+
+              {enablePagination && totalIdeas > 0 ? (
+                <AppPagination
+                  current={currentPage}
+                  total={totalIdeas}
+                  pageSize={pageSize}
+                  pageSizeOptions={MY_IDEA_PAGE_SIZE_OPTIONS}
+                  onChange={(page, nextPageSize) => {
+                    if (nextPageSize !== pageSize) {
+                      setPageSize(nextPageSize)
+                      setCurrentPage(1)
+                      return
+                    }
+
+                    setCurrentPage(page)
+                  }}
+                  showTotal={(total) => `${total} total ideas`}
+                />
+              ) : null}
+            </div>
           )}
         </SectionCard>
       </div>
