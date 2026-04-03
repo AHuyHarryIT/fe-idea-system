@@ -25,7 +25,13 @@ export type {
   SubmissionCreateRequest,
   SubmissionListResponse,
 } from './submission'
-export type { User, UserListResponse, CreateUserRequest, UpdateUserRequest } from './user'
+export type {
+  User,
+  UserListResponse,
+  UserListQueryParams,
+  CreateUserRequest,
+  UpdateUserRequest,
+} from './user'
 export type {
   DashboardStats,
   DashboardIdeaReference,

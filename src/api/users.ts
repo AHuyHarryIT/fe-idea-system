@@ -4,13 +4,16 @@ import type {
   CreateUserRequest,
   UpdateUserRequest,
   User,
+  UserListQueryParams,
   UserListResponse,
 } from '@/types'
 
 export const userService = {
   // Admin endpoints
-  getUsers: (): Promise<ApiResponse<UserListResponse>> =>
-    apiClient.get<UserListResponse>('/users'),
+  getUsers: (
+    params?: UserListQueryParams,
+  ): Promise<ApiResponse<UserListResponse>> =>
+    apiClient.get<UserListResponse, UserListQueryParams>('/users', { params }),
 
   createUser: (request: CreateUserRequest): Promise<ApiResponse<User>> =>
     apiClient.post<User>('/users', request),

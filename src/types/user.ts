@@ -9,9 +9,24 @@ export interface User {
   createdAt?: string
 }
 
+export interface UserListPagination {
+  totalCount?: number
+  pageNumber?: number
+  pageSize?: number
+  totalPages?: number
+  hasPreviousPage?: boolean
+  hasNextPage?: boolean
+}
+
 export interface UserListResponse {
   users: User[]
   availableRoles?: string[]
+  pagination?: UserListPagination
+}
+
+export interface UserListQueryParams {
+  pageNumber?: number
+  pageSize?: number
 }
 
 export interface CreateUserRequest {

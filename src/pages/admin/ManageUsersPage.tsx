@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { Pagination } from 'antd'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   BadgeCheck,
@@ -77,6 +78,9 @@ const initialEditForm: EditFormState = {
   departmentId: '',
 }
 
+const DEFAULT_PAGE_SIZE = 10
+const PAGE_SIZE_OPTIONS = ['10', '20', '50']
+
 function normalizeRoleKey(value?: string | null) {
   return value?.toLowerCase().replace(/[^a-z]/g, '') ?? ''
 }
@@ -142,6 +146,8 @@ function isStrongPassword(value: string) {
 export default function ManageUsersPage() {
   const queryClient = useQueryClient()
   const currentUserId = auth.getUserId()
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
   const [feedback, setFeedback] = useState<FeedbackState>(null)
@@ -155,9 +161,12 @@ export default function ManageUsersPage() {
   const [isUserFormOpen, setIsUserFormOpen] = useState(false)
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['adminUsers'],
+    queryKey: ['adminUsers', currentPage, pageSize],
     queryFn: async () => {
-      const response = await userService.getUsers()
+      const response = await userService.getUsers({
+        pageNumber: currentPage,
+        pageSize,
+      })
 
       if (!response.success) {
         throw new Error(response.error ?? 'Failed to load users')
@@ -181,6 +190,8 @@ export default function ManageUsersPage() {
   })
 
   const users = useMemo(() => data?.users ?? [], [data])
+  const totalUsers = data?.pagination?.totalCount ?? users.length
+  const totalPages = Math.max(1, Math.ceil(totalUsers / pageSize))
 
   const createUserMutation = useMutation({
     mutationFn: async (payload: CreateFormState) => {
@@ -263,12 +274,12 @@ export default function ManageUsersPage() {
     }).length
 
     return {
-      total: users.length,
+      total: totalUsers,
       admins: adminCount,
       qaMembers: qaCount,
       noDepartment: noDepartmentCount,
     }
-  }, [users])
+  }, [totalUsers, users])
 
   const filteredUsers = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase()
@@ -303,6 +314,12 @@ export default function ManageUsersPage() {
     () => users.find((user) => user.id === editingUserId) ?? null,
     [editingUserId, users],
   )
+
+  useEffect(() => {
+    if (!isLoading && currentPage > totalPages) {
+      setCurrentPage(totalPages)
+    }
+  }, [currentPage, isLoading, totalPages])
 
   const validateCreateForm = () => {
     const nextErrors: ValidationErrors = {}
@@ -410,6 +427,7 @@ export default function ManageUsersPage() {
   const resetFilters = () => {
     setSearch('')
     setRoleFilter('all')
+    setCurrentPage(1)
   }
 
   const openCreateModal = () => {
@@ -476,19 +494,19 @@ export default function ManageUsersPage() {
             tone: 'bg-slate-900 text-white',
           },
           {
-            label: 'Administrators',
+            label: 'Administrators on page',
             value: summary.admins,
             icon: ShieldCheck,
             tone: 'bg-blue-50 text-blue-700',
           },
           {
-            label: 'QA members',
+            label: 'QA members on page',
             value: summary.qaMembers,
             icon: BadgeCheck,
             tone: 'bg-amber-50 text-amber-700',
           },
           {
-            label: 'No department',
+            label: 'No department on page',
             value: summary.noDepartment,
             icon: Building2,
             tone: 'bg-emerald-50 text-emerald-700',
@@ -564,7 +582,10 @@ export default function ManageUsersPage() {
 
               <div className="mb-4 flex flex-wrap items-center gap-2 text-sm text-slate-500">
                 <span className="rounded-full bg-slate-100 px-3 py-1">
-                  {filteredUsers.length} shown
+                  {filteredUsers.length} shown on this page
+                </span>
+                <span className="rounded-full bg-slate-100 px-3 py-1">
+                  {totalUsers} total users
                 </span>
                 {roleFilter !== 'all' ? (
                   <span className="rounded-full bg-blue-50 px-3 py-1 text-blue-700">
@@ -667,13 +688,67 @@ export default function ManageUsersPage() {
                       </article>
                     )
                   })}
+
+                  <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4">
+                    <Pagination
+                      align="end"
+                      current={currentPage}
+                      total={totalUsers}
+                      pageSize={pageSize}
+                      showSizeChanger
+                      pageSizeOptions={PAGE_SIZE_OPTIONS}
+                      onChange={(page, nextPageSize) => {
+                        if (nextPageSize !== pageSize) {
+                          setPageSize(nextPageSize)
+                          setCurrentPage(1)
+                          return
+                        }
+
+                        setCurrentPage(page)
+                      }}
+                      showTotal={(total, range) =>
+                        search.trim() || roleFilter !== 'all'
+                          ? `${filteredUsers.length} matches on this page · ${total} total users`
+                          : `Showing ${range[0]}-${range[1]} of ${total} users`
+                      }
+                    />
+                  </div>
                 </div>
               ) : (
-                <EmptyState
-                  icon={Users}
-                  title="No matching users"
-                  description="Try a broader search or reset the role filter."
-                />
+                <div className="space-y-6">
+                  <EmptyState
+                    icon={Users}
+                    title="No matching users"
+                    description="Try a broader search or reset the role filter."
+                  />
+
+                  {totalUsers > 0 ? (
+                    <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4">
+                      <Pagination
+                        align="end"
+                        current={currentPage}
+                        total={totalUsers}
+                        pageSize={pageSize}
+                        showSizeChanger
+                        pageSizeOptions={PAGE_SIZE_OPTIONS}
+                        onChange={(page, nextPageSize) => {
+                          if (nextPageSize !== pageSize) {
+                            setPageSize(nextPageSize)
+                            setCurrentPage(1)
+                            return
+                          }
+
+                          setCurrentPage(page)
+                        }}
+                        showTotal={(total) =>
+                          search.trim() || roleFilter !== 'all'
+                            ? `${filteredUsers.length} matches on this page · ${total} total users`
+                            : `${total} total users`
+                        }
+                      />
+                    </div>
+                  ) : null}
+                </div>
               )}
             </>
           )}
