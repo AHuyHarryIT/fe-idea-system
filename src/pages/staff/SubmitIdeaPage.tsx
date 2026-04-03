@@ -1,4 +1,5 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Pagination } from 'antd'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { ArrowLeft, CalendarRange, FileUp, Send } from 'lucide-react'
@@ -13,7 +14,6 @@ import { SectionCard } from '@/components/shared/SectionCard'
 import { useSubmitIdea } from '@/hooks/useIdeas'
 import { useSubmissions } from '@/hooks/useSubmissions'
 import { CATEGORY_SELECT_PAGE_SIZE } from '@/constants/category'
-import { SUBMISSION_SELECT_PAGE_SIZE } from '@/constants/submission'
 import { auth } from '@/lib/auth'
 
 const initialForm: IdeaSubmitPayload = {
@@ -25,6 +25,9 @@ const initialForm: IdeaSubmitPayload = {
   isAnonymous: false,
   uploadFiles: [],
 }
+
+const DEFAULT_PAGE_SIZE = 10
+const PAGE_SIZE_OPTIONS = ['10', '20', '50']
 
 function formatDateLabel(value?: string) {
   if (!value) return '—'
@@ -53,13 +56,15 @@ export default function SubmitIdeaPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
   const { data: categoryData, isLoading: categoriesLoading } =
     useIdeaCategories({ pageNumber: 1, pageSize: CATEGORY_SELECT_PAGE_SIZE })
   const {
     data: submissionData,
     isLoading: submissionsLoading,
     error,
-  } = useSubmissions({ pageNumber: 1, pageSize: SUBMISSION_SELECT_PAGE_SIZE })
+  } = useSubmissions({ pageNumber: currentPage, pageSize })
   const { mutateAsync: submitIdea, isPending } = useSubmitIdea()
   const [form, setForm] = useState<IdeaSubmitPayload>(initialForm)
   const [feedbackMessage, setFeedbackMessage] = useState('')
@@ -82,12 +87,21 @@ export default function SubmitIdeaPage() {
     () => submissionData?.submissions ?? [],
     [submissionData],
   )
+  const totalSubmissions =
+    submissionData?.pagination?.totalCount ?? submissions.length
+  const totalPages = Math.max(1, Math.ceil(totalSubmissions / pageSize))
 
   const selectedSubmission = useMemo(
     () =>
       submissions.find((submission) => submission.id === selectedSubmissionId),
     [selectedSubmissionId, submissions],
   )
+
+  useEffect(() => {
+    if (!submissionsLoading && currentPage > totalPages) {
+      setCurrentPage(totalPages)
+    }
+  }, [currentPage, submissionsLoading, totalPages])
 
   const handleReset = () => {
     setForm(initialForm)
@@ -246,6 +260,19 @@ export default function SubmitIdeaPage() {
             </div>
           ) : submissions.length ? (
             <div className="space-y-4">
+              {totalSubmissions > 0 && (
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4 text-sm text-slate-500">
+                  <p>
+                    Showing {(currentPage - 1) * pageSize + 1}-
+                    {Math.min(currentPage * pageSize, totalSubmissions)} of{' '}
+                    {totalSubmissions} submission windows
+                  </p>
+                  <p>
+                    Page {currentPage} of {totalPages}
+                  </p>
+                </div>
+              )}
+
               {submissions.map((submission) => {
                 const closed = isSubmissionClosed(submission.closureDate)
                 return (
@@ -295,6 +322,29 @@ export default function SubmitIdeaPage() {
                   </div>
                 )
               })}
+
+              <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4">
+                <Pagination
+                  align="end"
+                  current={currentPage}
+                  total={totalSubmissions}
+                  pageSize={pageSize}
+                  showSizeChanger
+                  pageSizeOptions={PAGE_SIZE_OPTIONS}
+                  onChange={(page, nextPageSize) => {
+                    if (nextPageSize !== pageSize) {
+                      setPageSize(nextPageSize)
+                      setCurrentPage(1)
+                      return
+                    }
+
+                    setCurrentPage(page)
+                  }}
+                  showTotal={(total, range) =>
+                    `Showing ${range[0]}-${range[1]} of ${total} submission windows`
+                  }
+                />
+              </div>
             </div>
           ) : (
             <EmptyState
@@ -498,9 +548,7 @@ export default function SubmitIdeaPage() {
                   <p className="text-sm font-medium text-slate-900">
                     Choose supporting files
                   </p>
-                  <p className="mt-1 text-xs text-slate-500">
-                    PDF files only.
-                  </p>
+                  <p className="mt-1 text-xs text-slate-500">PDF files only.</p>
                 </div>
                 <input
                   ref={fileInputRef}
