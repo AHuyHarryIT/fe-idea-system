@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { Input } from 'antd'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Building2 } from 'lucide-react'
+import { Building2, Search } from 'lucide-react'
 import type { Department } from '@/types'
 import { departmentService } from '@/api/departments'
 import { ActionButton } from '@/components/app/ActionButton'
@@ -36,6 +37,7 @@ export default function ManageDepartmentsPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [feedbackMessage, setFeedbackMessage] = useState('')
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
+  const [searchValue, setSearchValue] = useState('')
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['departments', currentPage, pageSize],
@@ -55,6 +57,19 @@ export default function ManageDepartmentsPage() {
   const departments = data?.departments ?? []
   const totalDepartments = data?.pagination?.totalCount ?? departments.length
   const totalPages = Math.max(1, Math.ceil(totalDepartments / pageSize))
+  const filteredDepartments = useMemo(() => {
+    const normalizedSearch = searchValue.trim().toLowerCase()
+
+    if (!normalizedSearch) {
+      return departments
+    }
+
+    return departments.filter((department) =>
+      [department.name, department.description]
+        .filter(Boolean)
+        .some((value) => value?.toLowerCase().includes(normalizedSearch)),
+    )
+  }, [departments, searchValue])
 
   useEffect(() => {
     if (!isLoading && currentPage > totalPages) {
@@ -209,6 +224,30 @@ export default function ManageDepartmentsPage() {
       )}
 
       <SectionCard>
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row">
+          <label className="block flex-1">
+            <Input
+              id="department-search"
+              name="department-search"
+              value={searchValue}
+              onChange={(event) => setSearchValue(event.target.value)}
+              placeholder="Search by department name or description"
+              allowClear
+              size="large"
+              prefix={<Search className="h-4 w-4 text-slate-400" />}
+              className="rounded-xl"
+            />
+          </label>
+          <AppButton
+            type="button"
+            variant="ghost"
+            className="sm:min-w-36"
+            onClick={() => setSearchValue('')}
+          >
+            Reset
+          </AppButton>
+        </div>
+
         {error ? (
           <EmptyState
             icon={Building2}
@@ -221,11 +260,19 @@ export default function ManageDepartmentsPage() {
           <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600">
             Loading departments...
           </div>
-        ) : departments.length === 0 ? (
+        ) : filteredDepartments.length === 0 ? (
           <EmptyState
             icon={Building2}
-            title="No departments found"
-            description="Create the first department to organise users and idea ownership."
+            title={
+              departments.length > 0
+                ? 'No departments match this search'
+                : 'No departments found'
+            }
+            description={
+              departments.length > 0
+                ? 'Try another keyword or clear the search.'
+                : 'Create the first department to organise users and idea ownership.'
+            }
             action={
               <ActionButton
                 type="button"
@@ -253,7 +300,7 @@ export default function ManageDepartmentsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {departments.map((department) => (
+                  {filteredDepartments.map((department) => (
                     <tr
                       key={department.id}
                       className="border-b border-slate-200 hover:bg-slate-50"
@@ -302,7 +349,9 @@ export default function ManageDepartmentsPage() {
                 setCurrentPage(page)
               }}
               showTotal={(total, range) =>
-                `Showing ${range[0]}-${range[1]} of ${total} departments`
+                searchValue.trim()
+                  ? `${filteredDepartments.length} matches on this page · ${total} total departments`
+                  : `Showing ${range[0]}-${range[1]} of ${total} departments`
               }
             />
           </div>

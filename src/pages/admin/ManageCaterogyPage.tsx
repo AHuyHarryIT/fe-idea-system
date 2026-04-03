@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Input } from 'antd'
 import { useQueryClient } from '@tanstack/react-query'
-import { Plus, Tag } from 'lucide-react'
+import { Plus, Search, Tag } from 'lucide-react'
 import { ActionButton } from '@/components/app/ActionButton'
 import { AppButton } from '@/components/app/AppButton'
 import { AppPagination } from '@/components/shared/AppPagination'
@@ -42,6 +43,7 @@ export default function ManageCategoryPage() {
   const [feedbackMessage, setFeedbackMessage] = useState('')
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
+  const [searchValue, setSearchValue] = useState('')
 
   const categories = useMemo(
     () =>
@@ -50,6 +52,19 @@ export default function ManageCategoryPage() {
         .filter((item) => item.id),
     [data],
   )
+  const filteredCategories = useMemo(() => {
+    const normalizedSearch = searchValue.trim().toLowerCase()
+
+    if (!normalizedSearch) {
+      return categories
+    }
+
+    return categories.filter((category) =>
+      [category.name, category.id]
+        .filter(Boolean)
+        .some((value) => value.toLowerCase().includes(normalizedSearch)),
+    )
+  }, [categories, searchValue])
   const totalCategories = data?.pagination?.totalCount ?? categories.length
   const totalPages = Math.max(1, Math.ceil(totalCategories / pageSize))
 
@@ -161,6 +176,30 @@ export default function ManageCategoryPage() {
       )}
 
       <SectionCard>
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row">
+          <label className="block flex-1">
+            <Input
+              id="category-search"
+              name="category-search"
+              value={searchValue}
+              onChange={(event) => setSearchValue(event.target.value)}
+              placeholder="Search by category name or id"
+              allowClear
+              size="large"
+              prefix={<Search className="h-4 w-4 text-slate-400" />}
+              className="rounded-xl"
+            />
+          </label>
+          <AppButton
+            type="button"
+            variant="ghost"
+            className="sm:min-w-36"
+            onClick={() => setSearchValue('')}
+          >
+            Reset
+          </AppButton>
+        </div>
+
         {error ? (
           <EmptyState
             icon={Tag}
@@ -171,9 +210,9 @@ export default function ManageCategoryPage() {
           <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600">
             Loading categories...
           </div>
-        ) : categories.length > 0 ? (
+        ) : filteredCategories.length > 0 ? (
           <div className="space-y-4">
-            {categories.map((category) => (
+            {filteredCategories.map((category) => (
               <div
                 key={category.id}
                 className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 md:flex-row md:items-start md:justify-between"
@@ -216,15 +255,25 @@ export default function ManageCategoryPage() {
                 setCurrentPage(page)
               }}
               showTotal={(total, range) =>
-                `Showing ${range[0]}-${range[1]} of ${total} categories`
+                searchValue.trim()
+                  ? `${filteredCategories.length} matches on this page · ${total} total categories`
+                  : `Showing ${range[0]}-${range[1]} of ${total} categories`
               }
             />
           </div>
         ) : (
           <EmptyState
             icon={Tag}
-            title="No categories available"
-            description="Create a category to start organising ideas by topic."
+            title={
+              categories.length > 0
+                ? 'No categories match this search'
+                : 'No categories available'
+            }
+            description={
+              categories.length > 0
+                ? 'Try another keyword or clear the search.'
+                : 'Create a category to start organising ideas by topic.'
+            }
             action={
               <ActionButton
                 type="button"

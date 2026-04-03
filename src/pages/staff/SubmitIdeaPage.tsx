@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { Input } from 'antd'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
-import { ArrowLeft, CalendarRange, FileUp, Send } from 'lucide-react'
+import { ArrowLeft, CalendarRange, FileUp, Search, Send } from 'lucide-react'
 import type { IdeaSubmitPayload } from '@/types/idea'
 import { AppButton } from '@/components/app/AppButton'
 import { FormField } from '@/components/forms/FormField'
@@ -74,6 +75,7 @@ export default function SubmitIdeaPage() {
     string | null
   >(null)
   const [showSubmitForm, setShowSubmitForm] = useState(false)
+  const [searchValue, setSearchValue] = useState('')
 
   const fileNames = useMemo(
     () => form.uploadFiles?.map((file) => file.name).join(', ') ?? '',
@@ -87,6 +89,19 @@ export default function SubmitIdeaPage() {
     () => submissionData?.submissions ?? [],
     [submissionData],
   )
+  const filteredSubmissions = useMemo(() => {
+    const normalizedSearch = searchValue.trim().toLowerCase()
+
+    if (!normalizedSearch) {
+      return submissions
+    }
+
+    return submissions.filter((submission) =>
+      [submission.name, submission.academicYear]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(normalizedSearch)),
+    )
+  }, [searchValue, submissions])
   const totalSubmissions =
     submissionData?.pagination?.totalCount ?? submissions.length
   const totalPages = Math.max(1, Math.ceil(totalSubmissions / pageSize))
@@ -258,9 +273,34 @@ export default function SubmitIdeaPage() {
             <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600">
               Loading submission windows...
             </div>
-          ) : submissions.length ? (
+          ) : (
             <div className="space-y-4">
-              {submissions.map((submission) => {
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <label className="block flex-1">
+                  <Input
+                    id="submit-idea-search"
+                    name="submit-idea-search"
+                    value={searchValue}
+                    onChange={(event) => setSearchValue(event.target.value)}
+                    placeholder="Search by submission name or academic year"
+                    allowClear
+                    size="large"
+                    prefix={<Search className="h-4 w-4 text-slate-400" />}
+                    className="rounded-xl"
+                  />
+                </label>
+                <AppButton
+                  type="button"
+                  variant="ghost"
+                  className="sm:min-w-36"
+                  onClick={() => setSearchValue('')}
+                >
+                  Reset
+                </AppButton>
+              </div>
+
+              {filteredSubmissions.length ? (
+                filteredSubmissions.map((submission) => {
                 const closed = isSubmissionClosed(submission.closureDate)
                 return (
                   <div
@@ -308,33 +348,44 @@ export default function SubmitIdeaPage() {
                     </div>
                   </div>
                 )
-              })}
+                })
+              ) : submissions.length ? (
+                <EmptyState
+                  icon={CalendarRange}
+                  title="No submission windows match this search"
+                  description="Try another keyword or clear the search."
+                />
+              ) : (
+                <EmptyState
+                  icon={CalendarRange}
+                  title="No submissions available"
+                  description="Please wait for an administrator or QA manager to create a submission window."
+                />
+              )}
 
-              <AppPagination
-                current={currentPage}
-                total={totalSubmissions}
-                pageSize={pageSize}
-                pageSizeOptions={PAGE_SIZE_OPTIONS}
-                onChange={(page, nextPageSize) => {
-                  if (nextPageSize !== pageSize) {
-                    setPageSize(nextPageSize)
-                    setCurrentPage(1)
-                    return
+              {submissions.length ? (
+                <AppPagination
+                  current={currentPage}
+                  total={totalSubmissions}
+                  pageSize={pageSize}
+                  pageSizeOptions={PAGE_SIZE_OPTIONS}
+                  onChange={(page, nextPageSize) => {
+                    if (nextPageSize !== pageSize) {
+                      setPageSize(nextPageSize)
+                      setCurrentPage(1)
+                      return
+                    }
+
+                    setCurrentPage(page)
+                  }}
+                  showTotal={(total, range) =>
+                    searchValue.trim()
+                      ? `${filteredSubmissions.length} matches on this page · ${total} total submission windows`
+                      : `Showing ${range[0]}-${range[1]} of ${total} submission windows`
                   }
-
-                  setCurrentPage(page)
-                }}
-                showTotal={(total, range) =>
-                  `Showing ${range[0]}-${range[1]} of ${total} submission windows`
-                }
-              />
+                />
+              ) : null}
             </div>
-          ) : (
-            <EmptyState
-              icon={CalendarRange}
-              title="No submissions available"
-              description="Please wait for an administrator or QA manager to create a submission window."
-            />
           )}
         </SectionCard>
       ) : !showSubmitForm ? (

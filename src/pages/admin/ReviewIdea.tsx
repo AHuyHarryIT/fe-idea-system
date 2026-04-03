@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Input } from 'antd'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import {
@@ -166,15 +167,17 @@ export default function ReviewIdea() {
       />
 
       <SectionCard>
-        <label className="relative mb-6 block">
-          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <input
+        <label className="mb-6 block">
+          <Input
             id="review-search"
             name="review-search"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search by idea title, description, author, or category"
-            className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-11 pr-4 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+            allowClear
+            size="large"
+            prefix={<Search className="h-4 w-4 text-slate-400" />}
+            className="rounded-xl"
           />
         </label>
 
