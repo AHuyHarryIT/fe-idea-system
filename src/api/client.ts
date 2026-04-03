@@ -12,11 +12,26 @@ export interface ApiResponse<T> {
   error?: string
 }
 
+type ApiQueryValue = string | number | boolean | null | undefined
+
+interface RequestOptions<TParams extends object = Record<string, ApiQueryValue>>
+  extends RequestInit {
+  params?: TParams
+}
+
 class ApiClient {
   private baseURL: string
 
   constructor(baseURL: string) {
     this.baseURL = baseURL
+  }
+
+  private normalizeQueryParamKey(key: string) {
+    if (!key) {
+      return key
+    }
+
+    return `${key[0].toUpperCase()}${key.slice(1)}`
   }
 
   private isLoginEndpoint(endpoint: string) {
@@ -34,6 +49,26 @@ class ApiClient {
     }
 
     return headers
+  }
+
+  private buildUrl(endpoint: string, params?: object) {
+    const url = new URL(`${this.baseURL}${endpoint}`)
+
+    if (!params) {
+      return url.toString()
+    }
+
+    Object.entries(params as Record<string, ApiQueryValue>).forEach(
+      ([key, value]) => {
+        if (value === undefined || value === null || value === '') {
+          return
+        }
+
+        url.searchParams.set(this.normalizeQueryParamKey(key), String(value))
+      },
+    )
+
+    return url.toString()
   }
 
   private async parseResponseBody(response: Response): Promise<unknown> {
@@ -103,11 +138,11 @@ class ApiClient {
     return `HTTP ${status}`
   }
 
-  async request<T>(
+  async request<T, TParams extends object = Record<string, ApiQueryValue>>(
     endpoint: string,
-    options: RequestInit = {},
+    options: RequestOptions<TParams> = {},
   ): Promise<ApiResponse<T>> {
-    const url = `${this.baseURL}${endpoint}`
+    const url = this.buildUrl(endpoint, options.params)
 
     try {
       const response = await fetch(url, {
@@ -149,8 +184,11 @@ class ApiClient {
     }
   }
 
-  async get<T>(endpoint: string): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, { method: 'GET' })
+  async get<T, TParams extends object = Record<string, ApiQueryValue>>(
+    endpoint: string,
+    options: Omit<RequestOptions<TParams>, 'method'> = {},
+  ): Promise<ApiResponse<T>> {
+    return this.request<T, TParams>(endpoint, { ...options, method: 'GET' })
   }
 
   async post<T>(endpoint: string, body?: unknown): Promise<ApiResponse<T>> {

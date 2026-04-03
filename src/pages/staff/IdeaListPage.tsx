@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
+import { Pagination } from 'antd'
 import { Lightbulb, Search } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import { AppButton } from '@/components/app/AppButton'
@@ -12,13 +13,18 @@ import { useAllIdeas } from '@/hooks/useIdeas'
 import { normalizeIdeaResponse } from '@/lib/idea-response-mapper'
 import { useIdeaCategories } from '@/hooks/useCategories'
 
-const PAGE_SIZE = 5
+const DEFAULT_PAGE_SIZE = 5
+const PAGE_SIZE_OPTIONS = ['5', '10', '20', '50']
 
 export default function IdeaListPage() {
   const { search, setSearch, category, setCategory } = useIdeaFilters()
-  const { data, isLoading, error } = useAllIdeas()
-  const { data: categoryData } = useIdeaCategories()
+  const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE)
   const [currentPage, setCurrentPage] = useState(1)
+  const { data, isLoading, error } = useAllIdeas({
+    pageNumber: currentPage,
+    pageSize,
+  })
+  const { data: categoryData } = useIdeaCategories()
 
   const ideas = useMemo(() => {
     const ideaList = normalizeIdeaResponse(data)
@@ -47,28 +53,17 @@ export default function IdeaListPage() {
     })
   }, [category, ideas, search])
 
-  const totalPages = Math.max(1, Math.ceil(filteredIdeas.length / PAGE_SIZE))
-
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [search, category])
-
-  useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(totalPages)
-    }
-  }, [currentPage, totalPages])
-
-  const pagedIdeas = useMemo(() => {
-    const startIndex = (currentPage - 1) * PAGE_SIZE
-    return filteredIdeas.slice(startIndex, startIndex + PAGE_SIZE)
-  }, [currentPage, filteredIdeas])
+  const totalIdeas = data?.totalCount ?? data?.total ?? ideas.length
+  const hasLocalFilters = search.trim().length > 0 || category.length > 0
+  const listDescription = hasLocalFilters
+    ? `${filteredIdeas.length} ideas matched on this page.`
+    : `${totalIdeas} ideas matched from the live catalogue.`
 
   return (
     <div className="mx-auto w-full max-w-7xl">
       <PageHeader
         title="Idea Listing"
-        description={`${filteredIdeas.length} ideas matched from the live catalogue.`}
+        description={listDescription}
         actions={
           <Link to="/submit-idea">
             <AppButton>Submit Idea</AppButton>
@@ -128,51 +123,74 @@ export default function IdeaListPage() {
           <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600">
             Loading ideas...
           </div>
-        ) : pagedIdeas.length > 0 ? (
+        ) : filteredIdeas.length > 0 ? (
           <>
             <div className="space-y-4">
-              {pagedIdeas.map((idea) => (
+              {filteredIdeas.map((idea) => (
                 <IdeaCard key={idea.id} idea={idea} />
               ))}
             </div>
 
-            <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 md:flex-row md:items-center md:justify-between">
-              <p className="text-sm text-slate-600">
-                Showing {(currentPage - 1) * PAGE_SIZE + 1}–
-                {Math.min(currentPage * PAGE_SIZE, filteredIdeas.length)} of{' '}
-                {filteredIdeas.length} ideas
-              </p>
-              <div className="flex items-center gap-2">
-                <AppButton
-                  type="button"
-                  variant="ghost"
-                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
-                >
-                  Previous
-                </AppButton>
-                <span className="rounded-xl bg-slate-100 px-4 py-2 text-sm text-slate-700">
-                  Page {currentPage} of {totalPages}
-                </span>
-                <AppButton
-                  type="button"
-                  variant="ghost"
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+            <div className="mt-6 rounded-2xl border border-slate-200 bg-white px-5 py-4">
+              <Pagination
+                align="end"
+                current={currentPage}
+                total={totalIdeas}
+                pageSize={pageSize}
+                showSizeChanger
+                pageSizeOptions={PAGE_SIZE_OPTIONS}
+                onChange={(page, nextPageSize) => {
+                  if (nextPageSize !== pageSize) {
+                    setPageSize(nextPageSize)
+                    setCurrentPage(1)
+                    return
                   }
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                </AppButton>
-              </div>
+
+                  setCurrentPage(page)
+                }}
+                showTotal={(total, range) =>
+                  hasLocalFilters
+                    ? `${filteredIdeas.length} matches on this page · ${total} total ideas`
+                    : `Showing ${range[0]}-${range[1]} of ${total} ideas`
+                }
+              />
             </div>
           </>
         ) : (
-          <EmptyState
-            icon={Lightbulb}
-            title="No idea records loaded"
-            description="Try adjusting your search or filter criteria."
-          />
+          <div className="space-y-6">
+            <EmptyState
+              icon={Lightbulb}
+              title="No idea records loaded"
+              description="Try adjusting your search, category, or page selection."
+            />
+
+            {totalIdeas > 0 ? (
+              <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4">
+                <Pagination
+                  align="end"
+                  current={currentPage}
+                  total={totalIdeas}
+                  pageSize={pageSize}
+                  showSizeChanger
+                  pageSizeOptions={PAGE_SIZE_OPTIONS}
+                  onChange={(page, nextPageSize) => {
+                    if (nextPageSize !== pageSize) {
+                      setPageSize(nextPageSize)
+                      setCurrentPage(1)
+                      return
+                    }
+
+                    setCurrentPage(page)
+                  }}
+                  showTotal={(total) =>
+                    hasLocalFilters
+                      ? `${filteredIdeas.length} matches on this page · ${total} total ideas`
+                      : `${total} total ideas`
+                  }
+                />
+              </div>
+            ) : null}
+          </div>
         )}
       </div>
     </div>

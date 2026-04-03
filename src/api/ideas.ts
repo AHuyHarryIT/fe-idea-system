@@ -40,6 +40,15 @@ export interface IdeaListResponse {
   totalPages?: number
 }
 
+export interface IdeaListQueryParams {
+  pageNumber?: number
+  pageSize?: number
+  submissionId?: string
+  sortBy?: string
+  departmentId?: string
+  reviewStatus?: number
+}
+
 export interface IdeaCreateRequest {
   text: string
   description?: string
@@ -141,9 +150,63 @@ function normalizeIdeaListResponse(
 
   return {
     ...data,
-    items: Array.isArray(data.items) ? data.items.map(normalizeIdea) : data.items,
-    ideas: Array.isArray(data.ideas) ? data.ideas.map(normalizeIdea) : data.ideas,
+    items: Array.isArray(data.items)
+      ? data.items.map(normalizeIdea)
+      : data.items,
+    ideas: Array.isArray(data.ideas)
+      ? data.ideas.map(normalizeIdea)
+      : data.ideas,
   }
+}
+
+async function getAllIdeasFromEndpoint(
+  endpoint: string,
+  pageSize: number = 100,
+): Promise<ApiResponse<IdeaListResponse>> {
+  const firstPageResponse = await apiClient.get<IdeaListResponse>(
+    `${endpoint}?PageNumber=1&PageSize=${pageSize}`,
+  )
+
+  if (!firstPageResponse.success) {
+    return firstPageResponse
+  }
+
+  const normalizedFirstPage = normalizeIdeaListResponse(firstPageResponse.data)
+  const collectedIdeas = getIdeasFromListResponse(normalizedFirstPage)
+  const totalPages =
+    normalizedFirstPage?.totalPages ??
+    Math.max(
+      1,
+      Math.ceil(
+        (normalizedFirstPage?.totalCount ?? collectedIdeas.length) / pageSize,
+      ),
+    )
+
+  for (let pageNumber = 2; pageNumber <= totalPages; pageNumber += 1) {
+    const pageResponse = await apiClient.get<IdeaListResponse>(
+      `${endpoint}?PageNumber=${pageNumber}&PageSize=${pageSize}`,
+    )
+
+    if (!pageResponse.success) {
+      return { success: false, error: pageResponse.error }
+    }
+
+    const normalizedPage = normalizeIdeaListResponse(pageResponse.data)
+    collectedIdeas.push(...getIdeasFromListResponse(normalizedPage))
+  }
+
+  return {
+    success: true,
+    data: {
+      ...normalizedFirstPage,
+      items: collectedIdeas,
+      ideas: collectedIdeas,
+      totalCount: normalizedFirstPage?.totalCount ?? collectedIdeas.length,
+      pageNumber: 1,
+      pageSize: collectedIdeas.length,
+      totalPages: 1,
+    },
+  } satisfies ApiResponse<IdeaListResponse>
 }
 
 async function findIdeaByIdFromPagedList(
@@ -169,7 +232,10 @@ async function findIdeaByIdFromPagedList(
     firstPageResponse.data?.totalPages ??
     Math.max(
       1,
-      Math.ceil((firstPageResponse.data?.totalCount ?? firstPageIdeas.length) / pageSize),
+      Math.ceil(
+        (firstPageResponse.data?.totalCount ?? firstPageIdeas.length) /
+          pageSize,
+      ),
     )
 
   for (let pageNumber = 2; pageNumber <= totalPages; pageNumber += 1) {
@@ -196,78 +262,19 @@ async function findIdeaByIdFromPagedList(
 }
 
 async function getAllMyIdeas(): Promise<ApiResponse<IdeaListResponse>> {
-  const pageSize = 100
-  const firstPageResponse = await apiClient.get<IdeaListResponse>(
-    `/ideas/my-ideas?PageNumber=1&PageSize=${pageSize}`,
-  )
-
-  if (!firstPageResponse.success) {
-    return firstPageResponse
-  }
-
-  const normalizedFirstPage = normalizeIdeaListResponse(firstPageResponse.data)
-  const collectedIdeas = getIdeasFromListResponse(normalizedFirstPage)
-  const totalPages =
-    normalizedFirstPage?.totalPages ??
-    Math.max(
-      1,
-      Math.ceil(
-        (normalizedFirstPage?.totalCount ?? collectedIdeas.length) / pageSize,
-      ),
-    )
-
-  for (let pageNumber = 2; pageNumber <= totalPages; pageNumber += 1) {
-    const pageResponse = await apiClient.get<IdeaListResponse>(
-      `/ideas/my-ideas?PageNumber=${pageNumber}&PageSize=${pageSize}`,
-    )
-
-    if (!pageResponse.success) {
-      return { success: false, error: pageResponse.error }
-    }
-
-    const normalizedPage = normalizeIdeaListResponse(pageResponse.data)
-    collectedIdeas.push(...getIdeasFromListResponse(normalizedPage))
-  }
-
-  return {
-    success: true,
-    data: {
-      ...normalizedFirstPage,
-      items: collectedIdeas,
-      ideas: collectedIdeas,
-      totalCount: normalizedFirstPage?.totalCount ?? collectedIdeas.length,
-      pageNumber: 1,
-      pageSize: collectedIdeas.length,
-      totalPages: 1,
-    },
-  } satisfies ApiResponse<IdeaListResponse>
+  return getAllIdeasFromEndpoint('/ideas/my-ideas')
 }
 
 export const ideaService = {
   // Common endpoints
-  getMyIdeas: async (): Promise<ApiResponse<IdeaListResponse>> => getAllMyIdeas(),
+  getMyIdeas: async (): Promise<ApiResponse<IdeaListResponse>> =>
+    getAllMyIdeas(),
 
-  getAllIdeas: async (): Promise<ApiResponse<IdeaListResponse>> => {
-    const response = await apiClient.get<IdeaListResponse>('/ideas')
-
-    if (!response.success) {
-      return response
-    }
-
-    return {
-      ...response,
-      data: normalizeIdeaListResponse(response.data),
-    }
-  },
-
-  getPagedIdeas: (
-    pageNumber: number = 1,
-    pageSize: number = 10,
-  ): Promise<ApiResponse<IdeaListResponse>> =>
-    apiClient
-      .get<IdeaListResponse>(
-      `/ideas?pageNumber=${pageNumber}&pageSize=${pageSize}`,
-      )
+  getAllIdeas: async (
+    params?: IdeaListQueryParams,
+  ): Promise<ApiResponse<IdeaListResponse>> => {
+    return apiClient
+      .get<IdeaListResponse, IdeaListQueryParams>(`/ideas`, { params })
       .then((response) =>
         response.success
           ? {
@@ -275,7 +282,8 @@ export const ideaService = {
               data: normalizeIdeaListResponse(response.data),
             }
           : response,
-      ),
+      )
+  },
 
   getIdeaById: async (id: string): Promise<ApiResponse<Idea>> => {
     const directResponse = await apiClient.get<Idea>(`/ideas/${id}`)
@@ -283,7 +291,9 @@ export const ideaService = {
     if (directResponse.success) {
       return {
         ...directResponse,
-        data: directResponse.data ? normalizeIdea(directResponse.data) : undefined,
+        data: directResponse.data
+          ? normalizeIdea(directResponse.data)
+          : undefined,
       }
     }
 

@@ -1,5 +1,10 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
-import type { CommentCreateRequest, ReviewIdeaRequest, VoteRequest } from '@/api'
+import type {
+  CommentCreateRequest,
+  IdeaListQueryParams,
+  ReviewIdeaRequest,
+  VoteRequest,
+} from '@/api'
 import { ideaService } from '@/api'
 
 export const useMyIdeas = () => {
@@ -13,25 +18,17 @@ export const useMyIdeas = () => {
   })
 }
 
-export const useAllIdeas = () => {
+export const useAllIdeas = (
+  params?: IdeaListQueryParams,
+) => {
   return useQuery({
-    queryKey: ['allIdeas'],
+    queryKey: ['allIdeas', params],
     queryFn: async () => {
-      const response = await ideaService.getAllIdeas()
+      const response = await ideaService.getAllIdeas(params)
       if (response.success) return response.data
       throw new Error(response.error)
     },
-  })
-}
-
-export const usePagedIdeas = (pageNumber: number = 1, pageSize: number = 10) => {
-  return useQuery({
-    queryKey: ['pagedIdeas', pageNumber, pageSize],
-    queryFn: async () => {
-      const response = await ideaService.getPagedIdeas(pageNumber, pageSize)
-      if (response.success) return response.data
-      throw new Error(response.error)
-    },
+    placeholderData: (previousData) => previousData,
   })
 }
 

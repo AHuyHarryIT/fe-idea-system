@@ -209,7 +209,7 @@ export default function ManageSubmissionPage() {
     setEditingId(submission.id)
     setForm({
       name: submission.name,
-      academicYear: String(submission.academicYear ?? ''),
+      academicYear: String(submission.academicYear),
       closureDate: submission.closureDate.slice(0, 10),
       finalClosureDate: submission.finalClosureDate.slice(0, 10),
     })
