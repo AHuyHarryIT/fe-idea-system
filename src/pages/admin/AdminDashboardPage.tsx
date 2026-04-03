@@ -193,7 +193,7 @@ export default function AdminDashboardPage() {
         </div>
       </SectionCard>
 
-      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-6 mt-6 md:grid-cols-2 xl:grid-cols-4">
         <StatCard
           icon={Users}
           title="Users"
