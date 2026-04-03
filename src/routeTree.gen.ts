@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SubmitIdeaRouteImport } from './routes/submit-idea'
 import { Route as QaManagerRouteImport } from './routes/qa-manager'
 import { Route as QaCoordinatorRouteImport } from './routes/qa-coordinator'
+import { Route as MyIdeasRouteImport } from './routes/my-ideas'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IdeasRouteImport } from './routes/ideas'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -38,6 +39,11 @@ const QaManagerRoute = QaManagerRouteImport.update({
 const QaCoordinatorRoute = QaCoordinatorRouteImport.update({
   id: '/qa-coordinator',
   path: '/qa-coordinator',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MyIdeasRoute = MyIdeasRouteImport.update({
+  id: '/my-ideas',
+  path: '/my-ideas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/ideas': typeof IdeasRouteWithChildren
   '/login': typeof LoginRoute
+  '/my-ideas': typeof MyIdeasRoute
   '/qa-coordinator': typeof QaCoordinatorRoute
   '/qa-manager': typeof QaManagerRoute
   '/submit-idea': typeof SubmitIdeaRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
+  '/my-ideas': typeof MyIdeasRoute
   '/qa-coordinator': typeof QaCoordinatorRoute
   '/qa-manager': typeof QaManagerRoute
   '/submit-idea': typeof SubmitIdeaRoute
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/ideas': typeof IdeasRouteWithChildren
   '/login': typeof LoginRoute
+  '/my-ideas': typeof MyIdeasRoute
   '/qa-coordinator': typeof QaCoordinatorRoute
   '/qa-manager': typeof QaManagerRoute
   '/submit-idea': typeof SubmitIdeaRoute
@@ -159,6 +168,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/ideas'
     | '/login'
+    | '/my-ideas'
     | '/qa-coordinator'
     | '/qa-manager'
     | '/submit-idea'
@@ -175,6 +185,7 @@ export interface FileRouteTypes {
     | '/'
     | '/dashboard'
     | '/login'
+    | '/my-ideas'
     | '/qa-coordinator'
     | '/qa-manager'
     | '/submit-idea'
@@ -192,6 +203,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/ideas'
     | '/login'
+    | '/my-ideas'
     | '/qa-coordinator'
     | '/qa-manager'
     | '/submit-idea'
@@ -210,6 +222,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   IdeasRoute: typeof IdeasRouteWithChildren
   LoginRoute: typeof LoginRoute
+  MyIdeasRoute: typeof MyIdeasRoute
   QaCoordinatorRoute: typeof QaCoordinatorRoute
   QaManagerRoute: typeof QaManagerRoute
   SubmitIdeaRoute: typeof SubmitIdeaRoute
@@ -242,6 +255,13 @@ declare module '@tanstack/react-router' {
       path: '/qa-coordinator'
       fullPath: '/qa-coordinator'
       preLoaderRoute: typeof QaCoordinatorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/my-ideas': {
+      id: '/my-ideas'
+      path: '/my-ideas'
+      fullPath: '/my-ideas'
+      preLoaderRoute: typeof MyIdeasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -348,6 +368,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   IdeasRoute: IdeasRouteWithChildren,
   LoginRoute: LoginRoute,
+  MyIdeasRoute: MyIdeasRoute,
   QaCoordinatorRoute: QaCoordinatorRoute,
   QaManagerRoute: QaManagerRoute,
   SubmitIdeaRoute: SubmitIdeaRoute,

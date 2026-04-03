@@ -16,17 +16,20 @@ import type { NavItem } from '@/types'
 export const navigationByRole: Record<Role, NavItem[]> = {
   staff: [
     { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { path: '/my-ideas', label: 'My Ideas', icon: Lightbulb },
     { path: '/submit-idea', label: 'Submit Idea', icon: Lightbulb },
     { path: '/ideas', label: 'Browse Ideas', icon: List },
   ],
   qa_coordinator: [
     { path: '/qa-coordinator', label: 'Dashboard', icon: PieChart },
+    { path: '/my-ideas', label: 'My Ideas', icon: Lightbulb },
     { path: '/manage/review', label: 'Review Ideas', icon: List },
     { path: '/submit-idea', label: 'Submit Idea', icon: Lightbulb },
     { path: '/ideas', label: 'Browse Ideas', icon: List },
   ],
   qa_manager: [
     { path: '/qa-manager', label: 'Dashboard', icon: BarChart3 },
+    { path: '/my-ideas', label: 'My Ideas', icon: Lightbulb },
     {
       path: '/manage/submissions',
       label: 'Manage Submissions',
@@ -38,6 +41,7 @@ export const navigationByRole: Record<Role, NavItem[]> = {
   ],
   admin: [
     { path: '/admin', label: 'Dashboard', icon: Settings },
+    { path: '/my-ideas', label: 'My Ideas', icon: Lightbulb },
     { path: '/manage/users', label: 'Manage Users', icon: Users },
     {
       path: '/manage/categories',
