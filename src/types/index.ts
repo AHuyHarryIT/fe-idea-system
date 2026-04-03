@@ -2,6 +2,7 @@ export type { ApiResponse } from './api'
 export type { LoginRequest, RegisterRequest, AuthResponse, Role } from './auth'
 export type {
   Idea,
+  IdeaAttachment,
   IdeaListResponse,
   IdeaListPagination,
   IdeaListQueryParams,

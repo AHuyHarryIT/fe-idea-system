@@ -1,3 +1,10 @@
+export interface IdeaAttachment {
+  id: string
+  fileName: string
+  fileSize?: string
+  fileUrl?: string
+}
+
 export interface Idea {
   id: string
   text?: string
@@ -25,11 +32,7 @@ export interface Idea {
   canComment?: boolean
   departmentName?: string
   comments?: Comment[]
-  attachments?: {
-    id: string
-    fileName: string
-    fileSize?: string
-  }[]
+  attachments?: IdeaAttachment[]
 }
 
 export interface IdeaListResponse {
@@ -124,11 +127,7 @@ export interface IdeaDetailModel extends IdeaSummary {
   finalClosureDate?: string
   canComment?: boolean
   canVote?: boolean
-  attachments?: {
-    id: string
-    fileName: string
-    fileSize?: string
-  }[]
+  attachments?: IdeaAttachment[]
   comments?: {
     id: string
     authorName?: string

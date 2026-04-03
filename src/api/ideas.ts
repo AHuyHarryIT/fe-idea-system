@@ -4,6 +4,7 @@ import type {
   Comment,
   CommentCreateRequest,
   Idea,
+  IdeaAttachment,
   IdeaCreateRequest,
   IdeaListQueryParams,
   IdeaListResponse,
@@ -53,12 +54,25 @@ function mapReviewStatusToStatus(value: unknown) {
 }
 
 function normalizeIdea(idea: Idea): Idea {
+  const documents = (idea as Idea & { documents?: IdeaAttachment[] }).documents
+  const attachments = Array.isArray(idea.attachments)
+    ? idea.attachments
+    : Array.isArray(documents)
+      ? documents
+      : []
+
   return {
     ...idea,
     text: idea.text ?? idea.title,
     status: idea.status ?? mapReviewStatusToStatus(idea.reviewStatus),
     commentCount:
       idea.commentCount ?? idea.commentsCount ?? idea.comments?.length ?? 0,
+    attachments: attachments.map((attachment, index) => ({
+      id: attachment.id || `${index}`,
+      fileName: attachment.fileName || `Document ${index + 1}`,
+      fileSize: attachment.fileSize,
+      fileUrl: attachment.fileUrl,
+    })),
   }
 }
 

@@ -222,7 +222,9 @@ export function mapIdeaSummary(value: unknown): IdeaSummary {
 export function mapIdeaDetail(value: unknown): IdeaDetailModel {
   const record = extractRecord(value) ?? {}
   const summary = mapIdeaSummary(record)
-  const attachments = extractCollection(record.attachments ?? record.files)
+  const attachments = extractCollection(
+    record.attachments ?? record.files ?? record.documents,
+  )
   const comments = extractCollection(
     record.comments ??
       record.commentList ??
@@ -259,6 +261,9 @@ export function mapIdeaDetail(value: unknown): IdeaDetailModel {
           `Attachment ${index + 1}`,
         ),
         fileSize: asString(attachmentRecord.fileSize ?? attachmentRecord.size),
+        fileUrl: asString(
+          attachmentRecord.fileUrl ?? attachmentRecord.url,
+        ),
       }
     }),
     comments: comments.map((comment, index) => {
