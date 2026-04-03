@@ -1,12 +1,15 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
-import type { CreateIdeaCategoryRequest } from '@/types'
+import type {
+  CreateIdeaCategoryRequest,
+  IdeaCategoryListQueryParams,
+} from '@/types'
 import { categoryService } from '@/api/categories'
 
-export const useIdeaCategories = () => {
+export const useIdeaCategories = (params?: IdeaCategoryListQueryParams) => {
   return useQuery({
-    queryKey: ['ideaCategories'],
+    queryKey: ['ideaCategories', params],
     queryFn: async () => {
-      const response = await categoryService.getIdeaCategories()
+      const response = await categoryService.getIdeaCategories(params)
       if (response.success) return response.data
       throw new Error(response.error ?? 'Unable to load idea categories.')
     },

@@ -15,6 +15,7 @@ import { SectionCard } from '@/components/shared/SectionCard'
 import { StatCard } from '@/components/shared/StatCard'
 import { ManageButton } from '@/components/app/ManageButton'
 import { normalizeIdeaResponse } from '@/lib/idea-response-mapper'
+import { extractCollection } from '@/lib/api-mappers'
 
 function getDateTimestamp(value?: string) {
   if (!value) {
@@ -66,7 +67,10 @@ export default function AdminDashboardPage() {
 
       return {
         users: usersResponse.data?.users ?? [],
-        categories: categoriesResponse.data ?? [],
+        categories: extractCollection(categoriesResponse.data, ['categories']),
+        categoryTotal:
+          categoriesResponse.data?.pagination?.totalCount ??
+          extractCollection(categoriesResponse.data, ['categories']).length,
         submissions: submissionsResponse.data ?? [],
         ideas: mappedIdeas,
       }
@@ -102,7 +106,7 @@ export default function AdminDashboardPage() {
         <StatCard
           icon={Tags}
           title="Categories"
-          value={isLoading ? '...' : `${data?.categories.length ?? 0}`}
+          value={isLoading ? '...' : `${data?.categoryTotal ?? 0}`}
           description="Currently configured idea categories."
         />
         <StatCard
@@ -143,7 +147,7 @@ export default function AdminDashboardPage() {
                 variant="blue"
                 onClick={() => navigate({ to: '/manage/categories' })}
               >
-                Manage categories · {data?.categories.length ?? 0}
+                Manage categories · {data?.categoryTotal ?? 0}
               </ManageButton>
 
               <ManageButton

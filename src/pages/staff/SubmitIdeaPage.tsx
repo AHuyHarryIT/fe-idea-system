@@ -12,6 +12,7 @@ import { useIdeaCategories } from '@/hooks/useCategories'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { useSubmitIdea } from '@/hooks/useIdeas'
 import { useSubmissions } from '@/hooks/useSubmissions'
+import { CATEGORY_SELECT_PAGE_SIZE } from '@/constants/category'
 import { auth } from '@/lib/auth'
 
 const initialForm: IdeaSubmitPayload = {
@@ -52,7 +53,7 @@ export default function SubmitIdeaPage() {
   const queryClient = useQueryClient()
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const { data: categoryData, isLoading: categoriesLoading } =
-    useIdeaCategories()
+    useIdeaCategories({ pageNumber: 1, pageSize: CATEGORY_SELECT_PAGE_SIZE })
   const {
     data: submissionData,
     isLoading: submissionsLoading,
@@ -72,7 +73,10 @@ export default function SubmitIdeaPage() {
     () => form.uploadFiles?.map((file) => file.name).join(', ') ?? '',
     [form.uploadFiles],
   )
-  const categories = useMemo(() => categoryData ?? [], [categoryData])
+  const categories = useMemo(
+    () => categoryData?.categories ?? [],
+    [categoryData],
+  )
   const submissions = useMemo(() => submissionData ?? [], [submissionData])
 
   const selectedSubmission = useMemo(

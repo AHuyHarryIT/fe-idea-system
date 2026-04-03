@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { Pagination } from 'antd'
 import { useQueryClient } from '@tanstack/react-query'
 import { Plus, Tag } from 'lucide-react'
 import { ActionButton } from '@/components/app/ActionButton'
@@ -18,9 +19,17 @@ import {
 } from '@/hooks/useCategories'
 import { extractCollection, mapCategory } from '@/lib/api-mappers'
 
+const DEFAULT_PAGE_SIZE = 10
+const PAGE_SIZE_OPTIONS = ['10', '20', '50']
+
 export default function ManageCategoryPage() {
   const queryClient = useQueryClient()
-  const { data, isLoading, error } = useIdeaCategories()
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE)
+  const { data, isLoading, error } = useIdeaCategories({
+    pageNumber: currentPage,
+    pageSize,
+  })
   const { mutateAsync: createIdeaCategory, isPending: isCreating } =
     useCreateIdeaCategory()
   const { mutateAsync: updateIdeaCategory, isPending: isUpdating } =
@@ -41,6 +50,15 @@ export default function ManageCategoryPage() {
         .filter((item) => item.id),
     [data],
   )
+  const totalCategories = data?.pagination?.totalCount ?? categories.length
+  const hasCategories = totalCategories > 0
+  const totalPages = Math.max(1, Math.ceil(totalCategories / pageSize))
+
+  useEffect(() => {
+    if (!isLoading && currentPage > totalPages) {
+      setCurrentPage(totalPages)
+    }
+  }, [currentPage, isLoading, totalPages])
 
   const refreshCategoryQueries = async () => {
     await Promise.all([
@@ -84,6 +102,7 @@ export default function ManageCategoryPage() {
       } else {
         await createIdeaCategory({ name: name.trim() })
         setFeedbackMessage('Category created successfully.')
+        setCurrentPage(1)
       }
 
       await refreshCategoryQueries()
@@ -143,6 +162,19 @@ export default function ManageCategoryPage() {
       ) : null}
 
       <SectionCard>
+        {hasCategories ? (
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
+            <p className="text-sm text-slate-500">
+              Showing {(currentPage - 1) * pageSize + 1}-
+              {Math.min(currentPage * pageSize, totalCategories)} of{' '}
+              {totalCategories} categories
+            </p>
+            <p className="text-sm text-slate-500">
+              Page {currentPage} of {totalPages}
+            </p>
+          </div>
+        ) : null}
+
         {error ? (
           <EmptyState
             icon={Tag}
@@ -182,6 +214,29 @@ export default function ManageCategoryPage() {
                 </div>
               </div>
             ))}
+
+            <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4">
+              <Pagination
+                align="end"
+                current={currentPage}
+                total={totalCategories}
+                pageSize={pageSize}
+                showSizeChanger
+                pageSizeOptions={PAGE_SIZE_OPTIONS}
+                onChange={(page, nextPageSize) => {
+                  if (nextPageSize !== pageSize) {
+                    setPageSize(nextPageSize)
+                    setCurrentPage(1)
+                    return
+                  }
+
+                  setCurrentPage(page)
+                }}
+                showTotal={(total, range) =>
+                  `Showing ${range[0]}-${range[1]} of ${total} categories`
+                }
+              />
+            </div>
           </div>
         ) : (
           <EmptyState

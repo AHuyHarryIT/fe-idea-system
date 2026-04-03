@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
 
+import { CATEGORY_SELECT_PAGE_SIZE } from '@/constants/category'
 import { useIdeaFilters } from '@/hooks/useIdeaFilters'
 import { useAllIdeas } from '@/hooks/useIdeas'
 import { normalizeIdeaResponse } from '@/lib/idea-response-mapper'
@@ -24,7 +25,10 @@ export default function IdeaListPage() {
     pageNumber: currentPage,
     pageSize,
   })
-  const { data: categoryData } = useIdeaCategories()
+  const { data: categoryData } = useIdeaCategories({
+    pageNumber: 1,
+    pageSize: CATEGORY_SELECT_PAGE_SIZE,
+  })
 
   const ideas = useMemo(() => {
     const ideaList = normalizeIdeaResponse(data)
@@ -32,7 +36,7 @@ export default function IdeaListPage() {
   }, [data])
 
   const categories = useMemo(() => {
-    const categoryList = categoryData ?? []
+    const categoryList = categoryData?.categories ?? []
     return Array.isArray(categoryList)
       ? categoryList.filter((item) => item.id)
       : []

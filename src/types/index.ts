@@ -13,7 +13,12 @@ export type {
   IdeaDetailModel,
   IdeaSubmitPayload,
 } from './idea'
-export type { IdeaCategory, CreateIdeaCategoryRequest } from './category'
+export type {
+  IdeaCategory,
+  IdeaCategoryListResponse,
+  IdeaCategoryListQueryParams,
+  CreateIdeaCategoryRequest,
+} from './category'
 export type {
   Department,
   DepartmentListResponse,
