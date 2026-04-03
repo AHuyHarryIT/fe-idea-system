@@ -1,6 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { Tag } from 'antd'
 import { ChevronDown, GraduationCap, LogOut, UserCircle2 } from 'lucide-react'
 import type { Role } from '@/types/auth'
+import { departmentService } from '@/api/departments'
 import { auth } from '@/lib/auth'
 
 interface TopNavProps {
@@ -11,9 +13,9 @@ interface TopNavProps {
 export default function TopNav({ onLogout, userRole }: TopNavProps) {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false)
   const showProfileMenu = Boolean(userRole && onLogout)
-  const displayName = useMemo(
-    () => auth.getDisplayName() ?? 'User',
-    [],
+  const displayName = useMemo(() => auth.getDisplayName() ?? 'User', [])
+  const [departmentName, setDepartmentName] = useState(
+    () => auth.getDepartmentName() ?? '',
   )
 
   const roleLabel = useMemo(() => {
@@ -33,6 +35,51 @@ export default function TopNav({ onLogout, userRole }: TopNavProps) {
     }
   }, [userRole])
 
+  useEffect(() => {
+    const departmentId = auth.getDepartmentId()
+    const cachedDepartmentName = auth.getDepartmentName()
+
+    if (cachedDepartmentName?.trim()) {
+      setDepartmentName(cachedDepartmentName)
+      return
+    }
+
+    if (!departmentId) {
+      setDepartmentName('')
+      auth.clearDepartmentName()
+      return
+    }
+
+    let isActive = true
+
+    void departmentService
+      .getDepartments({
+        pageNumber: 1,
+        pageSize: 100,
+      })
+      .then((response) => {
+        if (!isActive || !response.success) {
+          return
+        }
+
+        const matchedDepartment = response.data?.departments?.find(
+          (department) => department.id === departmentId,
+        )
+        const nextDepartmentName = matchedDepartment?.name.trim() ?? ''
+
+        if (!nextDepartmentName) {
+          return
+        }
+
+        auth.setDepartmentName(nextDepartmentName)
+        setDepartmentName(nextDepartmentName)
+      })
+
+    return () => {
+      isActive = false
+    }
+  }, [])
+
   return (
     <header className="fixed left-0 right-0 top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div className="flex h-16 items-center justify-between px-6">
@@ -49,7 +96,13 @@ export default function TopNav({ onLogout, userRole }: TopNavProps) {
 
         <div className="flex items-center gap-3">
           {showProfileMenu ? (
-            <div className="relative">
+            <div className="relative flex items-center gap-3">
+              <Tag
+                color="blue"
+                className="m-0 hidden text-[10px] font-medium sm:inline-flex"
+              >
+                {departmentName.trim() ? departmentName : 'No Department'}
+              </Tag>
               <button
                 type="button"
                 onClick={() => setShowProfileDropdown((prev) => !prev)}
@@ -60,7 +113,9 @@ export default function TopNav({ onLogout, userRole }: TopNavProps) {
                   <p className="text-sm font-medium text-slate-800">
                     {displayName}
                   </p>
-                  <p className="text-xs text-slate-500">{roleLabel}</p>
+                  <div className="mt-0.5 flex items-center gap-2">
+                    <p className="text-xs text-slate-500">{roleLabel}</p>
+                  </div>
                 </div>
                 <ChevronDown className="h-4 w-4 text-slate-500" />
               </button>

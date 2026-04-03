@@ -4,6 +4,7 @@ const TOKEN_KEY = 'idea_system_access_token'
 const USER_ID_KEY = 'idea_system_user_id'
 const ROLE_KEY = 'idea_system_role'
 const DISPLAY_NAME_KEY = 'idea_system_display_name'
+const DEPARTMENT_NAME_KEY = 'idea_system_department_name'
 
 function parseJwtPayload(token: string): Record<string, unknown> | null {
   if (!token) {
@@ -129,6 +130,26 @@ export const auth = {
   setDisplayName: (displayName: string) =>
     localStorage.setItem(DISPLAY_NAME_KEY, displayName),
   clearDisplayName: () => localStorage.removeItem(DISPLAY_NAME_KEY),
+  getDepartmentName: () => {
+    const storedDepartmentName = localStorage.getItem(DEPARTMENT_NAME_KEY)
+
+    if (storedDepartmentName?.trim()) {
+      return storedDepartmentName
+    }
+
+    const claims = parseJwtPayload(localStorage.getItem(TOKEN_KEY) ?? '')
+
+    return getClaimString(
+      claims?.DepartmentName ??
+        claims?.departmentName ??
+        claims?.[
+          'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/department'
+        ],
+    )
+  },
+  setDepartmentName: (departmentName: string) =>
+    localStorage.setItem(DEPARTMENT_NAME_KEY, departmentName),
+  clearDepartmentName: () => localStorage.removeItem(DEPARTMENT_NAME_KEY),
   getDepartmentId: () => {
     const claims = parseJwtPayload(localStorage.getItem(TOKEN_KEY) ?? '')
 
@@ -147,5 +168,6 @@ export const auth = {
     localStorage.removeItem(USER_ID_KEY)
     localStorage.removeItem(ROLE_KEY)
     localStorage.removeItem(DISPLAY_NAME_KEY)
+    localStorage.removeItem(DEPARTMENT_NAME_KEY)
   },
 }
