@@ -1,0 +1,1 @@
+export const DEPARTMENT_SELECT_PAGE_SIZE = 100

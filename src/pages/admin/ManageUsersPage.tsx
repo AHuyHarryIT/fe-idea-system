@@ -14,6 +14,7 @@ import { departmentService, userService } from '@/api'
 import type { UpdateUserRequest, User } from '@/types'
 import { ActionButton } from '@/components/app/ActionButton'
 import { AppButton } from '@/components/app/AppButton'
+import { DEPARTMENT_SELECT_PAGE_SIZE } from '@/constants/department'
 import { FormField } from '@/components/forms/FormField'
 import { FormInput } from '@/components/forms/FormInput'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
@@ -179,13 +180,16 @@ export default function ManageUsersPage() {
   const { data: departments = [] } = useQuery({
     queryKey: ['departments'],
     queryFn: async () => {
-      const response = await departmentService.getDepartments()
+      const response = await departmentService.getDepartments({
+        pageNumber: 1,
+        pageSize: DEPARTMENT_SELECT_PAGE_SIZE,
+      })
 
       if (!response.success) {
         throw new Error(response.error ?? 'Failed to load departments')
       }
 
-      return response.data ?? []
+      return response.data?.departments ?? []
     },
   })
 

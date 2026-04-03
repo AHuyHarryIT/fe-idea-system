@@ -22,6 +22,7 @@ export type {
 export type {
   Department,
   DepartmentListResponse,
+  DepartmentListQueryParams,
   CreateDepartmentPayload,
   UpdateDepartmentPayload,
 } from './department'

@@ -12,6 +12,21 @@ export interface Department {
 
 export interface DepartmentListResponse {
   departments?: Department[]
+  pagination?: DepartmentListPagination
+}
+
+export interface DepartmentListPagination {
+  totalCount: number
+  pageNumber: number
+  pageSize: number
+  totalPages: number
+  hasPreviousPage: boolean
+  hasNextPage: boolean
+}
+
+export interface DepartmentListQueryParams {
+  pageNumber?: number
+  pageSize?: number
 }
 
 export interface CreateDepartmentPayload {

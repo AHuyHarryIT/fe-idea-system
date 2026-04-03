@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { Pagination } from 'antd'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Building2 } from 'lucide-react'
 import type { Department } from '@/types'
@@ -23,8 +24,13 @@ const initialForm: DepartmentForm = {
   description: '',
 }
 
+const DEFAULT_PAGE_SIZE = 10
+const PAGE_SIZE_OPTIONS = ['10', '20', '50']
+
 export default function ManageDepartmentsPage() {
   const queryClient = useQueryClient()
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<DepartmentForm>(initialForm)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
@@ -32,19 +38,33 @@ export default function ManageDepartmentsPage() {
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
 
   const {
-    data: departments = [],
+    data,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['departments'],
+    queryKey: ['departments', currentPage, pageSize],
     queryFn: async () => {
-      const response = await departmentService.getDepartments()
+      const response = await departmentService.getDepartments({
+        pageNumber: currentPage,
+        pageSize,
+      })
+
       if (!response.success) {
         throw new Error(response.error ?? 'Failed to load departments')
       }
-      return response.data || []
+
+      return response.data
     },
   })
+  const departments = data?.departments ?? []
+  const totalDepartments = data?.pagination?.totalCount ?? departments.length
+  const totalPages = Math.max(1, Math.ceil(totalDepartments / pageSize))
+
+  useEffect(() => {
+    if (!isLoading && currentPage > totalPages) {
+      setCurrentPage(totalPages)
+    }
+  }, [currentPage, isLoading, totalPages])
 
   const createMutation = useMutation({
     mutationFn: async (payload: DepartmentForm) => {
@@ -120,6 +140,7 @@ export default function ManageDepartmentsPage() {
           description: form.description.trim(),
         })
         setFeedbackMessage('Department created successfully.')
+        setCurrentPage(1)
       }
 
       await refreshDepartments()
@@ -189,6 +210,19 @@ export default function ManageDepartmentsPage() {
       ) : null}
 
       <SectionCard>
+        {totalDepartments > 0 ? (
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
+            <p className="text-sm text-slate-500">
+              Showing {(currentPage - 1) * pageSize + 1}-
+              {Math.min(currentPage * pageSize, totalDepartments)} of{' '}
+              {totalDepartments} departments
+            </p>
+            <p className="text-sm text-slate-500">
+              Page {currentPage} of {totalPages}
+            </p>
+          </div>
+        ) : null}
+
         {error ? (
           <EmptyState
             icon={Building2}
@@ -214,53 +248,78 @@ export default function ManageDepartmentsPage() {
             }
           />
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-slate-200">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-200 bg-slate-50">
-                  <th className="px-6 py-3 text-left font-semibold text-slate-900">
-                    Name
-                  </th>
-                  <th className="px-6 py-3 text-left font-semibold text-slate-900">
-                    Description
-                  </th>
-                  <th className="px-6 py-3 text-left font-semibold text-slate-900">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {departments.map((department) => (
-                  <tr
-                    key={department.id}
-                    className="border-b border-slate-200 hover:bg-slate-50"
-                  >
-                    <td className="px-6 py-3 font-medium text-slate-900">
-                      {department.name}
-                    </td>
-                    <td className="px-6 py-3 text-slate-600">
-                      {department.description || '—'}
-                    </td>
-                    <td className="px-6 py-3">
-                      <div className="flex gap-2">
-                        <ActionButton
-                          action="edit"
-                          onClick={() => handleEdit(department)}
-                          disabled={
-                            createMutation.isPending || updateMutation.isPending
-                          }
-                        />
-                        <ActionButton
-                          action="delete"
-                          onClick={() => setDeleteConfirm(department.id)}
-                          disabled={deleteMutation.isPending}
-                        />
-                      </div>
-                    </td>
+          <div className="space-y-4">
+            <div className="overflow-x-auto rounded-lg border border-slate-200">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50">
+                    <th className="px-6 py-3 text-left font-semibold text-slate-900">
+                      Name
+                    </th>
+                    <th className="px-6 py-3 text-left font-semibold text-slate-900">
+                      Description
+                    </th>
+                    <th className="px-6 py-3 text-left font-semibold text-slate-900">
+                      Actions
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {departments.map((department) => (
+                    <tr
+                      key={department.id}
+                      className="border-b border-slate-200 hover:bg-slate-50"
+                    >
+                      <td className="px-6 py-3 font-medium text-slate-900">
+                        {department.name}
+                      </td>
+                      <td className="px-6 py-3 text-slate-600">
+                        {department.description || '—'}
+                      </td>
+                      <td className="px-6 py-3">
+                        <div className="flex gap-2">
+                          <ActionButton
+                            action="edit"
+                            onClick={() => handleEdit(department)}
+                            disabled={
+                              createMutation.isPending || updateMutation.isPending
+                            }
+                          />
+                          <ActionButton
+                            action="delete"
+                            onClick={() => setDeleteConfirm(department.id)}
+                            disabled={deleteMutation.isPending}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4">
+              <Pagination
+                align="end"
+                current={currentPage}
+                total={totalDepartments}
+                pageSize={pageSize}
+                showSizeChanger
+                pageSizeOptions={PAGE_SIZE_OPTIONS}
+                onChange={(page, nextPageSize) => {
+                  if (nextPageSize !== pageSize) {
+                    setPageSize(nextPageSize)
+                    setCurrentPage(1)
+                    return
+                  }
+
+                  setCurrentPage(page)
+                }}
+                showTotal={(total, range) =>
+                  `Showing ${range[0]}-${range[1]} of ${total} departments`
+                }
+              />
+            </div>
           </div>
         )}
       </SectionCard>
