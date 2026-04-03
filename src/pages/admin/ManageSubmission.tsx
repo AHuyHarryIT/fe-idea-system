@@ -1,6 +1,8 @@
-import { useMemo, useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
+import { useEffect, useMemo, useState } from 'react'
+import { Pagination } from 'antd'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { CalendarRange, Search } from 'lucide-react'
+import { submissionService } from '@/api/submissions'
 import { ActionButton } from '@/components/app/ActionButton'
 import { AppButton } from '@/components/app/AppButton'
 import { FormField } from '@/components/forms/FormField'
@@ -13,7 +15,6 @@ import { SectionCard } from '@/components/shared/SectionCard'
 import {
   useCreateSubmission,
   useDeleteSubmission,
-  useSubmissions,
   useUpdateSubmission,
 } from '@/hooks/useSubmissions'
 
@@ -30,6 +31,9 @@ const initialForm: SubmissionFormState = {
   closureDate: '',
   finalClosureDate: '',
 }
+
+const DEFAULT_PAGE_SIZE = 10
+const PAGE_SIZE_OPTIONS = ['10', '20', '50']
 
 function formatDateLabel(value: string) {
   if (!value) return '—'
@@ -92,7 +96,23 @@ function getSubmissionLifecycleMeta(lifecycle: SubmissionLifecycle) {
 
 export default function ManageSubmissionPage() {
   const queryClient = useQueryClient()
-  const { data, isLoading, error } = useSubmissions()
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE)
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['submissions', currentPage, pageSize],
+    queryFn: async () => {
+      const response = await submissionService.getSubmissions({
+        pageNumber: currentPage,
+        pageSize,
+      })
+
+      if (!response.success) {
+        throw new Error(response.error ?? 'Unable to load submissions.')
+      }
+
+      return response.data
+    },
+  })
   const { mutateAsync: createSubmission, isPending: isCreating } =
     useCreateSubmission()
   const { mutateAsync: updateSubmission, isPending: isUpdating } =
@@ -110,7 +130,9 @@ export default function ManageSubmissionPage() {
     'all' | SubmissionLifecycle
   >('all')
 
-  const submissions = useMemo(() => data ?? [], [data])
+  const submissions = useMemo(() => data?.submissions ?? [], [data])
+  const totalSubmissions = data?.pagination?.totalCount ?? submissions.length
+  const totalPages = Math.max(1, Math.ceil(totalSubmissions / pageSize))
   const filteredSubmissions = useMemo(() => {
     const normalizedSearch = searchValue.trim().toLowerCase()
 
@@ -135,6 +157,12 @@ export default function ManageSubmissionPage() {
         return matchesSearch && matchesLifecycle
       })
   }, [searchValue, statusFilter, submissions])
+
+  useEffect(() => {
+    if (!isLoading && currentPage > totalPages) {
+      setCurrentPage(totalPages)
+    }
+  }, [currentPage, isLoading, totalPages])
 
   const closeFormModal = () => {
     setIsFormModalOpen(false)
@@ -194,6 +222,7 @@ export default function ManageSubmissionPage() {
       } else {
         await createSubmission(payload)
         setFeedbackMessage('Submission created successfully.')
+        setCurrentPage(1)
       }
 
       await refreshSubmissions()
@@ -287,6 +316,7 @@ export default function ManageSubmissionPage() {
               onClick={() => {
                 setSearchValue('')
                 setStatusFilter('all')
+                setCurrentPage(1)
               }}
             />
           </div>
@@ -298,9 +328,22 @@ export default function ManageSubmissionPage() {
             onClick={openCreateModal}
           />
         </div>
+        {totalSubmissions > 0 ? (
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4 text-sm text-slate-500">
+            <p>
+              Showing {(currentPage - 1) * pageSize + 1}-
+              {Math.min(currentPage * pageSize, totalSubmissions)} of{' '}
+              {totalSubmissions} submission windows
+            </p>
+            <p>
+              Page {currentPage} of {totalPages}
+            </p>
+          </div>
+        ) : null}
         <p className="mb-5 text-sm text-slate-500">
-          Showing {filteredSubmissions.length} of {submissions.length} submission
-          windows, sorted by most recent final closure date.
+          {searchValue.trim() || statusFilter !== 'all'
+            ? `${filteredSubmissions.length} matches on this page, sorted by most recent final closure date.`
+            : `${totalSubmissions} submission windows available, sorted by most recent final closure date.`}
         </p>
 
         {error ? (
@@ -372,21 +415,75 @@ export default function ManageSubmissionPage() {
                 </div>
               )
             })}
+
+            <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4">
+              <Pagination
+                align="end"
+                current={currentPage}
+                total={totalSubmissions}
+                pageSize={pageSize}
+                showSizeChanger
+                pageSizeOptions={PAGE_SIZE_OPTIONS}
+                onChange={(page, nextPageSize) => {
+                  if (nextPageSize !== pageSize) {
+                    setPageSize(nextPageSize)
+                    setCurrentPage(1)
+                    return
+                  }
+
+                  setCurrentPage(page)
+                }}
+                showTotal={(total, range) =>
+                  searchValue.trim() || statusFilter !== 'all'
+                    ? `${filteredSubmissions.length} matches on this page · ${total} total submission windows`
+                    : `Showing ${range[0]}-${range[1]} of ${total} submission windows`
+                }
+              />
+            </div>
           </div>
         ) : (
-          <EmptyState
-            icon={CalendarRange}
-            title={
-              submissions.length > 0
-                ? 'No submissions match this filter'
-                : 'No submission windows found'
-            }
-            description={
-              submissions.length > 0
-                ? 'Try another keyword or lifecycle filter.'
-                : 'Create the first submission window to let staff submit ideas within a controlled campaign period.'
-            }
-          />
+          <div className="space-y-6">
+            <EmptyState
+              icon={CalendarRange}
+              title={
+                submissions.length > 0
+                  ? 'No submissions match this filter'
+                  : 'No submission windows found'
+              }
+              description={
+                submissions.length > 0
+                  ? 'Try another keyword or lifecycle filter.'
+                  : 'Create the first submission window to let staff submit ideas within a controlled campaign period.'
+              }
+            />
+
+            {totalSubmissions > 0 ? (
+              <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4">
+                <Pagination
+                  align="end"
+                  current={currentPage}
+                  total={totalSubmissions}
+                  pageSize={pageSize}
+                  showSizeChanger
+                  pageSizeOptions={PAGE_SIZE_OPTIONS}
+                  onChange={(page, nextPageSize) => {
+                    if (nextPageSize !== pageSize) {
+                      setPageSize(nextPageSize)
+                      setCurrentPage(1)
+                      return
+                    }
+
+                    setCurrentPage(page)
+                  }}
+                  showTotal={(total) =>
+                    searchValue.trim() || statusFilter !== 'all'
+                      ? `${filteredSubmissions.length} matches on this page · ${total} total submission windows`
+                      : `${total} total submission windows`
+                  }
+                />
+              </div>
+            ) : null}
+          </div>
         )}
       </SectionCard>
 

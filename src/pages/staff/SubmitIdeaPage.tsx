@@ -13,6 +13,7 @@ import { SectionCard } from '@/components/shared/SectionCard'
 import { useSubmitIdea } from '@/hooks/useIdeas'
 import { useSubmissions } from '@/hooks/useSubmissions'
 import { CATEGORY_SELECT_PAGE_SIZE } from '@/constants/category'
+import { SUBMISSION_SELECT_PAGE_SIZE } from '@/constants/submission'
 import { auth } from '@/lib/auth'
 
 const initialForm: IdeaSubmitPayload = {
@@ -58,7 +59,7 @@ export default function SubmitIdeaPage() {
     data: submissionData,
     isLoading: submissionsLoading,
     error,
-  } = useSubmissions()
+  } = useSubmissions({ pageNumber: 1, pageSize: SUBMISSION_SELECT_PAGE_SIZE })
   const { mutateAsync: submitIdea, isPending } = useSubmitIdea()
   const [form, setForm] = useState<IdeaSubmitPayload>(initialForm)
   const [feedbackMessage, setFeedbackMessage] = useState('')
@@ -77,7 +78,10 @@ export default function SubmitIdeaPage() {
     () => categoryData?.categories ?? [],
     [categoryData],
   )
-  const submissions = useMemo(() => submissionData ?? [], [submissionData])
+  const submissions = useMemo(
+    () => submissionData?.submissions ?? [],
+    [submissionData],
+  )
 
   const selectedSubmission = useMemo(
     () =>

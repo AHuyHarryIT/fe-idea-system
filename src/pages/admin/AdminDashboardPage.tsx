@@ -8,6 +8,7 @@ import {
   submissionService,
   userService,
 } from '@/api'
+import { SUBMISSION_SELECT_PAGE_SIZE } from '@/constants/submission'
 import type { Idea, IdeaListResponse } from '@/types'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -39,7 +40,10 @@ export default function AdminDashboardPage() {
       ] = await Promise.all([
         userService.getUsers(),
         categoryService.getIdeaCategories(),
-        submissionService.getSubmissions(),
+        submissionService.getSubmissions({
+          pageNumber: 1,
+          pageSize: SUBMISSION_SELECT_PAGE_SIZE,
+        }),
         ideaService.getAllIdeas(),
       ])
 
@@ -71,7 +75,10 @@ export default function AdminDashboardPage() {
         categoryTotal:
           categoriesResponse.data?.pagination?.totalCount ??
           extractCollection(categoriesResponse.data, ['categories']).length,
-        submissions: submissionsResponse.data ?? [],
+        submissions: submissionsResponse.data?.submissions ?? [],
+        submissionTotal:
+          submissionsResponse.data?.pagination?.totalCount ??
+          (submissionsResponse.data?.submissions?.length ?? 0),
         ideas: mappedIdeas,
       }
     },
@@ -112,7 +119,7 @@ export default function AdminDashboardPage() {
         <StatCard
           icon={CalendarRange}
           title="Submission windows"
-          value={isLoading ? '...' : `${data?.submissions.length ?? 0}`}
+          value={isLoading ? '...' : `${data?.submissionTotal ?? 0}`}
           description="Open and historical submission periods."
         />
         <StatCard
@@ -154,7 +161,7 @@ export default function AdminDashboardPage() {
                 variant="blue"
                 onClick={() => navigate({ to: '/manage/submissions' })}
               >
-                Manage submissions · {data?.submissions.length ?? 0}
+                Manage submissions · {data?.submissionTotal ?? 0}
               </ManageButton>
               <ManageButton
                 variant="blue"

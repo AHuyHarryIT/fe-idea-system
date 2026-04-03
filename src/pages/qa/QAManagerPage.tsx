@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { AppButton } from '@/components/app/AppButton'
 import { exportService } from '@/api/export'
+import { SUBMISSION_SELECT_PAGE_SIZE } from '@/constants/submission'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
@@ -39,7 +40,7 @@ export default function QAManagerPage() {
     data: submissionsData,
     isLoading: submissionsLoading,
     error: submissionsError,
-  } = useSubmissions()
+  } = useSubmissions({ pageNumber: 1, pageSize: SUBMISSION_SELECT_PAGE_SIZE })
   const [activeExportKey, setActiveExportKey] = useState<string | null>(null)
   const [exportFeedback, setExportFeedback] = useState('')
 
@@ -74,7 +75,7 @@ export default function QAManagerPage() {
   )
 
   const exportableSubmissions = useMemo(() => {
-    const submissions = Array.isArray(submissionsData) ? submissionsData : []
+    const submissions = submissionsData?.submissions ?? []
     const now = Date.now()
 
     return submissions

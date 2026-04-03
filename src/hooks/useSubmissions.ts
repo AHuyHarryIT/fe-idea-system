@@ -1,13 +1,16 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
-import type { SubmissionCreateRequest } from '@/types'
+import type {
+  SubmissionCreateRequest,
+  SubmissionListQueryParams,
+} from '@/types'
 import { submissionService } from '@/api/submissions'
 
-export const useSubmissions = () => {
+export const useSubmissions = (params?: SubmissionListQueryParams) => {
   return useQuery({
-    queryKey: ['submissions'],
+    queryKey: ['submissions', params],
     queryFn: async () => {
-      const response = await submissionService.getSubmissions()
-      if (response.success) return response.data ?? []
+      const response = await submissionService.getSubmissions(params)
+      if (response.success) return response.data
       throw new Error(response.error ?? 'Unable to load submissions.')
     },
   })

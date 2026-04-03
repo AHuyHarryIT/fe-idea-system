@@ -3,31 +3,38 @@ import type {
   ApiResponse,
   Submission,
   SubmissionCreateRequest,
+  SubmissionListQueryParams,
   SubmissionListResponse,
 } from '@/types'
 
 function normalizeSubmissionsResponse(
   data?: Submission[] | SubmissionListResponse,
-): Submission[] {
+): SubmissionListResponse {
   if (Array.isArray(data)) {
-    return data
+    return { submissions: data }
   }
 
-  if (data && Array.isArray(data.submissions)) {
-    return data.submissions
+  if (data) {
+    return {
+      submissions: Array.isArray(data.submissions) ? data.submissions : [],
+      pagination: data.pagination,
+    }
   }
 
-  return []
+  return { submissions: [] }
 }
 
 export const submissionService = {
-  getActiveSubmissions: async (): Promise<ApiResponse<Submission[]>> => {
-    const response = await apiClient.get<Submission[] | SubmissionListResponse>(
-      '/submissions',
-    )
+  getActiveSubmissions: async (
+    params?: SubmissionListQueryParams,
+  ): Promise<ApiResponse<SubmissionListResponse>> => {
+    const response = await apiClient.get<
+      Submission[] | SubmissionListResponse,
+      SubmissionListQueryParams
+    >('/submissions', { params })
 
     if (!response.success) {
-      return response as ApiResponse<Submission[]>
+      return response as ApiResponse<SubmissionListResponse>
     }
 
     return {
@@ -36,13 +43,16 @@ export const submissionService = {
     }
   },
 
-  getSubmissions: async (): Promise<ApiResponse<Submission[]>> => {
-    const response = await apiClient.get<Submission[] | SubmissionListResponse>(
-      '/submissions',
-    )
+  getSubmissions: async (
+    params?: SubmissionListQueryParams,
+  ): Promise<ApiResponse<SubmissionListResponse>> => {
+    const response = await apiClient.get<
+      Submission[] | SubmissionListResponse,
+      SubmissionListQueryParams
+    >('/submissions', { params })
 
     if (!response.success) {
-      return response as ApiResponse<Submission[]>
+      return response as ApiResponse<SubmissionListResponse>
     }
 
     return {

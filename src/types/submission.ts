@@ -18,4 +18,19 @@ export interface SubmissionCreateRequest {
 
 export interface SubmissionListResponse {
   submissions?: Submission[]
+  pagination?: SubmissionListPagination
+}
+
+export interface SubmissionListPagination {
+  totalCount: number
+  pageNumber: number
+  pageSize: number
+  totalPages: number
+  hasPreviousPage: boolean
+  hasNextPage: boolean
+}
+
+export interface SubmissionListQueryParams {
+  pageNumber?: number
+  pageSize?: number
 }
