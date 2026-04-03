@@ -16,6 +16,7 @@ import { useSubmitIdea } from '@/hooks/useIdeas'
 import { useSubmissions } from '@/hooks/useSubmissions'
 import { CATEGORY_SELECT_PAGE_SIZE } from '@/constants/category'
 import { auth } from '@/lib/auth'
+import { appNotification } from '@/lib/notifications'
 
 const initialForm: IdeaSubmitPayload = {
   title: '',
@@ -74,7 +75,6 @@ export default function SubmitIdeaPage() {
   })
   const { mutateAsync: submitIdea, isPending } = useSubmitIdea()
   const [form, setForm] = useState<IdeaSubmitPayload>(initialForm)
-  const [feedbackMessage, setFeedbackMessage] = useState('')
   const [fileValidationMessage, setFileValidationMessage] = useState('')
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [selectedSubmissionId, setSelectedSubmissionId] = useState<
@@ -117,7 +117,6 @@ export default function SubmitIdeaPage() {
   const handleReset = () => {
     setForm(initialForm)
     setAgreedToTerms(false)
-    setFeedbackMessage('')
     setFileValidationMessage('')
 
     if (fileInputRef.current) {
@@ -128,7 +127,6 @@ export default function SubmitIdeaPage() {
   const openSubmissionDetails = (submissionId: string) => {
     setSelectedSubmissionId(submissionId)
     setShowSubmitForm(false)
-    setFeedbackMessage('')
     setFileValidationMessage('')
     setForm((prev) => ({ ...prev, submissionId }))
   }
@@ -136,7 +134,6 @@ export default function SubmitIdeaPage() {
   const handleOpenSubmitForm = () => {
     if (!selectedSubmission) return
     setForm((prev) => ({ ...prev, submissionId: selectedSubmission.id }))
-    setFeedbackMessage('')
     setFileValidationMessage('')
     setShowSubmitForm(true)
   }
@@ -149,7 +146,6 @@ export default function SubmitIdeaPage() {
 
   const handleBackToDetails = () => {
     setShowSubmitForm(false)
-    setFeedbackMessage('')
     setFileValidationMessage('')
   }
 
@@ -182,34 +178,32 @@ export default function SubmitIdeaPage() {
   }
 
   const handleSubmit = async () => {
-    setFeedbackMessage('')
-
     if (
       !form.title.trim() ||
       !form.description.trim() ||
       !form.categoryId ||
       !selectedSubmission
     ) {
-      setFeedbackMessage(
+      appNotification.warning(
         'Please complete all required fields before submitting.',
       )
       return
     }
 
     if (isSubmissionClosed(selectedSubmission.closureDate)) {
-      setFeedbackMessage(
+      appNotification.warning(
         'This submission window is already closed. Please choose another available submission.',
       )
       return
     }
 
     if (!agreedToTerms) {
-      setFeedbackMessage('You must agree to the Terms and Conditions.')
+      appNotification.warning('You must agree to the Terms and Conditions.')
       return
     }
 
     if (fileValidationMessage) {
-      setFeedbackMessage(fileValidationMessage)
+      appNotification.warning(fileValidationMessage)
       return
     }
 
@@ -233,7 +227,7 @@ export default function SubmitIdeaPage() {
     const response = await submitIdea(formData)
 
     if (!response.success) {
-      setFeedbackMessage(response.error ?? 'Unable to submit your idea.')
+      appNotification.error(response.error ?? 'Unable to submit your idea.')
       return
     }
 
@@ -244,6 +238,7 @@ export default function SubmitIdeaPage() {
     ])
 
     handleReset()
+    appNotification.success('Idea submitted successfully.')
     navigate({ to: '/ideas' })
   }
 
@@ -633,12 +628,6 @@ export default function SubmitIdeaPage() {
               </label>
             </div>
           </SectionCard>
-
-          {feedbackMessage && (
-            <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
-              {feedbackMessage}
-            </div>
-          )}
 
           <div className="flex flex-wrap justify-end gap-3">
             <AppButton

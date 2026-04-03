@@ -18,6 +18,7 @@ import {
   useDeleteSubmission,
   useUpdateSubmission,
 } from '@/hooks/useSubmissions'
+import { appNotification } from '@/lib/notifications'
 
 interface SubmissionFormState {
   name: string
@@ -127,7 +128,6 @@ export default function ManageSubmissionPage() {
   const [form, setForm] = useState<SubmissionFormState>(initialForm)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
-  const [feedbackMessage, setFeedbackMessage] = useState('')
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState<'all' | SubmissionLifecycle>(
     'all',
@@ -169,7 +169,6 @@ export default function ManageSubmissionPage() {
   }
 
   const openCreateModal = () => {
-    setFeedbackMessage('')
     setEditingId(null)
     setForm(initialForm)
     setIsFormModalOpen(true)
@@ -187,12 +186,12 @@ export default function ManageSubmissionPage() {
       !form.closureDate ||
       !form.finalClosureDate
     ) {
-      setFeedbackMessage('Please complete all submission fields.')
+      appNotification.warning('Please complete all submission fields.')
       return false
     }
 
     if (new Date(form.finalClosureDate) < new Date(form.closureDate)) {
-      setFeedbackMessage(
+      appNotification.warning(
         'Final closure date must be later than or equal to closure date.',
       )
       return false
@@ -211,22 +210,20 @@ export default function ManageSubmissionPage() {
       finalClosureDate: form.finalClosureDate,
     }
 
-    setFeedbackMessage('')
-
     try {
       if (editingId) {
         await updateSubmission({ id: editingId, request: payload })
-        setFeedbackMessage('Submission updated successfully.')
+        appNotification.success('Submission updated successfully.')
       } else {
         await createSubmission(payload)
-        setFeedbackMessage('Submission created successfully.')
+        appNotification.success('Submission created successfully.')
         setCurrentPage(1)
       }
 
       await refreshSubmissions()
       closeFormModal()
     } catch (err) {
-      setFeedbackMessage(
+      appNotification.error(
         err instanceof Error ? err.message : 'Unable to save submission.',
       )
     }
@@ -240,7 +237,6 @@ export default function ManageSubmissionPage() {
       closureDate: submission.closureDate.slice(0, 10),
       finalClosureDate: submission.finalClosureDate.slice(0, 10),
     })
-    setFeedbackMessage('')
     setIsFormModalOpen(true)
   }
 
@@ -250,12 +246,12 @@ export default function ManageSubmissionPage() {
     try {
       await deleteSubmission(deleteConfirmId)
       await refreshSubmissions()
-      setFeedbackMessage('Submission deleted successfully.')
+      appNotification.success('Submission deleted successfully.')
       if (editingId === deleteConfirmId) {
         closeFormModal()
       }
     } catch (err) {
-      setFeedbackMessage(
+      appNotification.error(
         err instanceof Error ? err.message : 'Unable to delete submission.',
       )
     } finally {
@@ -269,12 +265,6 @@ export default function ManageSubmissionPage() {
         title="Manage Submissions"
         description="Create and maintain academic-year submission windows, closure dates, and final closure dates."
       />
-
-      {feedbackMessage && (
-        <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
-          {feedbackMessage}
-        </div>
-      )}
 
       <SectionCard>
         <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">

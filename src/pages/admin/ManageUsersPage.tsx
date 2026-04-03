@@ -24,6 +24,7 @@ import { Modal } from '@/components/shared/Modal'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { auth } from '@/lib/auth'
+import { appNotification } from '@/lib/notifications'
 
 interface CreateFormState {
   email: string
@@ -38,11 +39,6 @@ interface EditFormState {
   role: string
   departmentId: string
 }
-
-type FeedbackState = {
-  tone: 'success' | 'error'
-  message: string
-} | null
 
 type ValidationErrors = Partial<
   Record<keyof CreateFormState | keyof EditFormState, string>
@@ -152,7 +148,6 @@ export default function ManageUsersPage() {
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
-  const [feedback, setFeedback] = useState<FeedbackState>(null)
   const [createForm, setCreateForm] =
     useState<CreateFormState>(initialCreateForm)
   const [createErrors, setCreateErrors] = useState<ValidationErrors>({})
@@ -218,10 +213,7 @@ export default function ManageUsersPage() {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['adminUsers'] })
-      setFeedback({
-        tone: 'success',
-        message: 'User account created successfully.',
-      })
+      appNotification.success('User account created successfully.')
       closeUserForm()
     },
   })
@@ -244,10 +236,7 @@ export default function ManageUsersPage() {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['adminUsers'] })
-      setFeedback({
-        tone: 'success',
-        message: 'User information updated successfully.',
-      })
+      appNotification.success('User information updated successfully.')
       closeUserForm()
     },
   })
@@ -262,10 +251,7 @@ export default function ManageUsersPage() {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['adminUsers'] })
-      setFeedback({
-        tone: 'success',
-        message: 'User deleted successfully.',
-      })
+      appNotification.success('User deleted successfully.')
       setDeleteConfirmUser(null)
     },
   })
@@ -356,8 +342,6 @@ export default function ManageUsersPage() {
   }
 
   const handleCreateSubmit = async () => {
-    setFeedback(null)
-
     if (!validateCreateForm()) {
       return
     }
@@ -365,18 +349,15 @@ export default function ManageUsersPage() {
     try {
       await createUserMutation.mutateAsync(createForm)
     } catch (mutationError) {
-      setFeedback({
-        tone: 'error',
-        message:
-          mutationError instanceof Error
-            ? mutationError.message
-            : 'Unable to create user.',
-      })
+      appNotification.error(
+        mutationError instanceof Error
+          ? mutationError.message
+          : 'Unable to create user.',
+      )
     }
   }
 
   const handleEditStart = (user: User) => {
-    setFeedback(null)
     setEditingUserId(user.id)
     setEditErrors({})
     setEditForm({
@@ -392,8 +373,6 @@ export default function ManageUsersPage() {
       return
     }
 
-    setFeedback(null)
-
     try {
       await updateUserMutation.mutateAsync({
         userId: editingUserId,
@@ -404,13 +383,11 @@ export default function ManageUsersPage() {
         },
       })
     } catch (mutationError) {
-      setFeedback({
-        tone: 'error',
-        message:
-          mutationError instanceof Error
-            ? mutationError.message
-            : 'Unable to update user.',
-      })
+      appNotification.error(
+        mutationError instanceof Error
+          ? mutationError.message
+          : 'Unable to update user.',
+      )
     }
   }
 
@@ -421,7 +398,6 @@ export default function ManageUsersPage() {
   }
 
   const openCreateModal = () => {
-    setFeedback(null)
     setIsUserFormOpen(true)
     setEditingUserId(null)
     setEditForm(initialEditForm)
@@ -438,11 +414,6 @@ export default function ManageUsersPage() {
     setCreateForm(initialCreateForm)
     setCreateErrors({})
   }
-
-  const feedbackClassName =
-    feedback?.tone === 'error'
-      ? 'border-rose-200 bg-rose-50 text-rose-700'
-      : 'border-emerald-200 bg-emerald-50 text-emerald-700'
 
   return (
     <div className="mx-auto w-full max-w-7xl">
@@ -466,14 +437,6 @@ export default function ManageUsersPage() {
           </>
         }
       />
-
-      {feedback && (
-        <div
-          className={`mb-6 rounded-2xl border px-4 py-3 text-sm ${feedbackClassName}`}
-        >
-          {feedback.message}
-        </div>
-      )}
 
       <div className="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {[
@@ -985,13 +948,11 @@ export default function ManageUsersPage() {
           if (deleteConfirmUser) {
             deleteUserMutation.mutate(deleteConfirmUser.id, {
               onError: (mutationError) => {
-                setFeedback({
-                  tone: 'error',
-                  message:
-                    mutationError instanceof Error
-                      ? mutationError.message
-                      : 'Unable to delete user.',
-                })
+                appNotification.error(
+                  mutationError instanceof Error
+                    ? mutationError.message
+                    : 'Unable to delete user.',
+                )
               },
             })
           }

@@ -14,6 +14,7 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { Modal } from '@/components/shared/Modal'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
+import { appNotification } from '@/lib/notifications'
 
 interface DepartmentForm {
   name: string
@@ -35,7 +36,6 @@ export default function ManageDepartmentsPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<DepartmentForm>(initialForm)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
-  const [feedbackMessage, setFeedbackMessage] = useState('')
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
   const [searchValue, setSearchValue] = useState('')
   const deferredSearch = useDeferredValue(searchValue.trim())
@@ -120,7 +120,6 @@ export default function ManageDepartmentsPage() {
   }
 
   const openCreateModal = () => {
-    setFeedbackMessage('')
     setEditingId(null)
     setForm(initialForm)
     setIsFormModalOpen(true)
@@ -128,11 +127,9 @@ export default function ManageDepartmentsPage() {
 
   const handleSubmit = async () => {
     if (!form.name.trim()) {
-      setFeedbackMessage('Department name is required.')
+      appNotification.warning('Department name is required.')
       return
     }
-
-    setFeedbackMessage('')
 
     try {
       if (editingId) {
@@ -140,20 +137,20 @@ export default function ManageDepartmentsPage() {
           name: form.name.trim(),
           description: form.description.trim(),
         })
-        setFeedbackMessage('Department updated successfully.')
+        appNotification.success('Department updated successfully.')
       } else {
         await createMutation.mutateAsync({
           name: form.name.trim(),
           description: form.description.trim(),
         })
-        setFeedbackMessage('Department created successfully.')
+        appNotification.success('Department created successfully.')
         setCurrentPage(1)
       }
 
       await refreshDepartments()
       closeFormModal()
     } catch (mutationError) {
-      setFeedbackMessage(
+      appNotification.error(
         mutationError instanceof Error
           ? mutationError.message
           : editingId
@@ -164,7 +161,6 @@ export default function ManageDepartmentsPage() {
   }
 
   const handleEdit = (department: Department) => {
-    setFeedbackMessage('')
     setEditingId(department.id)
     setForm({
       name: department.name,
@@ -179,13 +175,13 @@ export default function ManageDepartmentsPage() {
     try {
       await deleteMutation.mutateAsync(deleteConfirm)
       await refreshDepartments()
-      setFeedbackMessage('Department deleted successfully.')
+      appNotification.success('Department deleted successfully.')
 
       if (editingId === deleteConfirm) {
         closeFormModal()
       }
     } catch (mutationError) {
-      setFeedbackMessage(
+      appNotification.error(
         mutationError instanceof Error
           ? mutationError.message
           : 'Unable to delete department.',
@@ -209,12 +205,6 @@ export default function ManageDepartmentsPage() {
           />
         }
       />
-
-      {feedbackMessage && (
-        <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
-          {feedbackMessage}
-        </div>
-      )}
 
       <SectionCard>
         <div className="mb-6 flex flex-col gap-3 sm:flex-row">

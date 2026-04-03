@@ -34,6 +34,7 @@ import {
   resolveIdeaVoteStateFromCounts,
   setStoredIdeaVoteStatus,
 } from '@/lib/idea-vote-status'
+import { appNotification } from '@/lib/notifications'
 
 interface IdeaDetailPageProps {
   ideaId: string
@@ -67,9 +68,7 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
   const [commentText, setCommentText] = useState('')
   const [isAnonymous, setIsAnonymous] = useState(false)
   const [postedComments, setPostedComments] = useState<IdeaComment[]>([])
-  const [feedbackMessage, setFeedbackMessage] = useState('')
   const [reviewReason, setReviewReason] = useState('')
-  const [reviewFeedbackMessage, setReviewFeedbackMessage] = useState('')
   const [currentThumbStatus, setCurrentThumbStatus] = useState(
     getResolvedIdeaVoteStatus(ideaId),
   )
@@ -121,7 +120,6 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
   }
 
   const handleLike = async () => {
-    setFeedbackMessage('')
     const previousThumbStatus = currentThumbStatus
 
     const response = await voteOnIdea({
@@ -130,7 +128,7 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
     })
 
     if (!response.success) {
-      setFeedbackMessage(response.error ?? 'Unable to register your vote.')
+      appNotification.error(response.error ?? 'Unable to register your vote.')
       return
     }
 
@@ -160,7 +158,7 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
     setStoredIdeaVoteStatus(ideaId, nextVoteState.nextThumbStatus)
 
     await refreshIdeaQueries()
-    setFeedbackMessage(
+    appNotification.success(
       getIdeaVoteFeedbackMessage(
         true,
         nextVoteState.nextThumbStatus,
@@ -170,7 +168,6 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
   }
 
   const handleDislike = async () => {
-    setFeedbackMessage('')
     const previousThumbStatus = currentThumbStatus
 
     const response = await voteOnIdea({
@@ -179,7 +176,7 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
     })
 
     if (!response.success) {
-      setFeedbackMessage(response.error ?? 'Unable to register your vote.')
+      appNotification.error(response.error ?? 'Unable to register your vote.')
       return
     }
 
@@ -209,7 +206,7 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
     setStoredIdeaVoteStatus(ideaId, nextVoteState.nextThumbStatus)
 
     await refreshIdeaQueries()
-    setFeedbackMessage(
+    appNotification.success(
       getIdeaVoteFeedbackMessage(
         false,
         nextVoteState.nextThumbStatus,
@@ -220,16 +217,14 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
 
   const handleCommentSubmit = async () => {
     if (!canComment) {
-      setFeedbackMessage('Commenting is currently unavailable for this idea.')
+      appNotification.warning('Commenting is currently unavailable for this idea.')
       return
     }
 
     if (!commentText.trim()) {
-      setFeedbackMessage('Please write a comment before posting.')
+      appNotification.warning('Please write a comment before posting.')
       return
     }
-
-    setFeedbackMessage('')
 
     const response = await addComment({
       ideaId,
@@ -240,7 +235,7 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
     })
 
     if (!response.success) {
-      setFeedbackMessage(response.error ?? 'Unable to post your comment.')
+      appNotification.error(response.error ?? 'Unable to post your comment.')
       return
     }
 
@@ -250,7 +245,7 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
       setPostedComments((prev) => [response.data!, ...prev])
     }
     await refreshIdeaQueries()
-    setFeedbackMessage('Comment posted successfully.')
+    appNotification.success('Comment posted successfully.')
   }
 
   const handleReview = async (isApproved: boolean) => {
@@ -259,11 +254,9 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
     }
 
     if (!isApproved && !reviewReason.trim()) {
-      setReviewFeedbackMessage('Please provide a rejection reason.')
+      appNotification.warning('Please provide a rejection reason.')
       return
     }
-
-    setReviewFeedbackMessage('')
 
     const response = await reviewIdea({
       ideaId,
@@ -274,7 +267,7 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
     })
 
     if (!response.success) {
-      setReviewFeedbackMessage(
+      appNotification.error(
         response.error === 'HTTP 403'
           ? 'The backend is still denying review permission for this account.'
           : response.error ??
@@ -288,7 +281,7 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
     }
 
     await refreshIdeaQueries()
-    setReviewFeedbackMessage(
+    appNotification.success(
       isApproved
         ? 'Idea approved successfully.'
         : 'Idea rejected successfully.',
@@ -407,12 +400,6 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
               title="Review decision"
               description="Approve the idea for publication or reject it with feedback."
             >
-              {reviewFeedbackMessage ? (
-                <div className="mb-5 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
-                  {reviewFeedbackMessage}
-                </div>
-              ) : null}
-
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
                 <div className="flex items-start gap-3">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
@@ -471,12 +458,6 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
             title="Comments"
             description="View existing comments and post a new one."
           >
-            {feedbackMessage ? (
-              <div className="mb-5 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
-                {feedbackMessage}
-              </div>
-            ) : null}
-
             <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.8fr)_360px]">
               {visibleComments.length > 0 ? (
                 <div className="space-y-4">

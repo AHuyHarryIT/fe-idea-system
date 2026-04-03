@@ -18,6 +18,7 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { useAllIdeasMatching, useReviewIdea } from '@/hooks/useIdeas'
 import { normalizeIdeaResponse } from '@/lib/idea-response-mapper'
+import { appNotification } from '@/lib/notifications'
 
 function formatDate(dateString?: string) {
   if (!dateString) return '—'
@@ -76,9 +77,6 @@ export default function ReviewIdea() {
   const { mutateAsync: reviewIdea, isPending: isReviewing } = useReviewIdea()
   const [activeIdeaId, setActiveIdeaId] = useState<string | null>(null)
   const [reviewReasons, setReviewReasons] = useState<Record<string, string>>({})
-  const [reviewFeedback, setReviewFeedback] = useState<Record<string, string>>(
-    {},
-  )
 
   const ideas = useMemo(() => normalizeIdeaResponse(data), [data])
 
@@ -91,18 +89,13 @@ export default function ReviewIdea() {
     const rejectionReason = (reviewReasons[ideaId] || '').trim()
 
     if (!isApproved && !rejectionReason) {
-      setReviewFeedback((prev) => ({
-        ...prev,
-        [ideaId]: 'Please provide a rejection reason before rejecting.',
-      }))
+      appNotification.warning(
+        'Please provide a rejection reason before rejecting.',
+      )
       return
     }
 
     setActiveIdeaId(ideaId)
-    setReviewFeedback((prev) => ({
-      ...prev,
-      [ideaId]: '',
-    }))
 
     const response = await reviewIdea({
       ideaId,
@@ -113,10 +106,7 @@ export default function ReviewIdea() {
     })
 
     if (!response.success) {
-      setReviewFeedback((prev) => ({
-        ...prev,
-        [ideaId]: getReviewErrorMessage(response.error),
-      }))
+      appNotification.error(getReviewErrorMessage(response.error))
       setActiveIdeaId(null)
       return
     }
@@ -124,12 +114,6 @@ export default function ReviewIdea() {
     setReviewReasons((prev) => ({
       ...prev,
       [ideaId]: '',
-    }))
-    setReviewFeedback((prev) => ({
-      ...prev,
-      [ideaId]: isApproved
-        ? 'Idea approved successfully.'
-        : 'Idea rejected successfully.',
     }))
 
     await Promise.all([
@@ -141,6 +125,11 @@ export default function ReviewIdea() {
     ])
 
     setActiveIdeaId(null)
+    appNotification.success(
+      isApproved
+        ? 'Idea approved successfully.'
+        : 'Idea rejected successfully.',
+    )
   }
 
   return (
@@ -264,12 +253,6 @@ export default function ReviewIdea() {
                       </AppButton>
                     </div>
                   </div>
-
-                  {reviewFeedback[idea.id] ? (
-                    <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
-                      {reviewFeedback[idea.id]}
-                    </div>
-                  ) : null}
                 </article>
               )
             })}

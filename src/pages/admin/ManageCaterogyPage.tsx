@@ -19,6 +19,7 @@ import {
   useUpdateIdeaCategory,
 } from '@/hooks/useCategories'
 import { extractCollection, mapCategory } from '@/lib/api-mappers'
+import { appNotification } from '@/lib/notifications'
 
 const DEFAULT_PAGE_SIZE = 10
 const PAGE_SIZE_OPTIONS = ['10', '20', '50']
@@ -43,7 +44,6 @@ export default function ManageCategoryPage() {
 
   const [name, setName] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [feedbackMessage, setFeedbackMessage] = useState('')
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
 
@@ -81,14 +81,12 @@ export default function ManageCategoryPage() {
   }
 
   const openCreateModal = () => {
-    setFeedbackMessage('')
     setName('')
     setEditingId(null)
     setIsFormModalOpen(true)
   }
 
   const handleEdit = (categoryId: string, categoryName: string) => {
-    setFeedbackMessage('')
     setEditingId(categoryId)
     setName(categoryName)
     setIsFormModalOpen(true)
@@ -96,26 +94,24 @@ export default function ManageCategoryPage() {
 
   const handleSaveCategory = async () => {
     if (!name.trim()) {
-      setFeedbackMessage('Category name is required.')
+      appNotification.warning('Category name is required.')
       return
     }
-
-    setFeedbackMessage('')
 
     try {
       if (editingId) {
         await updateIdeaCategory({ id: editingId, request: { name: name.trim() } })
-        setFeedbackMessage('Category updated successfully.')
+        appNotification.success('Category updated successfully.')
       } else {
         await createIdeaCategory({ name: name.trim() })
-        setFeedbackMessage('Category created successfully.')
+        appNotification.success('Category created successfully.')
         setCurrentPage(1)
       }
 
       await refreshCategoryQueries()
       closeFormModal()
     } catch (err) {
-      setFeedbackMessage(
+      appNotification.error(
         err instanceof Error
           ? err.message
           : editingId
@@ -128,18 +124,16 @@ export default function ManageCategoryPage() {
   const handleDeleteCategory = async () => {
     if (!deleteConfirmId) return
 
-    setFeedbackMessage('')
-
     try {
       await deleteIdeaCategory(deleteConfirmId)
       await refreshCategoryQueries()
-      setFeedbackMessage('Category deleted successfully.')
+      appNotification.success('Category deleted successfully.')
 
       if (editingId === deleteConfirmId) {
         closeFormModal()
       }
     } catch (err) {
-      setFeedbackMessage(
+      appNotification.error(
         err instanceof Error ? err.message : 'Unable to delete category.',
       )
     } finally {
@@ -161,12 +155,6 @@ export default function ManageCategoryPage() {
           />
         }
       />
-
-      {feedbackMessage && (
-        <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
-          {feedbackMessage}
-        </div>
-      )}
 
       <SectionCard>
         <div className="mb-6 flex flex-col gap-3 sm:flex-row">

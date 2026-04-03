@@ -22,6 +22,7 @@ import {
   resolveIdeaVoteStateFromCounts,
   setStoredIdeaVoteStatus,
 } from '@/lib/idea-vote-status'
+import { appNotification } from '@/lib/notifications'
 
 interface IdeaCardProps {
   idea: Idea
@@ -64,7 +65,6 @@ function getThumbStatusMeta(thumbStatus?: number) {
 export function IdeaCard({ idea }: IdeaCardProps) {
   const queryClient = useQueryClient()
   const { mutateAsync: voteOnIdea, isPending: isVoting } = useVoteOnIdea()
-  const [feedbackMessage, setFeedbackMessage] = useState('')
   const [currentThumbStatus, setCurrentThumbStatus] = useState(
     getResolvedIdeaVoteStatus(idea.id, idea.thumbStatus),
   )
@@ -82,7 +82,6 @@ export function IdeaCard({ idea }: IdeaCardProps) {
     setCurrentThumbStatus(getResolvedIdeaVoteStatus(idea.id, idea.thumbStatus))
     setThumbsUpCount(idea.thumbsUpCount ?? 0)
     setThumbsDownCount(idea.thumbsDownCount ?? 0)
-    setFeedbackMessage('')
   }, [idea.id, idea.thumbStatus, idea.thumbsUpCount, idea.thumbsDownCount])
 
   const refreshIdeaQueries = async () => {
@@ -97,7 +96,6 @@ export function IdeaCard({ idea }: IdeaCardProps) {
   }
 
   const handleVote = async (isThumbsUp: boolean) => {
-    setFeedbackMessage('')
     const previousThumbStatus = currentThumbStatus
 
     const response = await voteOnIdea({
@@ -106,7 +104,7 @@ export function IdeaCard({ idea }: IdeaCardProps) {
     })
 
     if (!response.success) {
-      setFeedbackMessage(response.error ?? 'Unable to register your vote.')
+      appNotification.error(response.error ?? 'Unable to register your vote.')
       return
     }
 
@@ -136,7 +134,7 @@ export function IdeaCard({ idea }: IdeaCardProps) {
     setStoredIdeaVoteStatus(idea.id, nextVoteState.nextThumbStatus)
 
     await refreshIdeaQueries()
-    setFeedbackMessage(
+    appNotification.success(
       getIdeaVoteFeedbackMessage(
         isThumbsUp,
         nextVoteState.nextThumbStatus,
@@ -236,11 +234,6 @@ export function IdeaCard({ idea }: IdeaCardProps) {
           </div>
         </div>
       </div>
-      {feedbackMessage ? (
-        <p className="mt-4 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
-          {feedbackMessage}
-        </p>
-      ) : null}
     </article>
   )
 }
