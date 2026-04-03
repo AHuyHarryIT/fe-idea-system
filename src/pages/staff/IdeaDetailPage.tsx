@@ -382,12 +382,6 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
         Back to ideas
       </Link>
 
-      {!canComment ? (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-          Commenting is currently unavailable for this idea.
-        </div>
-      ) : null}
-
       <section className="rounded-[32px] border border-slate-200/80 bg-white p-7 shadow-[0_1px_2px_rgba(15,23,42,0.03),0_18px_50px_rgba(15,23,42,0.06)]">
         <div className="flex flex-col gap-8 xl:flex-row xl:items-start xl:justify-between">
           <div className="min-w-0 flex-1 space-y-5">
