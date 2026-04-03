@@ -1,5 +1,5 @@
 import { authService, extractAuthResponse } from '@/api'
-import type { LoginRequest } from '@/api/auth'
+import type { LoginRequest } from '@/types'
 import { auth, normalizeRole } from '@/lib/auth'
 import { useMutation } from '@tanstack/react-query'
 

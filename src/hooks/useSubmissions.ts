@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
-import type { SubmissionCreateRequest } from '@/api/submissions'
+import type { SubmissionCreateRequest } from '@/types'
 import { submissionService } from '@/api/submissions'
 
 export const useSubmissions = () => {

@@ -7,7 +7,7 @@ import {
   Search,
   XCircle,
 } from 'lucide-react'
-import type { Idea } from '@/api'
+import type { Idea } from '@/types'
 import { AppButton } from '@/components/app/AppButton'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { Modal } from '@/components/shared/Modal'

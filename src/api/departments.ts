@@ -1,26 +1,10 @@
 import { apiClient } from './client'
-import type { ApiResponse } from './client'
-
-export interface Department {
-  id: string
-  name: string
-  description?: string
-  ideas?: { id: string; text: string }[]
-}
-
-export interface DepartmentListResponse {
-  departments?: Department[]
-}
-
-export interface CreateDepartmentPayload {
-  name: string
-  description?: string
-}
-
-export interface UpdateDepartmentPayload {
-  name: string
-  description?: string
-}
+import type {
+  ApiResponse,
+  CreateDepartmentPayload,
+  Department,
+  UpdateDepartmentPayload,
+} from '@/types'
 
 export const departmentService = {
   getDepartments: async (): Promise<ApiResponse<Department[]>> =>

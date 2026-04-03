@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
-import type { CreateIdeaCategoryRequest } from '@/api/categories'
+import type { CreateIdeaCategoryRequest } from '@/types'
 import { categoryService } from '@/api/categories'
 
 export const useIdeaCategories = () => {

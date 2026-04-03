@@ -1,5 +1,4 @@
-import type { IdeaCategory } from '@/api/categories'
-import type { Submission } from '@/api/submissions'
+import type { IdeaCategory, Submission } from '@/types'
 import type { IdeaDetailModel, IdeaSummary } from '@/types/idea'
 
 type UnknownRecord = Record<string, unknown>

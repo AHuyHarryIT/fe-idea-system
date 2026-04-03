@@ -8,7 +8,7 @@ import {
   Search,
   XCircle,
 } from 'lucide-react'
-import type { Idea } from '@/api'
+import type { Idea } from '@/types'
 import { AppButton } from '@/components/app/AppButton'
 import { FormField } from '@/components/forms/FormField'
 import { FormTextarea } from '@/components/forms/FormInput'

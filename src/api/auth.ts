@@ -1,26 +1,7 @@
 import { apiClient } from './client'
-import type { ApiResponse } from './client'
+import type { ApiResponse, AuthResponse, LoginRequest } from '@/types'
 
 type UnknownRecord = Record<string, unknown>
-
-export interface LoginRequest {
-  email: string
-  password: string
-}
-
-export interface RegisterRequest {
-  email: string
-  password: string
-  name: string
-}
-
-export interface AuthResponse {
-  token: string
-  role: string
-  userId: string
-  email: string
-  name: string
-}
 
 function isRecord(value: unknown): value is UnknownRecord {
   return typeof value === 'object' && value !== null

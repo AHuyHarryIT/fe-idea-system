@@ -1,14 +1,5 @@
 import { apiClient } from './client'
-import type { ApiResponse } from './client'
-
-export interface IdeaCategory {
-  id: string
-  name: string
-}
-
-export interface CreateIdeaCategoryRequest {
-  name: string
-}
+import type { ApiResponse, CreateIdeaCategoryRequest, IdeaCategory } from '@/types'
 
 export const categoryService = {
   getIdeaCategories: (): Promise<ApiResponse<IdeaCategory[]>> =>

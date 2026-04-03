@@ -1,42 +1,14 @@
 import { apiClient } from './client'
-import type { ApiResponse } from './client'
-
-export interface DashboardStats {
-  totalIdeas?: number
-  totalVotes?: number
-  totalComments?: number
-  departmentIdeas?: number
-  pendingReview?: number
-}
-
-export interface DepartmentStat {
-  departmentName: string
-  ideaCount: number
-  percentage: number
-  contributorCount?: number
-}
-
-export interface StaffDashboard {
-  stats: DashboardStats
-  recentIdeas: { id: string; text: string; createdAt: string }[]
-}
-
-export interface AdminDashboard {
-  stats: DashboardStats
-  recentSubmissions: { id: string; name: string; closureDate: string }[]
-  userCount: number
-}
-
-export interface QACoordinatorDashboard {
-  stats: DashboardStats
-  departmentStats: { department: string; count: number }[]
-}
-
-export interface QAManagerDashboard {
-  stats: DashboardStats
-  pendingIdeas?: number
-  ideasWithoutComments?: number
-}
+import type {
+  AdminDashboard,
+  ApiResponse,
+  DashboardIdeaReference,
+  DashboardStats,
+  DepartmentStat,
+  QACoordinatorDashboard,
+  QAManagerDashboard,
+  StaffDashboard,
+} from '@/types'
 
 export const dashboardService = {
   // General stats
@@ -46,8 +18,8 @@ export const dashboardService = {
   getDepartmentStats: (): Promise<ApiResponse<DepartmentStat[]>> =>
     apiClient.get<DepartmentStat[]>('/stats/departments'),
 
-  getIdeasWithoutComments: (): Promise<ApiResponse<{ id: string; text: string }[]>> =>
-    apiClient.get<{ id: string; text: string }[]>('/stats/ideas-without-comments'),
+  getIdeasWithoutComments: (): Promise<ApiResponse<DashboardIdeaReference[]>> =>
+    apiClient.get<DashboardIdeaReference[]>('/stats/ideas-without-comments'),
 
   // Staff dashboard
   getStaffDashboard: (): Promise<ApiResponse<StaffDashboard>> =>

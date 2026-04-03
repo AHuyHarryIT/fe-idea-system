@@ -1,3 +1,84 @@
+export interface Idea {
+  id: string
+  text?: string
+  title?: string
+  description?: string
+  categoryId?: string
+  categoryName: string
+  submissionId?: string
+  submissionName?: string
+  votes?: number
+  commentsCount?: number
+  thumbsUpCount?: number
+  thumbsDownCount?: number
+  thumbStatus?: number
+  commentCount?: number
+  isAnonymous: boolean
+  createdBy?: string
+  authorName?: string
+  createdAt?: string
+  createdDate?: string
+  status?: string
+  reviewStatus?: number
+  rejectionReason?: string
+  viewCount?: number
+  canComment?: boolean
+  departmentName?: string
+  comments?: Comment[]
+}
+
+export interface IdeaListResponse {
+  items?: Idea[]
+  ideas?: Idea[]
+  totalCount?: number
+  total?: number
+  pageNumber: number
+  pageSize: number
+  totalPages?: number
+}
+
+export interface IdeaListQueryParams {
+  pageNumber?: number
+  pageSize?: number
+  submissionId?: string
+  sortBy?: string
+  departmentId?: string
+  reviewStatus?: number
+}
+
+export interface IdeaCreateRequest {
+  text: string
+  description?: string
+  categoryId: string
+  submissionId?: string
+  isAnonymous?: boolean
+}
+
+export interface Comment {
+  id: string
+  text?: string
+  content?: string
+  isAnonymous: boolean
+  createdBy?: string
+  authorName?: string
+  createdAt?: string
+  createdDate?: string
+}
+
+export interface CommentCreateRequest {
+  content: string
+  isAnonymous: boolean
+}
+
+export interface VoteRequest {
+  isThumbsUp?: boolean
+}
+
+export interface ReviewIdeaRequest {
+  isApproved: boolean
+  rejectionReason?: string
+}
+
 export interface IdeaSummary {
   id: string
   title: string

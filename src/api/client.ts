@@ -1,15 +1,10 @@
 import { auth } from '@/lib/auth'
+import type { ApiResponse } from '@/types'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL
 
 if (!API_BASE_URL) {
   throw new Error('Missing VITE_API_URL in .env')
-}
-
-export interface ApiResponse<T> {
-  success: boolean
-  data?: T
-  error?: string
 }
 
 type ApiQueryValue = string | number | boolean | null | undefined

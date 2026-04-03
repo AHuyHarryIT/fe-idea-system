@@ -1,4 +1,4 @@
-import type { Idea } from '@/api'
+import type { Idea } from '@/types'
 
 type IdeaResponseData =
   | Idea[]

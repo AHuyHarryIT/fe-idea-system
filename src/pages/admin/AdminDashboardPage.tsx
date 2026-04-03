@@ -8,7 +8,7 @@ import {
   submissionService,
   userService,
 } from '@/api'
-import type { Idea, IdeaListResponse } from '@/api'
+import type { Idea, IdeaListResponse } from '@/types'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'

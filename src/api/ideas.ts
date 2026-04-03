@@ -1,86 +1,15 @@
 import { apiClient } from './client'
-import type { ApiResponse } from './client'
-
-export interface Idea {
-  id: string
-  text?: string // Frontend field
-  title?: string // API field (backend sometimes returns this instead of text)
-  description?: string
-  categoryId?: string
-  categoryName: string
-  submissionId?: string
-  submissionName?: string
-  votes?: number
-  commentsCount?: number
-  thumbsUpCount?: number
-  thumbsDownCount?: number
-  thumbStatus?: number
-  commentCount?: number
-  isAnonymous: boolean
-  createdBy?: string
-  authorName?: string
-  createdAt?: string
-  createdDate?: string
-  status?: string
-  reviewStatus?: number
-  rejectionReason?: string
-  viewCount?: number
-  canComment?: boolean
-  departmentName?: string
-  comments?: Comment[]
-}
-
-export interface IdeaListResponse {
-  items?: Idea[]
-  ideas?: Idea[]
-  totalCount?: number
-  total?: number
-  pageNumber: number
-  pageSize: number
-  totalPages?: number
-}
-
-export interface IdeaListQueryParams {
-  pageNumber?: number
-  pageSize?: number
-  submissionId?: string
-  sortBy?: string
-  departmentId?: string
-  reviewStatus?: number
-}
-
-export interface IdeaCreateRequest {
-  text: string
-  description?: string
-  categoryId: string
-  submissionId?: string
-  isAnonymous?: boolean
-}
-
-export interface Comment {
-  id: string
-  text?: string
-  content?: string
-  isAnonymous: boolean
-  createdBy?: string
-  authorName?: string
-  createdAt?: string
-  createdDate?: string
-}
-
-export interface CommentCreateRequest {
-  content: string
-  isAnonymous: boolean
-}
-
-export interface VoteRequest {
-  isThumbsUp?: boolean
-}
-
-export interface ReviewIdeaRequest {
-  isApproved: boolean
-  rejectionReason?: string
-}
+import type {
+  ApiResponse,
+  Comment,
+  CommentCreateRequest,
+  Idea,
+  IdeaCreateRequest,
+  IdeaListQueryParams,
+  IdeaListResponse,
+  ReviewIdeaRequest,
+  VoteRequest,
+} from '@/types'
 
 function getIdeasFromListResponse(data?: IdeaListResponse): Idea[] {
   if (!data) {
@@ -139,6 +68,15 @@ function normalizeComment(comment: Comment): Comment {
     content: comment.content ?? comment.text,
     createdDate: comment.createdDate ?? comment.createdAt,
   }
+}
+
+function isComment(value: Comment | { data?: Comment } | undefined): value is Comment {
+  return Boolean(
+    value &&
+      typeof value === 'object' &&
+      'id' in value &&
+      'isAnonymous' in value,
+  )
 }
 
 function normalizeIdeaListResponse(
@@ -333,7 +271,9 @@ export const ideaService = {
           'data' in response.data &&
           response.data.data
             ? response.data.data
-            : (response.data as Comment | undefined)
+            : isComment(response.data)
+              ? response.data
+              : undefined
 
         return {
           ...response,

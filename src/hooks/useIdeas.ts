@@ -4,7 +4,7 @@ import type {
   IdeaListQueryParams,
   ReviewIdeaRequest,
   VoteRequest,
-} from '@/api'
+} from '@/types'
 import { ideaService } from '@/api'
 
 export const useMyIdeas = () => {

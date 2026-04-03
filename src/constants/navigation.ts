@@ -11,12 +11,7 @@ import {
   Users,
 } from 'lucide-react'
 import type { Role } from '@/types/auth'
-
-export interface NavItem {
-  path: string
-  label: string
-  icon: typeof LayoutDashboard
-}
+import type { NavItem } from '@/types'
 
 export const navigationByRole: Record<Role, NavItem[]> = {
   staff: [

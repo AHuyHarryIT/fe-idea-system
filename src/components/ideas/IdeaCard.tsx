@@ -9,7 +9,7 @@ import {
   ThumbsDown,
   ThumbsUp,
 } from 'lucide-react'
-import type { Idea } from '@/api'
+import type { Idea } from '@/types'
 import { AppButton } from '@/components/app/AppButton'
 import { useVoteOnIdea } from '@/hooks/useIdeas'
 

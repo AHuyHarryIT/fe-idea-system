@@ -10,7 +10,7 @@ import {
   Users,
 } from 'lucide-react'
 import { departmentService, userService } from '@/api'
-import type { UpdateUserRequest, User } from '@/api'
+import type { UpdateUserRequest, User } from '@/types'
 import { ActionButton } from '@/components/app/ActionButton'
 import { AppButton } from '@/components/app/AppButton'
 import { FormField } from '@/components/forms/FormField'

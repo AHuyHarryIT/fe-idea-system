@@ -1,27 +1,10 @@
 import { apiClient } from './client'
-import type { ApiResponse } from './client'
-
-export interface Submission {
-  id: string
-  name: string
-  description?: string | null
-  academicYear: string
-  closureDate: string
-  finalClosureDate: string
-  ideaCount?: number
-  isActive?: boolean
-}
-
-export interface SubmissionCreateRequest {
-  name: string
-  academicYear: string
-  closureDate: string
-  finalClosureDate: string
-}
-
-interface SubmissionListResponse {
-  submissions?: Submission[]
-}
+import type {
+  ApiResponse,
+  Submission,
+  SubmissionCreateRequest,
+  SubmissionListResponse,
+} from '@/types'
 
 function normalizeSubmissionsResponse(
   data?: Submission[] | SubmissionListResponse,

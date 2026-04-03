@@ -10,7 +10,7 @@ import {
   ThumbsUp,
   XCircle,
 } from 'lucide-react'
-import type { Comment as IdeaComment } from '@/api'
+import type { Comment as IdeaComment } from '@/types'
 import { AppButton } from '@/components/app/AppButton'
 import { FormField } from '@/components/forms/FormField'
 import { FormTextarea } from '@/components/forms/FormInput'
