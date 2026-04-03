@@ -86,14 +86,26 @@ function normalizeIdeaListResponse(
     return data
   }
 
+  const pagination = data.pagination
+  const totalCount = data.totalCount ?? pagination?.totalCount
+  const pageNumber = data.pageNumber ?? pagination?.pageNumber ?? 1
+  const pageSize = data.pageSize ?? pagination?.pageSize ?? 0
+  const totalPages = data.totalPages ?? pagination?.totalPages
+
   return {
     ...data,
+    pagination,
     items: Array.isArray(data.items)
       ? data.items.map(normalizeIdea)
       : data.items,
     ideas: Array.isArray(data.ideas)
       ? data.ideas.map(normalizeIdea)
       : data.ideas,
+    totalCount,
+    total: data.total ?? totalCount,
+    pageNumber,
+    pageSize,
+    totalPages,
   }
 }
 

@@ -3,6 +3,7 @@ export type { LoginRequest, RegisterRequest, AuthResponse, Role } from './auth'
 export type {
   Idea,
   IdeaListResponse,
+  IdeaListPagination,
   IdeaListQueryParams,
   IdeaCreateRequest,
   Comment,

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Pagination } from 'antd'
 import { Lightbulb, Search } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
@@ -57,11 +57,19 @@ export default function IdeaListPage() {
     })
   }, [category, ideas, search])
 
-  const totalIdeas = data?.totalCount ?? data?.total ?? ideas.length
+  const totalIdeas =
+    data?.pagination?.totalCount ?? data?.totalCount ?? data?.total ?? ideas.length
+  const totalPages = Math.max(1, Math.ceil(totalIdeas / pageSize))
   const hasLocalFilters = search.trim().length > 0 || category.length > 0
   const listDescription = hasLocalFilters
     ? `${filteredIdeas.length} ideas matched on this page.`
     : `${totalIdeas} ideas matched from the live catalogue.`
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages)
+    }
+  }, [currentPage, totalPages])
 
   return (
     <div className="mx-auto w-full max-w-7xl">
@@ -129,6 +137,19 @@ export default function IdeaListPage() {
           </div>
         ) : filteredIdeas.length > 0 ? (
           <>
+            {totalIdeas > 0 ? (
+              <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4 text-sm text-slate-500">
+                <p>
+                  Showing {(currentPage - 1) * pageSize + 1}-
+                  {Math.min(currentPage * pageSize, totalIdeas)} of {totalIdeas}{' '}
+                  ideas
+                </p>
+                <p>
+                  Page {currentPage} of {totalPages}
+                </p>
+              </div>
+            ) : null}
+
             <div className="space-y-4">
               {filteredIdeas.map((idea) => (
                 <IdeaCard key={idea.id} idea={idea} />

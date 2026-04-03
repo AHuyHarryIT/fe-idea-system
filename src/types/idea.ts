@@ -30,11 +30,21 @@ export interface Idea {
 export interface IdeaListResponse {
   items?: Idea[]
   ideas?: Idea[]
+  pagination?: IdeaListPagination
   totalCount?: number
   total?: number
   pageNumber: number
   pageSize: number
   totalPages?: number
+}
+
+export interface IdeaListPagination {
+  totalCount: number
+  pageNumber: number
+  pageSize: number
+  totalPages: number
+  hasPreviousPage: boolean
+  hasNextPage: boolean
 }
 
 export interface IdeaListQueryParams {
