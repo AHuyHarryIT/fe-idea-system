@@ -1,5 +1,6 @@
 import type { IdeaCategory, Submission } from '@/types'
 import type { IdeaDetailModel, IdeaSummary } from '@/types/idea'
+import { formatAppDate } from '@/lib/date'
 
 type UnknownRecord = Record<string, unknown>
 
@@ -175,21 +176,7 @@ function normalizeIdeaStatus(value: unknown): IdeaSummary['status'] {
 }
 
 export function formatDateLabel(value: string | undefined, emptyLabel = '—') {
-  if (!value) {
-    return emptyLabel
-  }
-
-  const date = new Date(value)
-
-  if (Number.isNaN(date.getTime())) {
-    return value
-  }
-
-  return new Intl.DateTimeFormat('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(date)
+  return formatAppDate(value, emptyLabel)
 }
 
 export function mapIdeaSummary(value: unknown): IdeaSummary {

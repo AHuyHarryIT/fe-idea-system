@@ -16,6 +16,7 @@ import { useSubmitIdea } from '@/hooks/useIdeas'
 import { useSubmissions } from '@/hooks/useSubmissions'
 import { CATEGORY_SELECT_PAGE_SIZE } from '@/constants/category'
 import { auth } from '@/lib/auth'
+import { formatAppDateTime, getDateTimestamp } from '@/lib/date'
 import { appNotification } from '@/lib/notifications'
 
 const initialForm: IdeaSubmitPayload = {
@@ -31,23 +32,10 @@ const initialForm: IdeaSubmitPayload = {
 const DEFAULT_PAGE_SIZE = 10
 const PAGE_SIZE_OPTIONS = ['10', '20', '50']
 
-function formatDateLabel(value?: string) {
-  if (!value) return '—'
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-  return new Intl.DateTimeFormat('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).format(date)
-}
-
 function isSubmissionClosed(closureDate?: string) {
-  if (!closureDate) return false
-  return new Date(closureDate).getTime() < Date.now()
+  const closureTimestamp = getDateTimestamp(closureDate)
+
+  return closureTimestamp > 0 && closureTimestamp < Date.now()
 }
 
 function isPdfFile(file: File) {
@@ -321,13 +309,13 @@ export default function SubmitIdeaPage() {
                           <span className="font-medium text-slate-800">
                             Closure date:
                           </span>{' '}
-                          {formatDateLabel(submission.closureDate)}
+                          {formatAppDateTime(submission.closureDate)}
                         </p>
                         <p>
                           <span className="font-medium text-slate-800">
                             Final closure date:
                           </span>{' '}
-                          {formatDateLabel(submission.finalClosureDate)}
+                          {formatAppDateTime(submission.finalClosureDate)}
                         </p>
                       </div>
                     </div>
@@ -423,7 +411,7 @@ export default function SubmitIdeaPage() {
                     Closure date
                   </p>
                   <p className="mt-1 text-sm text-slate-600">
-                    {formatDateLabel(selectedSubmission.closureDate)}
+                    {formatAppDateTime(selectedSubmission.closureDate)}
                   </p>
                 </div>
                 <div>
@@ -431,7 +419,7 @@ export default function SubmitIdeaPage() {
                     Final closure date
                   </p>
                   <p className="mt-1 text-sm text-slate-600">
-                    {formatDateLabel(selectedSubmission.finalClosureDate)}
+                    {formatAppDateTime(selectedSubmission.finalClosureDate)}
                   </p>
                 </div>
               </div>
@@ -545,9 +533,9 @@ export default function SubmitIdeaPage() {
                     {selectedSubmission.name}
                   </p>
                   <p className="mt-1 text-xs text-slate-500">
-                    Closure: {formatDateLabel(selectedSubmission.closureDate)} ·
+                    Closure: {formatAppDateTime(selectedSubmission.closureDate)} ·
                     Final closure:{' '}
-                    {formatDateLabel(selectedSubmission.finalClosureDate)}
+                    {formatAppDateTime(selectedSubmission.finalClosureDate)}
                   </p>
                 </div>
               </FormField>

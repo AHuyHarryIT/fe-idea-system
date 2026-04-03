@@ -11,8 +11,17 @@ export default function Sidebar({ userRole }: SidebarProps) {
   const navItems = navigationByRole[userRole]
 
   return (
-    <aside className="fixed bottom-0 left-0 top-16 hidden w-64 border-r border-slate-200 bg-white lg:block">
-      <nav className="p-4">
+    <aside className="fixed bottom-0 left-0 top-[73px] hidden w-72 border-r border-slate-200/70 bg-white/75 backdrop-blur xl:block">
+      <div className="border-b border-slate-200/70 px-6 py-5">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">
+          Workspace
+        </p>
+        <p className="mt-2 text-sm leading-6 text-slate-500">
+          Navigate core tasks, review ideas, and keep your campaign workflow
+          focused.
+        </p>
+      </div>
+      <nav className="p-5">
         <ul className="space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon
@@ -22,13 +31,21 @@ export default function Sidebar({ userRole }: SidebarProps) {
               <li key={item.path}>
                 <Link
                   to={item.path}
-                  className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition ${
+                  className={`group flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm transition ${
                     isActive
-                      ? 'bg-blue-50 font-medium text-blue-700'
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                      ? 'border-blue-200 bg-white font-medium text-slate-950 shadow-sm'
+                      : 'border-transparent text-slate-600 hover:border-slate-200 hover:bg-white hover:text-slate-950'
                   }`}
                 >
-                  <Icon className="h-4 w-4" />
+                  <span
+                    className={`flex h-9 w-9 items-center justify-center rounded-xl ${
+                      isActive
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-slate-100 text-slate-500 group-hover:bg-slate-900 group-hover:text-white'
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                  </span>
                   <span>{item.label}</span>
                 </Link>
               </li>

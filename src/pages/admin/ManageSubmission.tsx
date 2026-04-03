@@ -1,6 +1,4 @@
 import { useDeferredValue, useEffect, useMemo, useState } from 'react'
-import dayjs from 'dayjs'
-import type { Dayjs } from 'dayjs'
 import { DatePicker, Input } from 'antd'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { CalendarRange, Search } from 'lucide-react'
@@ -20,6 +18,13 @@ import {
   useDeleteSubmission,
   useUpdateSubmission,
 } from '@/hooks/useSubmissions'
+import {
+  formatAppDateTime,
+  formatDateTimeInputValue,
+  getDateTimestamp,
+  getDateYear,
+  parseDateTimeInputValue,
+} from '@/lib/date'
 import { appNotification } from '@/lib/notifications'
 import type { Submission } from '@/types'
 
@@ -40,54 +45,11 @@ const initialForm: SubmissionFormState = {
 const DEFAULT_PAGE_SIZE = 10
 const PAGE_SIZE_OPTIONS = ['10', '20', '50']
 
-function formatDateLabel(value: string) {
-  if (!value) return '—'
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-  return new Intl.DateTimeFormat('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).format(date)
-}
-
-function formatDateTimeInputValue(value: string) {
-  if (!value) return ''
-  const date = dayjs(value)
-
-  if (!date.isValid()) {
-    return value.slice(0, 16)
-  }
-
-  return date.format('YYYY-MM-DDTHH:mm')
-}
-
-function parseFormDateTimeValue(value: string): Dayjs | null {
-  if (!value) return null
-
-  const parsed = dayjs(value)
-
-  return parsed.isValid() ? parsed : null
-}
-
 function getSubmissionAcademicYearFallback(closureDate: string) {
-  const fallbackYear = closureDate
-    ? new Date(closureDate).getFullYear()
-    : new Date().getFullYear()
-
-  return Number.isNaN(fallbackYear) ? new Date().getFullYear() : fallbackYear
+  return getDateYear(closureDate)
 }
 
 type SubmissionLifecycle = 'open' | 'closed' | 'archived'
-
-function getDateTimestamp(value: string) {
-  if (!value) return 0
-  const timestamp = Date.parse(value)
-  return Number.isNaN(timestamp) ? 0 : timestamp
-}
 
 function getSubmissionLifecycle(submission: {
   closureDate: string
@@ -399,13 +361,13 @@ export default function ManageSubmissionPage() {
                           <span className="font-medium text-slate-800">
                             Closure date:
                           </span>{' '}
-                          {formatDateLabel(submission.closureDate)}
+                          {formatAppDateTime(submission.closureDate)}
                         </p>
                         <p>
                           <span className="font-medium text-slate-800">
                             Final closure date:
                           </span>{' '}
-                          {formatDateLabel(submission.finalClosureDate)}
+                          {formatAppDateTime(submission.finalClosureDate)}
                         </p>
                       </div>
                     </div>
@@ -565,7 +527,7 @@ export default function ManageSubmissionPage() {
             >
               <DatePicker
                 id="submission-closure-date"
-                value={parseFormDateTimeValue(form.closureDate)}
+                value={parseDateTimeInputValue(form.closureDate)}
                 onChange={(value) =>
                   setForm((prev) => ({
                     ...prev,
@@ -589,7 +551,7 @@ export default function ManageSubmissionPage() {
             >
               <DatePicker
                 id="submission-final-closure-date"
-                value={parseFormDateTimeValue(form.finalClosureDate)}
+                value={parseDateTimeInputValue(form.finalClosureDate)}
                 onChange={(value) =>
                   setForm((prev) => ({
                     ...prev,

@@ -17,22 +17,9 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { useAllIdeasMatching, useReviewIdea } from '@/hooks/useIdeas'
+import { formatAppDateTime, getDateTimestamp } from '@/lib/date'
 import { normalizeIdeaResponse } from '@/lib/idea-response-mapper'
 import { appNotification } from '@/lib/notifications'
-
-function formatDate(dateString?: string) {
-  if (!dateString) return '—'
-
-  try {
-    return new Intl.DateTimeFormat('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    }).format(new Date(dateString))
-  } catch {
-    return dateString
-  }
-}
 
 function getStatusLabel(status?: string) {
   if (!status) return 'Pending review'
@@ -49,8 +36,8 @@ function getReviewErrorMessage(error?: string) {
 
 function sortByNewest(left: Idea, right: Idea) {
   return (
-    Date.parse(right.createdAt || right.createdDate || '') -
-    Date.parse(left.createdAt || left.createdDate || '')
+    getDateTimestamp(right.createdAt || right.createdDate) -
+    getDateTimestamp(left.createdAt || left.createdDate)
   )
 }
 
@@ -200,7 +187,10 @@ export default function ReviewIdea() {
                           Department: {idea.departmentName || 'Unknown'}
                         </span>
                         <span>
-                          Created: {formatDate(idea.createdAt || idea.createdDate)}
+                          Created:{' '}
+                          {formatAppDateTime(
+                            idea.createdAt || idea.createdDate,
+                          )}
                         </span>
                         <span>Comments: {idea.commentCount ?? 0}</span>
                       </div>

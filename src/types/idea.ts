@@ -25,6 +25,11 @@ export interface Idea {
   canComment?: boolean
   departmentName?: string
   comments?: Comment[]
+  attachments?: {
+    id: string
+    fileName: string
+    fileSize?: string
+  }[]
 }
 
 export interface IdeaListResponse {

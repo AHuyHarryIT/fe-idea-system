@@ -9,6 +9,11 @@ import { ideaService } from '@/api'
 
 interface UseMyIdeasOptions {
   fetchAll?: boolean
+  enabled?: boolean
+}
+
+interface UseIdeasQueryOptions {
+  enabled?: boolean
 }
 
 export const useMyIdeas = (
@@ -24,6 +29,7 @@ export const useMyIdeas = (
       if (response.success) return response.data
       throw new Error(response.error)
     },
+    enabled: options?.enabled ?? true,
     placeholderData: (previousData) => previousData,
   })
 }
@@ -42,14 +48,18 @@ export const useAllIdeas = (
   })
 }
 
-export const useAllIdeasMatching = (params?: IdeaListQueryParams) => {
+export const useAllIdeasMatching = (
+  params?: IdeaListQueryParams,
+  options?: UseIdeasQueryOptions,
+) => {
   return useQuery({
-    queryKey: ['allIdeasMatching', params],
+    queryKey: ['allIdeasMatching', params, options?.enabled ?? true],
     queryFn: async () => {
       const response = await ideaService.getAllIdeasMatching(params)
       if (response.success) return response.data
       throw new Error(response.error)
     },
+    enabled: options?.enabled ?? true,
   })
 }
 

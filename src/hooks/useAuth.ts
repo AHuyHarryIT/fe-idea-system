@@ -22,6 +22,11 @@ export const useLogin = () => {
         } else {
           auth.clearDisplayName()
         }
+        if (session.email.trim()) {
+          auth.setEmail(session.email.trim())
+        } else {
+          auth.clearEmail()
+        }
         auth.setRole(role)
       }
     },

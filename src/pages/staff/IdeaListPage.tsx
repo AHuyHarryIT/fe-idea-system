@@ -61,8 +61,8 @@ export default function IdeaListPage() {
   const totalPages = Math.max(1, Math.ceil(totalIdeas / pageSize))
   const hasLocalFilters = category.length > 0
   const listDescription = hasLocalFilters
-    ? `${filteredIdeas.length} ideas matched on this page.`
-    : `${totalIdeas} ideas matched from the live catalogue.`
+    ? `${filteredIdeas.length} ideas matched this page after applying your filters.`
+    : `${totalIdeas} ideas are currently available in the live university catalogue.`
 
   useEffect(() => {
     if (currentPage > totalPages) {
@@ -77,16 +77,19 @@ export default function IdeaListPage() {
   return (
     <div className="mx-auto w-full max-w-7xl">
       <PageHeader
-        title="Idea Listing"
+        title="Browse Ideas"
         description={listDescription}
         actions={
           <Link to="/submit-idea">
-            <AppButton>Submit Idea</AppButton>
+            <AppButton variant="secondary">Submit Idea</AppButton>
           </Link>
         }
       />
 
-      <SectionCard title="Search & filters">
+      <SectionCard
+        title="Discover ideas"
+        description="Search the catalogue, narrow by category, and open any idea to read the full proposal and discussion."
+      >
         <div className="grid gap-4 lg:grid-cols-[1.5fr_1fr_auto]">
           <label className="block">
             <Input
@@ -94,11 +97,11 @@ export default function IdeaListPage() {
               name="idea-search"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search ideas by title, content, category..."
+              placeholder="Search by title, description, author, or category"
               allowClear
               size="large"
               prefix={<Search className="h-4 w-4 text-slate-400" />}
-              className="rounded-xl"
+              className="rounded-2xl"
             />
           </label>
           <select
@@ -106,7 +109,7 @@ export default function IdeaListPage() {
             name="idea-category-filter"
             value={category}
             onChange={(event) => setCategory(event.target.value)}
-            className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+            className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
           >
             <option value="">All categories</option>
             {categories.map((categoryOption) => (
@@ -126,6 +129,16 @@ export default function IdeaListPage() {
           >
             Reset
           </AppButton>
+        </div>
+        <div className="mt-5 flex flex-wrap items-center gap-2 text-sm text-slate-500">
+          <span className="rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-700">
+            {totalIdeas} total ideas
+          </span>
+          {category ? (
+            <span className="rounded-full bg-blue-50 px-3 py-1 font-medium text-blue-700">
+              Category: {category}
+            </span>
+          ) : null}
         </div>
       </SectionCard>
 

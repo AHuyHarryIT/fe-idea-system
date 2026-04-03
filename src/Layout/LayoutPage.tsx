@@ -18,16 +18,13 @@ export default function Layout({
   contentClassName,
 }: LayoutProps) {
   return (
-    <div className="min-h-screen bg-slate-50">
-      <TopNav
-        onLogout={onLogout}
-        userRole={userRole}
-      />
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(191,219,254,0.3),_transparent_28%),linear-gradient(180deg,_#f8fafc_0%,_#eef2ff_100%)]">
+      <TopNav onLogout={onLogout} userRole={userRole} />
       <div className="flex">
         {showSidebar && userRole ? <Sidebar userRole={userRole} /> : null}
         <main
-          className={`min-h-screen flex-1 px-4 pb-8 pt-22 ${
-            showSidebar && userRole ? 'lg:ml-64' : ''
+          className={`min-h-screen flex-1 px-5 pb-10 pt-26 lg:px-8 ${
+            showSidebar && userRole ? 'lg:ml-72' : ''
           } ${contentClassName ?? ''}`.trim()}
         >
           {children}

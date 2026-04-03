@@ -24,6 +24,7 @@ import { Modal } from '@/components/shared/Modal'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { auth } from '@/lib/auth'
+import { formatAppDateTime } from '@/lib/date'
 import { appNotification } from '@/lib/notifications'
 
 interface CreateFormState {
@@ -94,24 +95,6 @@ function formatRoleLabel(value?: string | null) {
   )
 
   return matchingRole ?? value.replace(/_/g, ' ')
-}
-
-function formatDateLabel(value?: string) {
-  if (!value) {
-    return 'Recently created'
-  }
-
-  const date = new Date(value)
-
-  if (Number.isNaN(date.getTime())) {
-    return value
-  }
-
-  return new Intl.DateTimeFormat('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(date)
 }
 
 function getMatchingRole(value?: string | null) {
@@ -611,7 +594,8 @@ export default function ManageUsersPage() {
                           </div>
 
                           <p className="text-xs uppercase tracking-wide text-slate-400">
-                            Created {formatDateLabel(user.createdAt)}
+                            Created{' '}
+                            {formatAppDateTime(user.createdAt, 'Recently created')}
                           </p>
                         </div>
 
