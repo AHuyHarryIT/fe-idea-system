@@ -21,6 +21,7 @@ export const navigationByRole: Record<Role, NavItem[]> = {
   ],
   qa_coordinator: [
     { path: '/qa-coordinator', label: 'Dashboard', icon: PieChart },
+    { path: '/manage/review', label: 'Review Ideas', icon: List },
     { path: '/submit-idea', label: 'Submit Idea', icon: Lightbulb },
     { path: '/ideas', label: 'Browse Ideas', icon: List },
   ],

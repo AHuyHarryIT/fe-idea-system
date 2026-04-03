@@ -93,7 +93,8 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
   const isDisliked = thumbStatus === 0
   const thumbStatusMeta = getThumbStatusMeta(thumbStatus)
   const canComment = !isLoading && (idea?.canComment ?? true)
-  const canReview = role === 'admin' || role === 'qa_manager'
+  const canReview =
+    role === 'admin' || role === 'qa_manager' || role === 'qa_coordinator'
   const visibleComments = useMemo(() => {
     const apiComments = idea?.comments ?? []
     const mergedComments = [...postedComments]
