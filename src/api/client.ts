@@ -208,6 +208,21 @@ class ApiClient {
     endpoint: string,
     formData: FormData,
   ): Promise<ApiResponse<T>> {
+    return this.sendFormData<T>(endpoint, formData, 'POST')
+  }
+
+  async updateFiles<T>(
+    endpoint: string,
+    formData: FormData,
+  ): Promise<ApiResponse<T>> {
+    return this.sendFormData<T>(endpoint, formData, 'PUT')
+  }
+
+  private async sendFormData<T>(
+    endpoint: string,
+    formData: FormData,
+    method: 'POST' | 'PUT',
+  ): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`
 
     try {
@@ -219,7 +234,7 @@ class ApiClient {
       }
 
       const response = await fetch(url, {
-        method: 'POST',
+        method,
         headers,
         body: formData,
       })

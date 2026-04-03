@@ -306,6 +306,12 @@ export const ideaService = {
   submitIdea: (formData: FormData): Promise<ApiResponse<Idea>> =>
     apiClient.uploadFiles<Idea>('/ideas', formData),
 
+  updateIdea: (ideaId: string, formData: FormData): Promise<ApiResponse<Idea>> =>
+    apiClient.updateFiles<Idea>(`/ideas/${ideaId}`, formData),
+
+  deleteIdea: (ideaId: string): Promise<ApiResponse<void>> =>
+    apiClient.delete<void>(`/ideas/${ideaId}`),
+
   voteOnIdea: (
     ideaId: string,
     request: VoteRequest,

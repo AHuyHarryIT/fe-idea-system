@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import {
   ArrowLeft,
   Building2,
@@ -21,10 +21,12 @@ import { ideaService } from '@/api'
 import { AppButton } from '@/components/app/AppButton'
 import { FormField } from '@/components/forms/FormField'
 import { FormTextarea } from '@/components/forms/FormInput'
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { SectionCard } from '@/components/shared/SectionCard'
 import {
   useAddComment,
+  useDeleteIdea,
   useIdeaById,
   useReviewIdea,
   useVoteOnIdea,
@@ -70,16 +72,19 @@ function isPdfAttachment(fileName?: string, fileUrl?: string) {
 }
 
 export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const role = auth.getRole()
   const { data: idea, isLoading, error } = useIdeaById(ideaId)
   const { mutateAsync: addComment, isPending: isCommenting } = useAddComment()
   const { mutateAsync: voteOnIdea, isPending: isVoting } = useVoteOnIdea()
+  const { mutateAsync: deleteIdea, isPending: isDeletingIdea } = useDeleteIdea()
   const { mutateAsync: reviewIdea, isPending: isReviewing } = useReviewIdea()
   const [commentText, setCommentText] = useState('')
   const [isAnonymous, setIsAnonymous] = useState(false)
   const [postedComments, setPostedComments] = useState<IdeaComment[]>([])
   const [reviewReason, setReviewReason] = useState('')
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
   const [selectedAttachmentId, setSelectedAttachmentId] = useState<string | null>(null)
   const [currentThumbStatus, setCurrentThumbStatus] = useState(
     getResolvedIdeaVoteStatus(ideaId),
@@ -93,6 +98,7 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
   const canComment = !isLoading && (idea?.canComment ?? true)
   const canReview =
     role === 'admin' || role === 'qa_manager' || role === 'qa_coordinator'
+  const canDeleteIdea = role === 'admin'
   const visibleComments = useMemo(() => {
     const apiComments = idea?.comments ?? []
     const mergedComments = [...postedComments]
@@ -332,6 +338,20 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
     )
   }
 
+  const handleDeleteIdea = async () => {
+    const response = await deleteIdea(ideaId)
+
+    if (!response.success) {
+      appNotification.error(response.error ?? 'Unable to delete this idea.')
+      return
+    }
+
+    await refreshIdeaQueries()
+    setIsDeleteConfirmOpen(false)
+    appNotification.success('Idea deleted successfully.')
+    void navigate({ to: '/ideas' })
+  }
+
   if (error) {
     return (
       <div className="mx-auto w-full max-w-7xl px-6 py-6 lg:px-8">
@@ -454,6 +474,15 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
                 <MessageSquare className="mr-2 h-4 w-4" />
                 Add comment
               </AppButton>
+              {canDeleteIdea ? (
+                <AppButton
+                  variant="red"
+                  onClick={() => setIsDeleteConfirmOpen(true)}
+                  disabled={isDeletingIdea}
+                >
+                  {isDeletingIdea ? 'Deleting...' : 'Delete idea'}
+                </AppButton>
+              ) : null}
             </div>
           </div>
 
@@ -806,6 +835,17 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
           ) : null}
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={isDeleteConfirmOpen}
+        title="Delete idea"
+        message={`Delete "${ideaTitle}"? This action cannot be undone.`}
+        confirmText="Delete idea"
+        isDangerous
+        isLoading={isDeletingIdea}
+        onConfirm={() => void handleDeleteIdea()}
+        onCancel={() => setIsDeleteConfirmOpen(false)}
+      />
 
     </div>
   )

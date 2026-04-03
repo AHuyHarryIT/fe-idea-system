@@ -90,6 +90,24 @@ export const useSubmitIdea = () => {
   })
 }
 
+export const useUpdateIdea = () => {
+  return useMutation({
+    mutationFn: ({
+      ideaId,
+      formData,
+    }: {
+      ideaId: string
+      formData: FormData
+    }) => ideaService.updateIdea(ideaId, formData),
+  })
+}
+
+export const useDeleteIdea = () => {
+  return useMutation({
+    mutationFn: (ideaId: string) => ideaService.deleteIdea(ideaId),
+  })
+}
+
 export const useVoteOnIdea = () => {
   return useMutation({
     mutationFn: ({

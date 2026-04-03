@@ -1,9 +1,11 @@
-import { useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { Input } from 'antd'
+import { useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import {
   ArrowRight,
   CheckCircle2,
+  FileUp,
   Eye,
   Lightbulb,
   PlusCircle,
@@ -13,14 +15,25 @@ import {
 } from 'lucide-react'
 import type { Idea } from '@/types'
 import { AppButton } from '@/components/app/AppButton'
+import { FormField } from '@/components/forms/FormField'
+import { FormInput, FormTextarea } from '@/components/forms/FormInput'
 import { AppPagination } from '@/components/shared/AppPagination'
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { Modal } from '@/components/shared/Modal'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
-import { useAllIdeasMatching, useMyIdeas } from '@/hooks/useIdeas'
+import { CATEGORY_SELECT_PAGE_SIZE } from '@/constants/category'
+import { useIdeaCategories } from '@/hooks/useCategories'
+import {
+  useAllIdeasMatching,
+  useDeleteIdea,
+  useMyIdeas,
+  useUpdateIdea,
+} from '@/hooks/useIdeas'
 import { formatAppDateTime, getDateTimestamp } from '@/lib/date'
 import { normalizeIdeaResponse } from '@/lib/idea-response-mapper'
+import { appNotification } from '@/lib/notifications'
 
 type IdeaStatusFilter = 'all' | 'pending' | 'approved' | 'rejected'
 type OverviewMetricAccent = 'blue' | 'emerald' | 'violet'
@@ -30,6 +43,14 @@ interface DashboardPageProps {
   description?: string
   enablePagination?: boolean
   showSummaryCards?: boolean
+}
+
+interface EditIdeaFormState {
+  title: string
+  description: string
+  categoryId: string
+  isAnonymous: boolean
+  uploadFiles: File[]
 }
 
 interface IdeaListSectionProps {
@@ -50,6 +71,13 @@ interface OverviewMetricCardProps {
 
 const DEFAULT_MY_IDEA_PAGE_SIZE = 10
 const MY_IDEA_PAGE_SIZE_OPTIONS = ['5', '10', '20', '50']
+const initialEditIdeaForm: EditIdeaFormState = {
+  title: '',
+  description: '',
+  categoryId: '',
+  isAnonymous: false,
+  uploadFiles: [],
+}
 
 const overviewMetricAccentClassNames: Record<
   OverviewMetricAccent,
@@ -128,6 +156,13 @@ function getRejectionReason(idea?: Idea | null) {
   }
 
   return 'No rejection reason was returned by the backend for this idea.'
+}
+
+function isPdfFile(file: File) {
+  const normalizedType = file.type.toLowerCase()
+  const normalizedName = file.name.toLowerCase()
+
+  return normalizedType === 'application/pdf' || normalizedName.endsWith('.pdf')
 }
 
 function OverviewMetricCard({
@@ -425,6 +460,25 @@ function MyIdeaTracker({
   isLoading: boolean
   error: Error | null
 }) {
+  const queryClient = useQueryClient()
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const [editingIdea, setEditingIdea] = useState<Idea | null>(null)
+  const [editForm, setEditForm] = useState<EditIdeaFormState>(initialEditIdeaForm)
+  const [fileValidationMessage, setFileValidationMessage] = useState('')
+  const [deleteIdeaTarget, setDeleteIdeaTarget] = useState<Idea | null>(null)
+  const { data: categoryData, isLoading: categoriesLoading } = useIdeaCategories({
+    pageNumber: 1,
+    pageSize: CATEGORY_SELECT_PAGE_SIZE,
+  })
+  const { mutateAsync: updateIdea, isPending: isUpdatingIdea } = useUpdateIdea()
+  const { mutateAsync: deleteIdea, isPending: isDeletingIdea } = useDeleteIdea()
+  const categories = useMemo(
+    () =>
+      Array.isArray(categoryData?.categories)
+        ? categoryData.categories.filter((category) => category.id)
+        : [],
+    [categoryData],
+  )
   const totalIdeas =
     data?.pagination?.totalCount ??
     data?.totalCount ??
@@ -436,6 +490,160 @@ function MyIdeaTracker({
     ? getIdeaStatusValue(selectedIdea)
     : 'pending'
   const selectedIdeaStatusMeta = getIdeaStatusMeta(selectedIdeaStatus)
+  const refreshIdeaQueries = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['myIdeas'] }),
+      queryClient.invalidateQueries({ queryKey: ['allIdeas'] }),
+      queryClient.invalidateQueries({ queryKey: ['allIdeasMatching'] }),
+      queryClient.invalidateQueries({ queryKey: ['qaManagerIdeas'] }),
+      queryClient.invalidateQueries({ queryKey: ['qaCoordinatorIdeas'] }),
+      queryClient.invalidateQueries({ queryKey: ['adminIdeas'] }),
+      queryClient.invalidateQueries({ queryKey: ['idea'] }),
+    ])
+  }
+
+  useEffect(() => {
+    if (!editingIdea) {
+      return
+    }
+
+    setEditForm((previousForm) => {
+      if (previousForm.categoryId) {
+        return previousForm
+      }
+
+      const matchingCategory = categories.find(
+        (category) => category.name === editingIdea.categoryName,
+      )
+
+      if (!matchingCategory) {
+        return previousForm
+      }
+
+      return {
+        ...previousForm,
+        categoryId: matchingCategory.id,
+      }
+    })
+  }, [categories, editingIdea])
+
+  const openEditIdeaModal = (idea: Idea) => {
+    const matchingCategory = categories.find(
+      (category) => category.name === idea.categoryName,
+    )
+
+    setEditingIdea(idea)
+    setFileValidationMessage('')
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+    setEditForm({
+      title: getIdeaTitle(idea),
+      description: idea.description?.trim() ?? '',
+      categoryId: idea.categoryId ?? matchingCategory?.id ?? '',
+      isAnonymous: idea.isAnonymous,
+      uploadFiles: [],
+    })
+  }
+
+  const closeEditIdeaModal = () => {
+    setEditingIdea(null)
+    setEditForm(initialEditIdeaForm)
+    setFileValidationMessage('')
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  const handleEditFileChange = (files: FileList | null) => {
+    const selectedFiles = Array.from(files ?? [])
+
+    if (!selectedFiles.length) {
+      setEditForm((previousForm) => ({ ...previousForm, uploadFiles: [] }))
+      setFileValidationMessage('')
+      return
+    }
+
+    const invalidFile = selectedFiles.find((file) => !isPdfFile(file))
+
+    if (invalidFile) {
+      setEditForm((previousForm) => ({ ...previousForm, uploadFiles: [] }))
+      setFileValidationMessage(
+        `File '${invalidFile.name}' is invalid. Only PDF files are allowed.`,
+      )
+
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+
+      return
+    }
+
+    setEditForm((previousForm) => ({
+      ...previousForm,
+      uploadFiles: selectedFiles,
+    }))
+    setFileValidationMessage('')
+  }
+
+  const handleUpdateIdea = async () => {
+    if (!editingIdea) {
+      return
+    }
+
+    if (!editForm.title.trim() || !editForm.description.trim() || !editForm.categoryId) {
+      appNotification.warning('Please complete all required fields before saving.')
+      return
+    }
+
+    if (fileValidationMessage) {
+      appNotification.warning(fileValidationMessage)
+      return
+    }
+
+    const formData = new FormData()
+    formData.append('Title', editForm.title.trim())
+    formData.append('Description', editForm.description.trim())
+    formData.append('CategoryId', editForm.categoryId)
+    formData.append('IsAnonymous', String(editForm.isAnonymous))
+    editForm.uploadFiles.forEach((file) => {
+      formData.append('UploadedFiles', file)
+    })
+
+    const response = await updateIdea({ ideaId: editingIdea.id, formData })
+
+    if (!response.success) {
+      appNotification.error(response.error ?? 'Unable to update this idea.')
+      return
+    }
+
+    await refreshIdeaQueries()
+    appNotification.success('Idea updated successfully.')
+    closeEditIdeaModal()
+  }
+
+  const handleDeleteIdea = async () => {
+    if (!deleteIdeaTarget) {
+      return
+    }
+
+    const response = await deleteIdea(deleteIdeaTarget.id)
+
+    if (!response.success) {
+      appNotification.error(response.error ?? 'Unable to delete this idea.')
+      return
+    }
+
+    await refreshIdeaQueries()
+    if (selectedIdea?.id === deleteIdeaTarget.id) {
+      setSelectedIdea(null)
+    }
+    if (editingIdea?.id === deleteIdeaTarget.id) {
+      closeEditIdeaModal()
+    }
+    appNotification.success('Idea deleted successfully.')
+    setDeleteIdeaTarget(null)
+  }
 
   return (
     <>
@@ -572,6 +780,20 @@ function MyIdeaTracker({
                         >
                           Show details
                         </AppButton>
+                        <AppButton
+                          type="button"
+                          variant="ghost"
+                          onClick={() => openEditIdeaModal(idea)}
+                        >
+                          Edit idea
+                        </AppButton>
+                        <AppButton
+                          type="button"
+                          variant="red"
+                          onClick={() => setDeleteIdeaTarget(idea)}
+                        >
+                          Delete idea
+                        </AppButton>
                         <Link to="/ideas/$ideaId" params={{ ideaId: idea.id }}>
                           <AppButton type="button" variant="ghost">
                             Open idea
@@ -623,6 +845,13 @@ function MyIdeaTracker({
         footer={
           selectedIdea ? (
             <>
+              <AppButton
+                type="button"
+                variant="red"
+                onClick={() => setDeleteIdeaTarget(selectedIdea)}
+              >
+                Delete idea
+              </AppButton>
               <AppButton
                 type="button"
                 variant="ghost"
@@ -709,6 +938,164 @@ function MyIdeaTracker({
           </div>
         ) : null}
       </Modal>
+
+      <Modal
+        isOpen={!!editingIdea}
+        title={editingIdea ? 'Edit idea' : 'Edit idea'}
+        description="Update your own idea details and upload replacement supporting PDFs if needed."
+        onClose={closeEditIdeaModal}
+        maxWidthClassName="max-w-3xl"
+        footer={
+          <>
+            <AppButton
+              type="button"
+              variant="ghost"
+              onClick={closeEditIdeaModal}
+              disabled={isUpdatingIdea}
+            >
+              Cancel
+            </AppButton>
+            <AppButton
+              type="button"
+              variant="secondary"
+              onClick={() => void handleUpdateIdea()}
+              disabled={isUpdatingIdea}
+            >
+              {isUpdatingIdea ? 'Saving...' : 'Save changes'}
+            </AppButton>
+          </>
+        }
+      >
+        <div className="space-y-5">
+          <FormField label="Idea title" required>
+            <FormInput
+              id="edit-idea-title"
+              name="edit-idea-title"
+              value={editForm.title}
+              onChange={(event) =>
+                setEditForm((previousForm) => ({
+                  ...previousForm,
+                  title: event.target.value,
+                }))
+              }
+              placeholder="Enter a concise title"
+            />
+          </FormField>
+
+          <FormField label="Content" required>
+            <FormTextarea
+              id="edit-idea-description"
+              name="edit-idea-description"
+              value={editForm.description}
+              onChange={(event) =>
+                setEditForm((previousForm) => ({
+                  ...previousForm,
+                  description: event.target.value,
+                }))
+              }
+              placeholder="Describe the idea clearly"
+            />
+          </FormField>
+
+          <div className="grid gap-5 md:grid-cols-2">
+            <FormField label="Category" required>
+              <select
+                id="edit-idea-category"
+                name="edit-idea-category"
+                value={editForm.categoryId}
+                onChange={(event) =>
+                  setEditForm((previousForm) => ({
+                    ...previousForm,
+                    categoryId: event.target.value,
+                  }))
+                }
+                className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+              >
+                <option value="">Select category</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+              {categoriesLoading ? (
+                <p className="text-xs text-slate-500">Loading categories...</p>
+              ) : null}
+            </FormField>
+
+            <FormField label="Anonymous submission">
+              <label className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                <input
+                  id="edit-idea-anonymous"
+                  name="edit-idea-anonymous"
+                  type="checkbox"
+                  checked={editForm.isAnonymous}
+                  onChange={(event) =>
+                    setEditForm((previousForm) => ({
+                      ...previousForm,
+                      isAnonymous: event.target.checked,
+                    }))
+                  }
+                />
+                Hide author identity from public idea views.
+              </label>
+            </FormField>
+          </div>
+
+          <FormField label="Supporting files">
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6">
+              <label className="flex cursor-pointer flex-col items-center justify-center gap-3 text-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white shadow-sm">
+                  <FileUp className="h-6 w-6 text-slate-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-900">
+                    Upload replacement files
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    PDF files only. Leave empty to keep current documents.
+                  </p>
+                </div>
+                <input
+                  ref={fileInputRef}
+                  id="edit-idea-uploaded-files"
+                  name="edit-idea-uploaded-files"
+                  multiple
+                  type="file"
+                  accept=".pdf,application/pdf"
+                  className="hidden"
+                  onChange={(event) => handleEditFileChange(event.target.files)}
+                />
+              </label>
+              <p className="mt-4 text-sm text-slate-600">
+                {editForm.uploadFiles.length
+                  ? editForm.uploadFiles.map((file) => file.name).join(', ')
+                  : 'No new files selected.'}
+              </p>
+              {fileValidationMessage ? (
+                <p className="mt-3 text-sm text-red-600">
+                  {fileValidationMessage}
+                </p>
+              ) : null}
+            </div>
+          </FormField>
+        </div>
+      </Modal>
+
+      <ConfirmDialog
+        isOpen={!!deleteIdeaTarget}
+        title="Delete idea"
+        message={
+          deleteIdeaTarget
+            ? `Delete "${getIdeaTitle(deleteIdeaTarget)}"? This cannot be undone.`
+            : ''
+        }
+        confirmText="Delete idea"
+        isDangerous
+        isLoading={isDeletingIdea}
+        onConfirm={() => void handleDeleteIdea()}
+        onCancel={() => setDeleteIdeaTarget(null)}
+      />
     </>
   )
 }
