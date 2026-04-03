@@ -93,7 +93,7 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
   const isDisliked = thumbStatus === 0
   const thumbStatusMeta = getThumbStatusMeta(thumbStatus)
   const canComment = !isLoading && (idea?.canComment ?? true)
-  const canReview = role === 'admin'
+  const canReview = role === 'admin' || role === 'qa_manager'
   const visibleComments = useMemo(() => {
     const apiComments = idea?.comments ?? []
     const mergedComments = [...postedComments]
@@ -261,8 +261,10 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
 
     if (!response.success) {
       setReviewFeedbackMessage(
-        response.error ??
-          `Unable to ${isApproved ? 'approve' : 'reject'} this idea.`,
+        response.error === 'HTTP 403'
+          ? 'The backend is still denying review permission for this account.'
+          : response.error ??
+              `Unable to ${isApproved ? 'approve' : 'reject'} this idea.`,
       )
       return
     }

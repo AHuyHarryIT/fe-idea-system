@@ -31,6 +31,7 @@ export const navigationByRole: Record<Role, NavItem[]> = {
       label: 'Manage Submissions',
       icon: CalendarRange,
     },
+    { path: '/manage/review', label: 'Review Ideas', icon: List },
     { path: '/submit-idea', label: 'Submit Idea', icon: Lightbulb },
     { path: '/ideas', label: 'Browse Ideas', icon: List },
   ],

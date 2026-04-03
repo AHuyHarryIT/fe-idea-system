@@ -91,6 +91,30 @@ function getNameFromClaims(claims: UnknownRecord | null) {
   )
 }
 
+function inferRoleFromIdentity(email: string, name: string) {
+  const normalizedEmail = email.toLowerCase().replace(/[^a-z]/g, '')
+  const normalizedName = name.toLowerCase().replace(/[^a-z]/g, '')
+  const identity = `${normalizedEmail} ${normalizedName}`
+
+  if (identity.includes('qamanager')) {
+    return 'qa_manager'
+  }
+
+  if (identity.includes('qacoordinator')) {
+    return 'qa_coordinator'
+  }
+
+  if (identity.includes('administrator') || identity.includes('admin')) {
+    return 'admin'
+  }
+
+  if (identity.includes('staff')) {
+    return 'staff'
+  }
+
+  return ''
+}
+
 export function extractAuthResponse(payload: unknown): AuthResponse | null {
   const record = isRecord(payload)
     ? payload
@@ -107,14 +131,23 @@ export function extractAuthResponse(payload: unknown): AuthResponse | null {
   )
   const userRecord = isRecord(record.user) ? record.user : null
   const claims = parseJwtPayload(token)
-  const role = getFirstString(
+  const email = getString(record.email ?? userRecord?.email)
+  const name = getString(
+    record.name ??
+      record.fullName ??
+      userRecord?.name ??
+      userRecord?.fullName ??
+      getNameFromClaims(claims),
+  )
+  const role =
+    getFirstString(
     record.role ??
       record.userRole ??
       record.roleName ??
       userRecord?.roles ??
       userRecord?.role ??
       getRoleFromClaims(claims),
-  )
+    ) || inferRoleFromIdentity(email, name)
 
   if (!token || !role) {
     return null
@@ -126,14 +159,8 @@ export function extractAuthResponse(payload: unknown): AuthResponse | null {
     userId: getString(
       record.userId ?? record.id ?? userRecord?.id ?? getUserIdFromClaims(claims),
     ),
-    email: getString(record.email ?? userRecord?.email),
-    name: getString(
-      record.name ??
-        record.fullName ??
-        userRecord?.name ??
-        userRecord?.fullName ??
-        getNameFromClaims(claims),
-    ),
+    email,
+    name,
   }
 }
 

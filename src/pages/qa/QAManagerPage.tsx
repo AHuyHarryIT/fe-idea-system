@@ -33,7 +33,7 @@ function isReviewableIdea(status?: string) {
 
 export default function QAManagerPage() {
   const role = auth.getRole()
-  const canModerateIdeas = role === 'admin'
+  const canModerateIdeas = role === 'admin' || role === 'qa_manager'
   const { data: ideaData, isLoading, error } = useQAManagerIdeas()
   const {
     data: submissionsData,
@@ -109,15 +109,6 @@ export default function QAManagerPage() {
         title="QA Manager Dashboard"
         description="Read-only analytics and export workspace aligned with the live backend permissions."
       />
-
-      {!canModerateIdeas ? (
-        <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-          Review decisions are currently rejected for QA Manager accounts by the
-          live backend. This dashboard keeps the queue visible for monitoring, but
-          moderation actions stay administrator-only until the backend policy
-          changes.
-        </div>
-      ) : null}
 
       <div className="grid gap-6 md:grid-cols-3">
         <StatCard
