@@ -615,10 +615,8 @@ export default function ManageUsersPage() {
               <div className="space-y-4">
                 {filteredUsers.map((user) => {
                   const isCurrentUser = user.id === currentUserId
-                  const isAdministratorUser =
-                    normalizeRoleKey(user.role) === 'administrator'
                   const isEditLocked = isCurrentUser
-                  const isDeleteLocked = isCurrentUser || isAdministratorUser
+                  const isDeleteLocked = isCurrentUser
 
                   return (
                     <article
@@ -678,20 +676,6 @@ export default function ManageUsersPage() {
                           />
                         </div>
                       </div>
-
-                      {isCurrentUser ? (
-                        <p className="mt-4 text-xs text-slate-500">
-                          Your current account stays locked here to avoid
-                          accidental self-edits or deletion.
-                        </p>
-                      ) : (
-                        isAdministratorUser && (
-                          <p className="mt-4 text-xs text-slate-500">
-                            Administrator accounts can be updated here, but
-                            deletion stays locked.
-                          </p>
-                        )
-                      )}
                     </article>
                   )
                 })}
