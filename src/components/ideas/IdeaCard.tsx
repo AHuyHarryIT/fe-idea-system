@@ -10,8 +10,18 @@ import {
   ThumbsUp,
 } from 'lucide-react'
 import type { Idea } from '@/types'
+import { ideaService } from '@/api'
 import { AppButton } from '@/components/app/AppButton'
 import { useVoteOnIdea } from '@/hooks/useIdeas'
+import {
+  getIdeaVoteFeedbackMessage,
+  getNextIdeaVoteState,
+  getResolvedIdeaVoteStatus,
+  IDEA_VOTE_STATUS_DISLIKED,
+  IDEA_VOTE_STATUS_LIKED,
+  resolveIdeaVoteStateFromCounts,
+  setStoredIdeaVoteStatus,
+} from '@/lib/idea-vote-status'
 
 interface IdeaCardProps {
   idea: Idea
@@ -25,7 +35,7 @@ function normalizeRoleLabel(value?: string) {
 }
 
 function getThumbStatusMeta(thumbStatus?: number) {
-  if (thumbStatus === 1) {
+  if (thumbStatus === IDEA_VOTE_STATUS_LIKED) {
     return {
       label: 'Liked',
       className: 'bg-blue-50 text-blue-700',
@@ -34,7 +44,7 @@ function getThumbStatusMeta(thumbStatus?: number) {
     }
   }
 
-  if (thumbStatus === 0) {
+  if (thumbStatus === IDEA_VOTE_STATUS_DISLIKED) {
     return {
       label: 'Disliked',
       className: 'bg-rose-50 text-rose-700',
@@ -55,7 +65,9 @@ export function IdeaCard({ idea }: IdeaCardProps) {
   const queryClient = useQueryClient()
   const { mutateAsync: voteOnIdea, isPending: isVoting } = useVoteOnIdea()
   const [feedbackMessage, setFeedbackMessage] = useState('')
-  const [currentThumbStatus, setCurrentThumbStatus] = useState(idea.thumbStatus ?? -1)
+  const [currentThumbStatus, setCurrentThumbStatus] = useState(
+    getResolvedIdeaVoteStatus(idea.id, idea.thumbStatus),
+  )
   const [thumbsUpCount, setThumbsUpCount] = useState(idea.thumbsUpCount ?? 0)
   const [thumbsDownCount, setThumbsDownCount] = useState(idea.thumbsDownCount ?? 0)
   const authorLabel = idea.isAnonymous
@@ -63,15 +75,15 @@ export function IdeaCard({ idea }: IdeaCardProps) {
     : (idea.authorName ?? 'Pending')
   const roleLabel = normalizeRoleLabel((idea as Idea & { authorRole?: string }).authorRole)
   const thumbStatusMeta = getThumbStatusMeta(currentThumbStatus)
-  const isLiked = currentThumbStatus === 1
-  const isDisliked = currentThumbStatus === 0
+  const isLiked = currentThumbStatus === IDEA_VOTE_STATUS_LIKED
+  const isDisliked = currentThumbStatus === IDEA_VOTE_STATUS_DISLIKED
 
   useEffect(() => {
-    setCurrentThumbStatus(idea.thumbStatus ?? -1)
+    setCurrentThumbStatus(getResolvedIdeaVoteStatus(idea.id, idea.thumbStatus))
     setThumbsUpCount(idea.thumbsUpCount ?? 0)
     setThumbsDownCount(idea.thumbsDownCount ?? 0)
     setFeedbackMessage('')
-  }, [idea.id])
+  }, [idea.id, idea.thumbStatus, idea.thumbsUpCount, idea.thumbsDownCount])
 
   const refreshIdeaQueries = async () => {
     await Promise.all([
@@ -98,48 +110,38 @@ export function IdeaCard({ idea }: IdeaCardProps) {
       return
     }
 
-    if (isThumbsUp) {
-      if (previousThumbStatus === 1) {
-        setCurrentThumbStatus(-1)
-        setThumbsUpCount((value) => Math.max(0, value - 1))
-      } else if (previousThumbStatus === 0) {
-        setCurrentThumbStatus(1)
-        setThumbsDownCount((value) => Math.max(0, value - 1))
-        setThumbsUpCount((value) => value + 1)
-      } else {
-        setCurrentThumbStatus(1)
-        setThumbsUpCount((value) => value + 1)
-      }
-    } else if (previousThumbStatus === 0) {
-      setCurrentThumbStatus(-1)
-      setThumbsDownCount((value) => Math.max(0, value - 1))
-    } else if (previousThumbStatus === 1) {
-      setCurrentThumbStatus(0)
-      setThumbsUpCount((value) => Math.max(0, value - 1))
-      setThumbsDownCount((value) => value + 1)
-    } else {
-      setCurrentThumbStatus(0)
-      setThumbsDownCount((value) => value + 1)
+    let nextVoteState = getNextIdeaVoteState(
+      previousThumbStatus,
+      isThumbsUp,
+      thumbsUpCount,
+      thumbsDownCount,
+    )
+
+    const refreshedIdeaResponse = await ideaService.getIdeaById(idea.id)
+
+    if (refreshedIdeaResponse.success && refreshedIdeaResponse.data) {
+      nextVoteState = resolveIdeaVoteStateFromCounts(
+        isThumbsUp,
+        previousThumbStatus,
+        thumbsUpCount,
+        thumbsDownCount,
+        refreshedIdeaResponse.data.thumbsUpCount ?? nextVoteState.nextThumbsUpCount,
+        refreshedIdeaResponse.data.thumbsDownCount ?? nextVoteState.nextThumbsDownCount,
+      )
     }
+
+    setCurrentThumbStatus(nextVoteState.nextThumbStatus)
+    setThumbsUpCount(nextVoteState.nextThumbsUpCount)
+    setThumbsDownCount(nextVoteState.nextThumbsDownCount)
+    setStoredIdeaVoteStatus(idea.id, nextVoteState.nextThumbStatus)
 
     await refreshIdeaQueries()
-    if (isThumbsUp) {
-      setFeedbackMessage(
-        previousThumbStatus === 1
-          ? 'Your like has been removed.'
-          : previousThumbStatus === 0
-            ? 'Your vote has been changed to like.'
-            : 'Thanks! Your like has been recorded.',
-      )
-      return
-    }
-
     setFeedbackMessage(
-      previousThumbStatus === 0
-        ? 'Your dislike has been removed.'
-        : previousThumbStatus === 1
-          ? 'Your vote has been changed to dislike.'
-          : 'Thanks! Your dislike has been recorded.',
+      getIdeaVoteFeedbackMessage(
+        isThumbsUp,
+        nextVoteState.nextThumbStatus,
+        previousThumbStatus,
+      ),
     )
   }
 

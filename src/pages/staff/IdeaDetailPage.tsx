@@ -11,6 +11,7 @@ import {
   XCircle,
 } from 'lucide-react'
 import type { Comment as IdeaComment } from '@/types'
+import { ideaService } from '@/api'
 import { AppButton } from '@/components/app/AppButton'
 import { FormField } from '@/components/forms/FormField'
 import { FormTextarea } from '@/components/forms/FormInput'
@@ -24,6 +25,15 @@ import {
   useVoteOnIdea,
 } from '@/hooks/useIdeas'
 import { auth } from '@/lib/auth'
+import {
+  getIdeaVoteFeedbackMessage,
+  getNextIdeaVoteState,
+  getResolvedIdeaVoteStatus,
+  IDEA_VOTE_STATUS_DISLIKED,
+  IDEA_VOTE_STATUS_LIKED,
+  resolveIdeaVoteStateFromCounts,
+  setStoredIdeaVoteStatus,
+} from '@/lib/idea-vote-status'
 
 interface IdeaDetailPageProps {
   ideaId: string
@@ -47,30 +57,6 @@ function getCommentText(comment: { text?: string; content?: string }) {
   return comment.text || comment.content || 'No comment content available.'
 }
 
-function getThumbStatusMeta(thumbStatus: number) {
-  if (thumbStatus === 1) {
-    return {
-      label: 'Liked',
-      description: 'You have upvoted this idea.',
-      className: 'bg-blue-50 text-blue-700',
-    }
-  }
-
-  if (thumbStatus === 0) {
-    return {
-      label: 'Disliked',
-      description: 'You have downvoted this idea.',
-      className: 'bg-rose-50 text-rose-700',
-    }
-  }
-
-  return {
-    label: 'No reaction',
-    description: 'You have not voted on this idea yet.',
-    className: 'bg-slate-100 text-slate-600',
-  }
-}
-
 export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
   const queryClient = useQueryClient()
   const role = auth.getRole()
@@ -84,14 +70,15 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
   const [feedbackMessage, setFeedbackMessage] = useState('')
   const [reviewReason, setReviewReason] = useState('')
   const [reviewFeedbackMessage, setReviewFeedbackMessage] = useState('')
-  const [currentThumbStatus, setCurrentThumbStatus] = useState(-1)
+  const [currentThumbStatus, setCurrentThumbStatus] = useState(
+    getResolvedIdeaVoteStatus(ideaId),
+  )
   const [thumbsUpCount, setThumbsUpCount] = useState(0)
   const [thumbsDownCount, setThumbsDownCount] = useState(0)
 
   const thumbStatus = currentThumbStatus
-  const isLiked = thumbStatus === 1
-  const isDisliked = thumbStatus === 0
-  const thumbStatusMeta = getThumbStatusMeta(thumbStatus)
+  const isLiked = thumbStatus === IDEA_VOTE_STATUS_LIKED
+  const isDisliked = thumbStatus === IDEA_VOTE_STATUS_DISLIKED
   const canComment = !isLoading && (idea?.canComment ?? true)
   const canReview =
     role === 'admin' || role === 'qa_manager' || role === 'qa_coordinator'
@@ -117,10 +104,10 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
   }, [ideaId])
 
   useEffect(() => {
-    setCurrentThumbStatus(idea?.thumbStatus ?? -1)
+    setCurrentThumbStatus(getResolvedIdeaVoteStatus(ideaId, idea?.thumbStatus))
     setThumbsUpCount(idea?.thumbsUpCount ?? 0)
     setThumbsDownCount(idea?.thumbsDownCount ?? 0)
-  }, [idea?.id])
+  }, [ideaId, idea?.thumbStatus, idea?.thumbsUpCount, idea?.thumbsDownCount])
 
   const refreshIdeaQueries = async () => {
     await Promise.all([
@@ -147,25 +134,38 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
       return
     }
 
-    if (previousThumbStatus === 1) {
-      setCurrentThumbStatus(-1)
-      setThumbsUpCount((value) => Math.max(0, value - 1))
-    } else if (previousThumbStatus === 0) {
-      setCurrentThumbStatus(1)
-      setThumbsDownCount((value) => Math.max(0, value - 1))
-      setThumbsUpCount((value) => value + 1)
-    } else {
-      setCurrentThumbStatus(1)
-      setThumbsUpCount((value) => value + 1)
+    let nextVoteState = getNextIdeaVoteState(
+      previousThumbStatus,
+      true,
+      thumbsUpCount,
+      thumbsDownCount,
+    )
+
+    const refreshedIdeaResponse = await ideaService.getIdeaById(ideaId)
+
+    if (refreshedIdeaResponse.success && refreshedIdeaResponse.data) {
+      nextVoteState = resolveIdeaVoteStateFromCounts(
+        true,
+        previousThumbStatus,
+        thumbsUpCount,
+        thumbsDownCount,
+        refreshedIdeaResponse.data.thumbsUpCount ?? nextVoteState.nextThumbsUpCount,
+        refreshedIdeaResponse.data.thumbsDownCount ?? nextVoteState.nextThumbsDownCount,
+      )
     }
+
+    setCurrentThumbStatus(nextVoteState.nextThumbStatus)
+    setThumbsUpCount(nextVoteState.nextThumbsUpCount)
+    setThumbsDownCount(nextVoteState.nextThumbsDownCount)
+    setStoredIdeaVoteStatus(ideaId, nextVoteState.nextThumbStatus)
 
     await refreshIdeaQueries()
     setFeedbackMessage(
-      previousThumbStatus === 1
-        ? 'Your like has been removed.'
-        : previousThumbStatus === 0
-          ? 'Your vote has been changed to like.'
-          : 'Thanks! Your like has been recorded.',
+      getIdeaVoteFeedbackMessage(
+        true,
+        nextVoteState.nextThumbStatus,
+        previousThumbStatus,
+      ),
     )
   }
 
@@ -183,25 +183,38 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
       return
     }
 
-    if (previousThumbStatus === 0) {
-      setCurrentThumbStatus(-1)
-      setThumbsDownCount((value) => Math.max(0, value - 1))
-    } else if (previousThumbStatus === 1) {
-      setCurrentThumbStatus(0)
-      setThumbsUpCount((value) => Math.max(0, value - 1))
-      setThumbsDownCount((value) => value + 1)
-    } else {
-      setCurrentThumbStatus(0)
-      setThumbsDownCount((value) => value + 1)
+    let nextVoteState = getNextIdeaVoteState(
+      previousThumbStatus,
+      false,
+      thumbsUpCount,
+      thumbsDownCount,
+    )
+
+    const refreshedIdeaResponse = await ideaService.getIdeaById(ideaId)
+
+    if (refreshedIdeaResponse.success && refreshedIdeaResponse.data) {
+      nextVoteState = resolveIdeaVoteStateFromCounts(
+        false,
+        previousThumbStatus,
+        thumbsUpCount,
+        thumbsDownCount,
+        refreshedIdeaResponse.data.thumbsUpCount ?? nextVoteState.nextThumbsUpCount,
+        refreshedIdeaResponse.data.thumbsDownCount ?? nextVoteState.nextThumbsDownCount,
+      )
     }
+
+    setCurrentThumbStatus(nextVoteState.nextThumbStatus)
+    setThumbsUpCount(nextVoteState.nextThumbsUpCount)
+    setThumbsDownCount(nextVoteState.nextThumbsDownCount)
+    setStoredIdeaVoteStatus(ideaId, nextVoteState.nextThumbStatus)
 
     await refreshIdeaQueries()
     setFeedbackMessage(
-      previousThumbStatus === 0
-        ? 'Your dislike has been removed.'
-        : previousThumbStatus === 1
-          ? 'Your vote has been changed to dislike.'
-          : 'Thanks! Your dislike has been recorded.',
+      getIdeaVoteFeedbackMessage(
+        false,
+        nextVoteState.nextThumbStatus,
+        previousThumbStatus,
+      ),
     )
   }
 
@@ -542,13 +555,6 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
             description="Category, author, dates, and engagement metrics."
           >
             <div className="space-y-3 text-sm text-slate-600">
-              <div className={`rounded-2xl px-4 py-4 ${thumbStatusMeta.className}`}>
-                <p className="text-xs font-medium uppercase tracking-wide opacity-80">
-                  Your reaction
-                </p>
-                <p className="mt-1 text-base font-semibold">{thumbStatusMeta.label}</p>
-                <p className="mt-1 text-sm opacity-90">{thumbStatusMeta.description}</p>
-              </div>
               <div className="rounded-2xl bg-slate-50 p-4">
                 Category: {idea?.categoryName || 'Uncategorized'}
               </div>
@@ -568,10 +574,10 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
                 Views: {idea?.viewCount ?? 0}
               </div>
               <div className="rounded-2xl bg-slate-50 p-4">
-                Upvotes: {thumbsUpCount}
+                Likes: {thumbsUpCount}
               </div>
               <div className="rounded-2xl bg-slate-50 p-4">
-                Downvotes: {thumbsDownCount}
+                Dislikes: {thumbsDownCount}
               </div>
               <div className="rounded-2xl bg-slate-50 p-4">
                 Comments: {visibleCommentCount}
