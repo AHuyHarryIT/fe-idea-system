@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Pagination } from 'antd'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { ArrowLeft, CalendarRange, FileUp, Send } from 'lucide-react'
@@ -7,6 +6,7 @@ import type { IdeaSubmitPayload } from '@/types/idea'
 import { AppButton } from '@/components/app/AppButton'
 import { FormField } from '@/components/forms/FormField'
 import { FormInput, FormTextarea } from '@/components/forms/FormInput'
+import { AppPagination } from '@/components/shared/AppPagination'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { useIdeaCategories } from '@/hooks/useCategories'
@@ -260,19 +260,6 @@ export default function SubmitIdeaPage() {
             </div>
           ) : submissions.length ? (
             <div className="space-y-4">
-              {totalSubmissions > 0 && (
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4 text-sm text-slate-500">
-                  <p>
-                    Showing {(currentPage - 1) * pageSize + 1}-
-                    {Math.min(currentPage * pageSize, totalSubmissions)} of{' '}
-                    {totalSubmissions} submission windows
-                  </p>
-                  <p>
-                    Page {currentPage} of {totalPages}
-                  </p>
-                </div>
-              )}
-
               {submissions.map((submission) => {
                 const closed = isSubmissionClosed(submission.closureDate)
                 return (
@@ -323,28 +310,24 @@ export default function SubmitIdeaPage() {
                 )
               })}
 
-              <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4">
-                <Pagination
-                  align="end"
-                  current={currentPage}
-                  total={totalSubmissions}
-                  pageSize={pageSize}
-                  showSizeChanger
-                  pageSizeOptions={PAGE_SIZE_OPTIONS}
-                  onChange={(page, nextPageSize) => {
-                    if (nextPageSize !== pageSize) {
-                      setPageSize(nextPageSize)
-                      setCurrentPage(1)
-                      return
-                    }
-
-                    setCurrentPage(page)
-                  }}
-                  showTotal={(total, range) =>
-                    `Showing ${range[0]}-${range[1]} of ${total} submission windows`
+              <AppPagination
+                current={currentPage}
+                total={totalSubmissions}
+                pageSize={pageSize}
+                pageSizeOptions={PAGE_SIZE_OPTIONS}
+                onChange={(page, nextPageSize) => {
+                  if (nextPageSize !== pageSize) {
+                    setPageSize(nextPageSize)
+                    setCurrentPage(1)
+                    return
                   }
-                />
-              </div>
+
+                  setCurrentPage(page)
+                }}
+                showTotal={(total, range) =>
+                  `Showing ${range[0]}-${range[1]} of ${total} submission windows`
+                }
+              />
             </div>
           ) : (
             <EmptyState
@@ -498,11 +481,11 @@ export default function SubmitIdeaPage() {
                     </option>
                   ))}
                 </select>
-                {categoriesLoading ? (
+                {categoriesLoading && (
                   <p className="text-xs text-slate-500">
                     Loading categories...
                   </p>
-                ) : null}
+                )}
               </FormField>
 
               <FormField label="Submission window">
@@ -564,11 +547,11 @@ export default function SubmitIdeaPage() {
               <p className="mt-4 text-sm text-slate-600">
                 {fileNames || 'No files selected yet.'}
               </p>
-              {fileValidationMessage ? (
+              {fileValidationMessage && (
                 <p className="mt-3 text-sm text-red-600">
                   {fileValidationMessage}
                 </p>
-              ) : null}
+              )}
             </div>
           </SectionCard>
 
@@ -606,11 +589,11 @@ export default function SubmitIdeaPage() {
             </div>
           </SectionCard>
 
-          {feedbackMessage ? (
+          {feedbackMessage && (
             <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
               {feedbackMessage}
             </div>
-          ) : null}
+          )}
 
           <div className="flex flex-wrap justify-end gap-3">
             <AppButton

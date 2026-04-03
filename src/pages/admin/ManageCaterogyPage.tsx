@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Pagination } from 'antd'
 import { useQueryClient } from '@tanstack/react-query'
 import { Plus, Tag } from 'lucide-react'
 import { ActionButton } from '@/components/app/ActionButton'
 import { AppButton } from '@/components/app/AppButton'
+import { AppPagination } from '@/components/shared/AppPagination'
 import { FormField } from '@/components/forms/FormField'
 import { FormInput } from '@/components/forms/FormInput'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
@@ -51,7 +51,6 @@ export default function ManageCategoryPage() {
     [data],
   )
   const totalCategories = data?.pagination?.totalCount ?? categories.length
-  const hasCategories = totalCategories > 0
   const totalPages = Math.max(1, Math.ceil(totalCategories / pageSize))
 
   useEffect(() => {
@@ -155,26 +154,13 @@ export default function ManageCategoryPage() {
         }
       />
 
-      {feedbackMessage ? (
+      {feedbackMessage && (
         <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
           {feedbackMessage}
         </div>
-      ) : null}
+      )}
 
       <SectionCard>
-        {hasCategories ? (
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
-            <p className="text-sm text-slate-500">
-              Showing {(currentPage - 1) * pageSize + 1}-
-              {Math.min(currentPage * pageSize, totalCategories)} of{' '}
-              {totalCategories} categories
-            </p>
-            <p className="text-sm text-slate-500">
-              Page {currentPage} of {totalPages}
-            </p>
-          </div>
-        ) : null}
-
         {error ? (
           <EmptyState
             icon={Tag}
@@ -215,28 +201,24 @@ export default function ManageCategoryPage() {
               </div>
             ))}
 
-            <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4">
-              <Pagination
-                align="end"
-                current={currentPage}
-                total={totalCategories}
-                pageSize={pageSize}
-                showSizeChanger
-                pageSizeOptions={PAGE_SIZE_OPTIONS}
-                onChange={(page, nextPageSize) => {
-                  if (nextPageSize !== pageSize) {
-                    setPageSize(nextPageSize)
-                    setCurrentPage(1)
-                    return
-                  }
-
-                  setCurrentPage(page)
-                }}
-                showTotal={(total, range) =>
-                  `Showing ${range[0]}-${range[1]} of ${total} categories`
+            <AppPagination
+              current={currentPage}
+              total={totalCategories}
+              pageSize={pageSize}
+              pageSizeOptions={PAGE_SIZE_OPTIONS}
+              onChange={(page, nextPageSize) => {
+                if (nextPageSize !== pageSize) {
+                  setPageSize(nextPageSize)
+                  setCurrentPage(1)
+                  return
                 }
-              />
-            </div>
+
+                setCurrentPage(page)
+              }}
+              showTotal={(total, range) =>
+                `Showing ${range[0]}-${range[1]} of ${total} categories`
+              }
+            />
           </div>
         ) : (
           <EmptyState

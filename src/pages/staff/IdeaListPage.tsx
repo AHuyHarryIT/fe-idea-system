@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Pagination } from 'antd'
 import { Lightbulb, Search } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import { AppButton } from '@/components/app/AppButton'
 import { IdeaCard } from '@/components/ideas/IdeaCard'
+import { AppPagination } from '@/components/shared/AppPagination'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
@@ -58,7 +58,10 @@ export default function IdeaListPage() {
   }, [category, ideas, search])
 
   const totalIdeas =
-    data?.pagination?.totalCount ?? data?.totalCount ?? data?.total ?? ideas.length
+    data?.pagination?.totalCount ??
+    data?.totalCount ??
+    data?.total ??
+    ideas.length
   const totalPages = Math.max(1, Math.ceil(totalIdeas / pageSize))
   const hasLocalFilters = search.trim().length > 0 || category.length > 0
   const listDescription = hasLocalFilters
@@ -137,32 +140,47 @@ export default function IdeaListPage() {
           </div>
         ) : filteredIdeas.length > 0 ? (
           <>
-            {totalIdeas > 0 ? (
-              <div className="mb-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4 text-sm text-slate-500">
-                <p>
-                  Showing {(currentPage - 1) * pageSize + 1}-
-                  {Math.min(currentPage * pageSize, totalIdeas)} of {totalIdeas}{' '}
-                  ideas
-                </p>
-                <p>
-                  Page {currentPage} of {totalPages}
-                </p>
-              </div>
-            ) : null}
-
             <div className="space-y-4">
               {filteredIdeas.map((idea) => (
                 <IdeaCard key={idea.id} idea={idea} />
               ))}
             </div>
 
-            <div className="mt-6 rounded-2xl border border-slate-200 bg-white px-5 py-4">
-              <Pagination
-                align="end"
+            <AppPagination
+              containerClassName="mt-6"
+              current={currentPage}
+              total={totalIdeas}
+              pageSize={pageSize}
+              pageSizeOptions={PAGE_SIZE_OPTIONS}
+              onChange={(page, nextPageSize) => {
+                if (nextPageSize !== pageSize) {
+                  setPageSize(nextPageSize)
+                  setCurrentPage(1)
+                  return
+                }
+
+                setCurrentPage(page)
+              }}
+              showTotal={(total, range) =>
+                hasLocalFilters
+                  ? `${filteredIdeas.length} matches on this page · ${total} total ideas`
+                  : `Showing ${range[0]}-${range[1]} of ${total} ideas`
+              }
+            />
+          </>
+        ) : (
+          <div className="space-y-6">
+            <EmptyState
+              icon={Lightbulb}
+              title="No idea records loaded"
+              description="Try adjusting your search, category, or page selection."
+            />
+
+            {totalIdeas > 0 && (
+              <AppPagination
                 current={currentPage}
                 total={totalIdeas}
                 pageSize={pageSize}
-                showSizeChanger
                 pageSizeOptions={PAGE_SIZE_OPTIONS}
                 onChange={(page, nextPageSize) => {
                   if (nextPageSize !== pageSize) {
@@ -173,48 +191,13 @@ export default function IdeaListPage() {
 
                   setCurrentPage(page)
                 }}
-                showTotal={(total, range) =>
+                showTotal={(total) =>
                   hasLocalFilters
                     ? `${filteredIdeas.length} matches on this page · ${total} total ideas`
-                    : `Showing ${range[0]}-${range[1]} of ${total} ideas`
+                    : `${total} total ideas`
                 }
               />
-            </div>
-          </>
-        ) : (
-          <div className="space-y-6">
-            <EmptyState
-              icon={Lightbulb}
-              title="No idea records loaded"
-              description="Try adjusting your search, category, or page selection."
-            />
-
-            {totalIdeas > 0 ? (
-              <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4">
-                <Pagination
-                  align="end"
-                  current={currentPage}
-                  total={totalIdeas}
-                  pageSize={pageSize}
-                  showSizeChanger
-                  pageSizeOptions={PAGE_SIZE_OPTIONS}
-                  onChange={(page, nextPageSize) => {
-                    if (nextPageSize !== pageSize) {
-                      setPageSize(nextPageSize)
-                      setCurrentPage(1)
-                      return
-                    }
-
-                    setCurrentPage(page)
-                  }}
-                  showTotal={(total) =>
-                    hasLocalFilters
-                      ? `${filteredIdeas.length} matches on this page · ${total} total ideas`
-                      : `${total} total ideas`
-                  }
-                />
-              </div>
-            ) : null}
+            )}
           </div>
         )}
       </div>

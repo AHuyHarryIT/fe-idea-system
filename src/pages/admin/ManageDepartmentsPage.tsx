@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Pagination } from 'antd'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Building2 } from 'lucide-react'
 import type { Department } from '@/types'
 import { departmentService } from '@/api/departments'
 import { ActionButton } from '@/components/app/ActionButton'
 import { AppButton } from '@/components/app/AppButton'
+import { AppPagination } from '@/components/shared/AppPagination'
 import { FormField } from '@/components/forms/FormField'
 import { FormInput, FormTextarea } from '@/components/forms/FormInput'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
@@ -37,11 +37,7 @@ export default function ManageDepartmentsPage() {
   const [feedbackMessage, setFeedbackMessage] = useState('')
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
 
-  const {
-    data,
-    isLoading,
-    error,
-  } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ['departments', currentPage, pageSize],
     queryFn: async () => {
       const response = await departmentService.getDepartments({
@@ -82,7 +78,10 @@ export default function ManageDepartmentsPage() {
     mutationFn: async (payload: DepartmentForm) => {
       if (!editingId) throw new Error('No department selected')
 
-      const response = await departmentService.updateDepartment(editingId, payload)
+      const response = await departmentService.updateDepartment(
+        editingId,
+        payload,
+      )
 
       if (!response.success) {
         throw new Error(response.error ?? 'Unable to update department.')
@@ -203,31 +202,20 @@ export default function ManageDepartmentsPage() {
         }
       />
 
-      {feedbackMessage ? (
+      {feedbackMessage && (
         <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
           {feedbackMessage}
         </div>
-      ) : null}
+      )}
 
       <SectionCard>
-        {totalDepartments > 0 ? (
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
-            <p className="text-sm text-slate-500">
-              Showing {(currentPage - 1) * pageSize + 1}-
-              {Math.min(currentPage * pageSize, totalDepartments)} of{' '}
-              {totalDepartments} departments
-            </p>
-            <p className="text-sm text-slate-500">
-              Page {currentPage} of {totalPages}
-            </p>
-          </div>
-        ) : null}
-
         {error ? (
           <EmptyState
             icon={Building2}
             title="Unable to load departments"
-            description={error instanceof Error ? error.message : 'Unknown error'}
+            description={
+              error instanceof Error ? error.message : 'Unknown error'
+            }
           />
         ) : isLoading ? (
           <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600">
@@ -282,7 +270,8 @@ export default function ManageDepartmentsPage() {
                             action="edit"
                             onClick={() => handleEdit(department)}
                             disabled={
-                              createMutation.isPending || updateMutation.isPending
+                              createMutation.isPending ||
+                              updateMutation.isPending
                             }
                           />
                           <ActionButton
@@ -298,28 +287,24 @@ export default function ManageDepartmentsPage() {
               </table>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4">
-              <Pagination
-                align="end"
-                current={currentPage}
-                total={totalDepartments}
-                pageSize={pageSize}
-                showSizeChanger
-                pageSizeOptions={PAGE_SIZE_OPTIONS}
-                onChange={(page, nextPageSize) => {
-                  if (nextPageSize !== pageSize) {
-                    setPageSize(nextPageSize)
-                    setCurrentPage(1)
-                    return
-                  }
-
-                  setCurrentPage(page)
-                }}
-                showTotal={(total, range) =>
-                  `Showing ${range[0]}-${range[1]} of ${total} departments`
+            <AppPagination
+              current={currentPage}
+              total={totalDepartments}
+              pageSize={pageSize}
+              pageSizeOptions={PAGE_SIZE_OPTIONS}
+              onChange={(page, nextPageSize) => {
+                if (nextPageSize !== pageSize) {
+                  setPageSize(nextPageSize)
+                  setCurrentPage(1)
+                  return
                 }
-              />
-            </div>
+
+                setCurrentPage(page)
+              }}
+              showTotal={(total, range) =>
+                `Showing ${range[0]}-${range[1]} of ${total} departments`
+              }
+            />
           </div>
         )}
       </SectionCard>

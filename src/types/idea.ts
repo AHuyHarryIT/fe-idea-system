@@ -33,8 +33,8 @@ export interface IdeaListResponse {
   pagination?: IdeaListPagination
   totalCount?: number
   total?: number
-  pageNumber: number
-  pageSize: number
+  pageNumber?: number
+  pageSize?: number
   totalPages?: number
 }
 
