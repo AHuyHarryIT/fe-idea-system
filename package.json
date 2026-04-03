@@ -4,12 +4,16 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
     "lint": "eslint",
-    "format": "prettier",
-    "check": "prettier --write . && eslint --fix"
+    "lint:fix": "eslint --fix",
+    "format": "prettier src/**/*.{ts,tsx}",
+    "format:check": "prettier --check src/**/*.{ts,tsx}",
+    "format:fix": "prettier --write src/**/*.{ts,tsx}",
+    "ts:check": "tsc --noEmit",
+    "check": "npm run ts:check && npm run lint:fix && npm run build"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.0.6",
