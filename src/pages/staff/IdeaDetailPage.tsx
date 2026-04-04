@@ -24,14 +24,17 @@ import { FormTextarea } from '@/components/forms/FormInput'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { SectionCard } from '@/components/shared/SectionCard'
+import { SUBMISSION_SELECT_PAGE_SIZE } from '@/constants/submission'
 import {
   useAddComment,
   useDeleteIdea,
   useIdeaById,
+  useMyIdeas,
   useReviewIdea,
   useVoteOnIdea,
 } from '@/hooks/useIdeas'
-import { formatAppDateTime } from '@/lib/date'
+import { useSubmissions } from '@/hooks/useSubmissions'
+import { formatAppDateTime, getDateTimestamp } from '@/lib/date'
 import { auth } from '@/lib/auth'
 import {
   getIdeaVoteFeedbackMessage,
@@ -76,6 +79,14 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
   const queryClient = useQueryClient()
   const role = auth.getRole()
   const { data: idea, isLoading, error } = useIdeaById(ideaId)
+  const { data: myIdeasData } = useMyIdeas(undefined, {
+    fetchAll: true,
+    enabled: role !== 'admin',
+  })
+  const { data: submissionData } = useSubmissions({
+    pageNumber: 1,
+    pageSize: SUBMISSION_SELECT_PAGE_SIZE,
+  })
   const { mutateAsync: addComment, isPending: isCommenting } = useAddComment()
   const { mutateAsync: voteOnIdea, isPending: isVoting } = useVoteOnIdea()
   const { mutateAsync: deleteIdea, isPending: isDeletingIdea } = useDeleteIdea()
@@ -95,10 +106,19 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
   const thumbStatus = currentThumbStatus
   const isLiked = thumbStatus === IDEA_VOTE_STATUS_LIKED
   const isDisliked = thumbStatus === IDEA_VOTE_STATUS_DISLIKED
-  const canComment = !isLoading && (idea?.canComment ?? true)
   const canReview =
     role === 'admin' || role === 'qa_manager' || role === 'qa_coordinator'
-  const canDeleteIdea = role === 'admin'
+  const myIdeas = useMemo(() => {
+    if (Array.isArray(myIdeasData?.ideas)) {
+      return myIdeasData.ideas
+    }
+
+    if (Array.isArray(myIdeasData?.items)) {
+      return myIdeasData.items
+    }
+
+    return []
+  }, [myIdeasData])
   const visibleComments = useMemo(() => {
     const apiComments = idea?.comments ?? []
     const mergedComments = [...postedComments]
@@ -133,6 +153,69 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
   const statusLabel = getIdeaStatusLabel(idea?.status)
   const normalizedStatus = normalizeIdeaStatus(idea?.status)
   const isApprovedStatus = normalizedStatus === 'approved'
+  const isOwnIdea = useMemo(
+    () => myIdeas.some((myIdea) => myIdea.id === ideaId),
+    [ideaId, myIdeas],
+  )
+  const closedSubmissionIds = useMemo(() => {
+    const currentTimestamp = Date.now()
+
+    return new Set(
+      (submissionData?.submissions ?? [])
+        .filter((submission) => getDateTimestamp(submission.closureDate) < currentTimestamp)
+        .map((submission) => submission.id),
+    )
+  }, [submissionData?.submissions])
+  const closedSubmissionNames = useMemo(() => {
+    const currentTimestamp = Date.now()
+
+    return new Set(
+      (submissionData?.submissions ?? [])
+        .filter((submission) => getDateTimestamp(submission.closureDate) < currentTimestamp)
+        .map((submission) => submission.name),
+    )
+  }, [submissionData?.submissions])
+  const finalClosedSubmissionIds = useMemo(() => {
+    const currentTimestamp = Date.now()
+
+    return new Set(
+      (submissionData?.submissions ?? [])
+        .filter(
+          (submission) =>
+            getDateTimestamp(submission.finalClosureDate) < currentTimestamp,
+        )
+        .map((submission) => submission.id),
+    )
+  }, [submissionData?.submissions])
+  const finalClosedSubmissionNames = useMemo(() => {
+    const currentTimestamp = Date.now()
+
+    return new Set(
+      (submissionData?.submissions ?? [])
+        .filter(
+          (submission) =>
+            getDateTimestamp(submission.finalClosureDate) < currentTimestamp,
+        )
+        .map((submission) => submission.name),
+    )
+  }, [submissionData?.submissions])
+  const isPastSubmissionClosure = Boolean(
+    idea &&
+      ((idea.submissionId && closedSubmissionIds.has(idea.submissionId)) ||
+        (idea.submissionName && closedSubmissionNames.has(idea.submissionName))),
+  )
+  const isPastFinalSubmissionClosure = Boolean(
+    idea &&
+      ((idea.submissionId && finalClosedSubmissionIds.has(idea.submissionId)) ||
+        (idea.submissionName &&
+          finalClosedSubmissionNames.has(idea.submissionName))),
+  )
+  const canComment =
+    !isLoading &&
+    !isPastFinalSubmissionClosure &&
+    ((idea?.canComment ?? true) || isOwnIdea)
+  const canDeleteIdea =
+    (role === 'admin' || isOwnIdea) && !isPastSubmissionClosure
 
   useEffect(() => {
     setPostedComments([])
@@ -454,17 +537,18 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
                 <ThumbsDown className="mr-2 h-4 w-4" />
                 {isDisliked ? 'Disliked' : 'Dislike'}
               </AppButton>
-              <AppButton
-                onClick={() => {
-                  document
-                    .getElementById('comment-form')
-                    ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-                }}
-                disabled={!canComment}
-              >
-                <MessageSquare className="mr-2 h-4 w-4" />
-                Add comment
-              </AppButton>
+              {canComment && (
+                <AppButton
+                  onClick={() => {
+                    document
+                      .getElementById('comment-form')
+                      ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                  }}
+                >
+                  <MessageSquare className="mr-2 h-4 w-4" />
+                  Add comment
+                </AppButton>
+              )}
               {canDeleteIdea ? (
                 <AppButton
                   variant="red"
@@ -473,6 +557,16 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
                 >
                   {isDeletingIdea ? 'Deleting...' : 'Delete idea'}
                 </AppButton>
+              ) : null}
+              {isPastSubmissionClosure ? (
+                <div className="w-full rounded-[22px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                  Editing and deleting are unavailable after the submission closure date.
+                </div>
+              ) : null}
+              {isPastFinalSubmissionClosure ? (
+                <div className="w-full rounded-[22px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                  Commenting is unavailable after the final closure date.
+                </div>
               ) : null}
             </div>
           </div>
@@ -652,43 +746,43 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
             description="Share feedback or review the ongoing discussion around this idea."
           >
             <div className="space-y-5">
-              <div className="rounded-[24px] border border-slate-200 bg-slate-50/80 p-5">
-                <FormField label="Add a comment">
-                  <FormTextarea
-                    id="comment-form"
-                    name="comment-form"
-                    placeholder={
-                      canComment
-                        ? 'Share your thoughts on this proposal'
-                        : 'Commenting is unavailable for this idea'
-                    }
-                    value={commentText}
-                    onChange={(event) => setCommentText(event.target.value)}
-                    disabled={!canComment}
-                  />
-                </FormField>
-
-                <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <label className="flex items-center gap-3 text-sm text-slate-700">
-                    <input
-                      id="comment-anonymous"
-                      name="comment-anonymous"
-                      type="checkbox"
-                      checked={isAnonymous}
-                      onChange={(event) => setIsAnonymous(event.target.checked)}
-                      disabled={!canComment}
+              {canComment ? (
+                <div className="rounded-[24px] border border-slate-200 bg-slate-50/80 p-5">
+                  <FormField label="Add a comment">
+                    <FormTextarea
+                      id="comment-form"
+                      name="comment-form"
+                      placeholder="Share your thoughts on this proposal"
+                      value={commentText}
+                      onChange={(event) => setCommentText(event.target.value)}
                     />
-                    Post anonymously
-                  </label>
+                  </FormField>
 
-                  <AppButton
-                    disabled={isCommenting || !canComment}
-                    onClick={handleCommentSubmit}
-                  >
-                    {isCommenting ? 'Posting...' : 'Post comment'}
-                  </AppButton>
+                  <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <label className="flex items-center gap-3 text-sm text-slate-700">
+                      <input
+                        id="comment-anonymous"
+                        name="comment-anonymous"
+                        type="checkbox"
+                        checked={isAnonymous}
+                        onChange={(event) => setIsAnonymous(event.target.checked)}
+                      />
+                      Post anonymously
+                    </label>
+
+                    <AppButton
+                      disabled={isCommenting}
+                      onClick={handleCommentSubmit}
+                    >
+                      {isCommenting ? 'Posting...' : 'Post comment'}
+                    </AppButton>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="rounded-[24px] border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600">
+                  Commenting is unavailable after the final closure date.
+                </div>
+              )}
 
               {visibleComments.length > 0 ? (
                 <div className="space-y-4">

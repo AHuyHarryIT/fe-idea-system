@@ -24,6 +24,7 @@ import { Modal } from '@/components/shared/Modal'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { CATEGORY_SELECT_PAGE_SIZE } from '@/constants/category'
+import { SUBMISSION_SELECT_PAGE_SIZE } from '@/constants/submission'
 import { useIdeaCategories } from '@/hooks/useCategories'
 import {
   useAllIdeasMatching,
@@ -31,6 +32,7 @@ import {
   useMyIdeas,
   useUpdateIdea,
 } from '@/hooks/useIdeas'
+import { useSubmissions } from '@/hooks/useSubmissions'
 import { formatAppDateTime, getDateTimestamp } from '@/lib/date'
 import { normalizeIdeaResponse } from '@/lib/idea-response-mapper'
 import { appNotification } from '@/lib/notifications'
@@ -163,6 +165,17 @@ function isPdfFile(file: File) {
   const normalizedName = file.name.toLowerCase()
 
   return normalizedType === 'application/pdf' || normalizedName.endsWith('.pdf')
+}
+
+function isIdeaPastSubmissionClosure(
+  idea: Idea,
+  closedSubmissionIds: Set<string>,
+  closedSubmissionNames: Set<string>,
+) {
+  return Boolean(
+    (idea.submissionId && closedSubmissionIds.has(idea.submissionId)) ||
+      (idea.submissionName && closedSubmissionNames.has(idea.submissionName)),
+  )
 }
 
 function OverviewMetricCard({
@@ -470,6 +483,10 @@ function MyIdeaTracker({
     pageNumber: 1,
     pageSize: CATEGORY_SELECT_PAGE_SIZE,
   })
+  const { data: submissionData } = useSubmissions({
+    pageNumber: 1,
+    pageSize: SUBMISSION_SELECT_PAGE_SIZE,
+  })
   const { mutateAsync: updateIdea, isPending: isUpdatingIdea } = useUpdateIdea()
   const { mutateAsync: deleteIdea, isPending: isDeletingIdea } = useDeleteIdea()
   const categories = useMemo(
@@ -479,6 +496,24 @@ function MyIdeaTracker({
         : [],
     [categoryData],
   )
+  const closedSubmissionIds = useMemo(() => {
+    const currentTimestamp = Date.now()
+
+    return new Set(
+      (submissionData?.submissions ?? [])
+        .filter((submission) => getDateTimestamp(submission.closureDate) < currentTimestamp)
+        .map((submission) => submission.id),
+    )
+  }, [submissionData?.submissions])
+  const closedSubmissionNames = useMemo(() => {
+    const currentTimestamp = Date.now()
+
+    return new Set(
+      (submissionData?.submissions ?? [])
+        .filter((submission) => getDateTimestamp(submission.closureDate) < currentTimestamp)
+        .map((submission) => submission.name),
+    )
+  }, [submissionData?.submissions])
   const totalIdeas =
     data?.pagination?.totalCount ??
     data?.totalCount ??
@@ -722,6 +757,11 @@ function MyIdeaTracker({
               {filteredIdeas.map((idea) => {
                 const status = getIdeaStatusValue(idea)
                 const statusMeta = getIdeaStatusMeta(status)
+                const isPastClosure = isIdeaPastSubmissionClosure(
+                  idea,
+                  closedSubmissionIds,
+                  closedSubmissionNames,
+                )
 
                 return (
                   <div
@@ -780,20 +820,28 @@ function MyIdeaTracker({
                         >
                           Show details
                         </AppButton>
-                        <AppButton
-                          type="button"
-                          variant="ghost"
-                          onClick={() => openEditIdeaModal(idea)}
-                        >
-                          Edit idea
-                        </AppButton>
-                        <AppButton
-                          type="button"
-                          variant="red"
-                          onClick={() => setDeleteIdeaTarget(idea)}
-                        >
-                          Delete idea
-                        </AppButton>
+                        {!isPastClosure ? (
+                          <>
+                            <AppButton
+                              type="button"
+                              variant="ghost"
+                              onClick={() => openEditIdeaModal(idea)}
+                            >
+                              Edit idea
+                            </AppButton>
+                            <AppButton
+                              type="button"
+                              variant="red"
+                              onClick={() => setDeleteIdeaTarget(idea)}
+                            >
+                              Delete idea
+                            </AppButton>
+                          </>
+                        ) : (
+                          <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-800">
+                            Edit and delete are unavailable after the submission closure date.
+                          </div>
+                        )}
                         <Link to="/ideas/$ideaId" params={{ ideaId: idea.id }}>
                           <AppButton type="button" variant="ghost">
                             Open idea
@@ -845,13 +893,19 @@ function MyIdeaTracker({
         footer={
           selectedIdea ? (
             <>
-              <AppButton
-                type="button"
-                variant="red"
-                onClick={() => setDeleteIdeaTarget(selectedIdea)}
-              >
-                Delete idea
-              </AppButton>
+              {!isIdeaPastSubmissionClosure(
+                selectedIdea,
+                closedSubmissionIds,
+                closedSubmissionNames,
+              ) ? (
+                <AppButton
+                  type="button"
+                  variant="red"
+                  onClick={() => setDeleteIdeaTarget(selectedIdea)}
+                >
+                  Delete idea
+                </AppButton>
+              ) : null}
               <AppButton
                 type="button"
                 variant="ghost"
@@ -924,6 +978,16 @@ function MyIdeaTracker({
                 {selectedIdea.description?.trim() || 'No description provided.'}
               </p>
             </div>
+
+            {isIdeaPastSubmissionClosure(
+              selectedIdea,
+              closedSubmissionIds,
+              closedSubmissionNames,
+            ) ? (
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800">
+                Edit and delete are unavailable after the submission closure date.
+              </div>
+            ) : null}
 
             {selectedIdeaStatus === 'rejected' ? (
               <div className="rounded-2xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-700">
