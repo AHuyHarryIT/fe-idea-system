@@ -278,12 +278,6 @@ function DashboardOverview({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-[28px] border border-blue-100 bg-[radial-gradient(circle_at_top,rgba(219,234,254,0.95)_0%,rgba(255,255,255,1)_56%)] p-6">
-        <p className="text-sm leading-6 text-slate-600">
-          Welcome back! Here&apos;s an overview of your contributions and recent activities.
-        </p>
-      </div>
-
       <div className="grid gap-5 lg:grid-cols-3">
         <OverviewMetricCard
           title="Total ideas"
