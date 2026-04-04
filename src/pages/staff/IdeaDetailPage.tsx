@@ -403,9 +403,6 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
               <h1 className="text-3xl font-semibold leading-tight tracking-tight text-slate-950 lg:text-4xl">
                 {isLoading ? 'Loading idea...' : ideaTitle}
               </h1>
-              <p className="max-w-4xl text-base leading-8 text-slate-600">
-                {isLoading ? 'Loading description...' : ideaDescription}
-              </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-x-5 gap-y-3 text-sm text-slate-500">
@@ -520,15 +517,11 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.7fr)_340px]">
         <div className="space-y-6">
           <SectionCard
-            title="Proposal overview"
-            description="Read the full idea narrative and review any supporting files attached to the submission."
+            title="Proposal"
           >
             <div className="space-y-5 text-sm leading-7 text-slate-600">
               <div className="rounded-[24px] border border-slate-200 bg-slate-50/80 p-5">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-                  Proposal
-                </p>
-                <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-slate-700">
+                <p className="whitespace-pre-wrap text-sm leading-7 text-slate-700">
                   {isLoading ? 'Loading description...' : ideaDescription}
                 </p>
               </div>
