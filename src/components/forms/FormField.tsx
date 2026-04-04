@@ -1,21 +1,32 @@
 interface FormFieldProps {
   label: string
+  htmlFor?: string
   hint?: string
   required?: boolean
   error?: string
   children: React.ReactNode
 }
 
-export function FormField({ label, hint, required, error, children }: FormFieldProps) {
+export function FormField({
+  label,
+  htmlFor,
+  hint,
+  required,
+  error,
+  children,
+}: FormFieldProps) {
   return (
-    <label className="block space-y-2">
-      <div className="flex items-center gap-1 text-sm font-medium text-slate-700">
+    <div className="space-y-2">
+      <label
+        htmlFor={htmlFor}
+        className="flex items-center gap-1 text-sm font-medium text-slate-700"
+      >
         <span>{label}</span>
         {required ? <span className="text-rose-500">*</span> : null}
-      </div>
+      </label>
       {children}
       {hint ? <p className="text-xs text-slate-500">{hint}</p> : null}
       {error ? <p className="text-xs text-rose-600">{error}</p> : null}
-    </label>
+    </div>
   )
 }
