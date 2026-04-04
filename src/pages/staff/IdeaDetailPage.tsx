@@ -9,6 +9,7 @@ import {
   Eye,
   ExternalLink,
   FileText,
+  FileUp,
   Lightbulb,
   MessageSquare,
   ShieldCheck,
@@ -20,17 +21,21 @@ import type { Comment as IdeaComment } from '@/types'
 import { ideaService } from '@/api'
 import { AppButton } from '@/components/app/AppButton'
 import { FormField } from '@/components/forms/FormField'
-import { FormTextarea } from '@/components/forms/FormInput'
+import { FormInput, FormTextarea } from '@/components/forms/FormInput'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { EmptyState } from '@/components/shared/EmptyState'
+import { Modal } from '@/components/shared/Modal'
 import { SectionCard } from '@/components/shared/SectionCard'
+import { CATEGORY_SELECT_PAGE_SIZE } from '@/constants/category'
 import { SUBMISSION_SELECT_PAGE_SIZE } from '@/constants/submission'
+import { useIdeaCategories } from '@/hooks/useCategories'
 import {
   useAddComment,
   useDeleteIdea,
   useIdeaById,
   useMyIdeas,
   useReviewIdea,
+  useUpdateIdea,
   useVoteOnIdea,
 } from '@/hooks/useIdeas'
 import { useSubmissions } from '@/hooks/useSubmissions'
@@ -49,6 +54,14 @@ import { appNotification } from '@/lib/notifications'
 
 interface IdeaDetailPageProps {
   ideaId: string
+}
+
+interface EditIdeaFormState {
+  title: string
+  description: string
+  categoryId: string
+  isAnonymous: boolean
+  uploadFiles: File[]
 }
 
 function getCommentText(comment: { text?: string; content?: string }) {
@@ -74,14 +87,24 @@ function isPdfAttachment(fileName?: string, fileUrl?: string) {
   return normalizedName.endsWith('.pdf') || normalizedUrl.includes('.pdf')
 }
 
+function isPdfFile(file: File) {
+  const normalizedType = file.type.toLowerCase()
+  const normalizedName = file.name.toLowerCase()
+
+  return normalizedType === 'application/pdf' || normalizedName.endsWith('.pdf')
+}
+
 export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const role = auth.getRole()
   const { data: idea, isLoading, error } = useIdeaById(ideaId)
+  const { data: categoryData, isLoading: categoriesLoading } = useIdeaCategories({
+    pageNumber: 1,
+    pageSize: CATEGORY_SELECT_PAGE_SIZE,
+  })
   const { data: myIdeasData } = useMyIdeas(undefined, {
     fetchAll: true,
-    enabled: role !== 'admin',
   })
   const { data: submissionData } = useSubmissions({
     pageNumber: 1,
@@ -89,12 +112,22 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
   })
   const { mutateAsync: addComment, isPending: isCommenting } = useAddComment()
   const { mutateAsync: voteOnIdea, isPending: isVoting } = useVoteOnIdea()
+  const { mutateAsync: updateIdea, isPending: isUpdatingIdea } = useUpdateIdea()
   const { mutateAsync: deleteIdea, isPending: isDeletingIdea } = useDeleteIdea()
   const { mutateAsync: reviewIdea, isPending: isReviewing } = useReviewIdea()
   const [commentText, setCommentText] = useState('')
   const [isAnonymous, setIsAnonymous] = useState(false)
   const [postedComments, setPostedComments] = useState<IdeaComment[]>([])
   const [reviewReason, setReviewReason] = useState('')
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [fileValidationMessage, setFileValidationMessage] = useState('')
+  const [editForm, setEditForm] = useState<EditIdeaFormState>({
+    title: '',
+    description: '',
+    categoryId: '',
+    isAnonymous: false,
+    uploadFiles: [],
+  })
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
   const [selectedAttachmentId, setSelectedAttachmentId] = useState<string | null>(null)
   const [currentThumbStatus, setCurrentThumbStatus] = useState(
@@ -157,6 +190,24 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
     () => myIdeas.some((myIdea) => myIdea.id === ideaId),
     [ideaId, myIdeas],
   )
+  const categories = useMemo(
+    () =>
+      Array.isArray(categoryData?.categories)
+        ? categoryData.categories.filter((category) => category.id)
+        : [],
+    [categoryData],
+  )
+  const linkedSubmission = useMemo(() => {
+    if (!idea) {
+      return undefined
+    }
+
+    return (submissionData?.submissions ?? []).find(
+      (submission) =>
+        submission.id === idea.submissionId ||
+        submission.name === idea.submissionName,
+    )
+  }, [idea, submissionData?.submissions])
   const closedSubmissionIds = useMemo(() => {
     const currentTimestamp = Date.now()
 
@@ -214,6 +265,7 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
     !isLoading &&
     !isPastFinalSubmissionClosure &&
     ((idea?.canComment ?? true) || isOwnIdea)
+  const canEditIdea = isOwnIdea && !isPastSubmissionClosure
   const canDeleteIdea =
     (role === 'admin' || isOwnIdea) && !isPastSubmissionClosure
 
@@ -221,6 +273,31 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
     setPostedComments([])
     setSelectedAttachmentId(null)
   }, [ideaId])
+
+  useEffect(() => {
+    if (!idea || !isEditModalOpen) {
+      return
+    }
+
+    setEditForm((previousForm) => {
+      if (previousForm.categoryId) {
+        return previousForm
+      }
+
+      const matchingCategory = categories.find(
+        (category) => category.name === idea.categoryName,
+      )
+
+      if (!matchingCategory) {
+        return previousForm
+      }
+
+      return {
+        ...previousForm,
+        categoryId: matchingCategory.id,
+      }
+    })
+  }, [categories, idea, isEditModalOpen])
 
   useEffect(() => {
     setCurrentThumbStatus(getResolvedIdeaVoteStatus(ideaId, idea?.thumbStatus))
@@ -421,6 +498,104 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
     )
   }
 
+  const openEditIdeaModal = () => {
+    if (!idea) {
+      return
+    }
+
+    const matchingCategory = categories.find(
+      (category) => category.name === idea.categoryName,
+    )
+
+    setEditForm({
+      title: ideaTitle,
+      description: idea.description?.trim() ?? '',
+      categoryId: idea.categoryId ?? matchingCategory?.id ?? '',
+      isAnonymous: idea.isAnonymous,
+      uploadFiles: [],
+    })
+    setFileValidationMessage('')
+    setIsEditModalOpen(true)
+  }
+
+  const closeEditIdeaModal = () => {
+    setIsEditModalOpen(false)
+    setFileValidationMessage('')
+    setEditForm({
+      title: '',
+      description: '',
+      categoryId: '',
+      isAnonymous: false,
+      uploadFiles: [],
+    })
+  }
+
+  const handleEditFileChange = (files: FileList | null) => {
+    const selectedFiles = Array.from(files ?? [])
+
+    if (!selectedFiles.length) {
+      setEditForm((previousForm) => ({ ...previousForm, uploadFiles: [] }))
+      setFileValidationMessage('')
+      return
+    }
+
+    const invalidFile = selectedFiles.find((file) => !isPdfFile(file))
+
+    if (invalidFile) {
+      setEditForm((previousForm) => ({ ...previousForm, uploadFiles: [] }))
+      setFileValidationMessage(
+        `File '${invalidFile.name}' is invalid. Only PDF files are allowed.`,
+      )
+      return
+    }
+
+    setEditForm((previousForm) => ({
+      ...previousForm,
+      uploadFiles: selectedFiles,
+    }))
+    setFileValidationMessage('')
+  }
+
+  const handleUpdateIdea = async () => {
+    if (!idea) {
+      return
+    }
+
+    if (
+      !editForm.title.trim() ||
+      !editForm.description.trim() ||
+      !editForm.categoryId
+    ) {
+      appNotification.warning('Please complete all required fields before saving.')
+      return
+    }
+
+    if (fileValidationMessage) {
+      appNotification.warning(fileValidationMessage)
+      return
+    }
+
+    const formData = new FormData()
+    formData.append('Title', editForm.title.trim())
+    formData.append('Description', editForm.description.trim())
+    formData.append('CategoryId', editForm.categoryId)
+    formData.append('IsAnonymous', String(editForm.isAnonymous))
+    editForm.uploadFiles.forEach((file) => {
+      formData.append('UploadedFiles', file)
+    })
+
+    const response = await updateIdea({ ideaId: idea.id, formData })
+
+    if (!response.success) {
+      appNotification.error(response.error ?? 'Unable to update this idea.')
+      return
+    }
+
+    await refreshIdeaQueries()
+    closeEditIdeaModal()
+    appNotification.success('Idea updated successfully.')
+  }
+
   const handleDeleteIdea = async () => {
     const response = await deleteIdea(ideaId)
 
@@ -506,7 +681,25 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
                   <Building2 className="h-4 w-4 text-slate-400" />
                   {idea.submissionName}
                 </span>
-              ) : null}
+              ) : (
+                <span className="inline-flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-slate-400" />
+                  No submission linked
+                </span>
+              )}
+              {linkedSubmission?.closureDate && (
+                <span className="inline-flex items-center gap-2">
+                  <CalendarDays className="h-4 w-4 text-slate-400" />
+                  Closure: {formatAppDateTime(linkedSubmission.closureDate)}
+                </span>
+              )}
+              {linkedSubmission?.finalClosureDate && (
+                <span className="inline-flex items-center gap-2">
+                  <CalendarDays className="h-4 w-4 text-slate-400" />
+                  Final closure:{' '}
+                  {formatAppDateTime(linkedSubmission.finalClosureDate)}
+                </span>
+              )}
             </div>
 
             <div className="flex flex-wrap gap-3 pt-1">
@@ -549,6 +742,15 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
                   Add comment
                 </AppButton>
               )}
+              {canEditIdea ? (
+                <AppButton
+                  variant="ghost"
+                  onClick={openEditIdeaModal}
+                  disabled={isUpdatingIdea}
+                >
+                  {isUpdatingIdea ? 'Saving...' : 'Edit idea'}
+                </AppButton>
+              ) : null}
               {canDeleteIdea ? (
                 <AppButton
                   variant="red"
@@ -840,6 +1042,21 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
                 {formatAppDateTime(idea?.createdAt || idea?.createdDate)}
               </div>
               <div className="rounded-[22px] bg-slate-50 p-4">
+                Submission: {idea?.submissionName || 'Not provided'}
+              </div>
+              <div className="rounded-[22px] bg-slate-50 p-4">
+                Closure:{' '}
+                {linkedSubmission?.closureDate
+                  ? formatAppDateTime(linkedSubmission.closureDate)
+                  : 'Not provided'}
+              </div>
+              <div className="rounded-[22px] bg-slate-50 p-4">
+                Final closure:{' '}
+                {linkedSubmission?.finalClosureDate
+                  ? formatAppDateTime(linkedSubmission.finalClosureDate)
+                  : 'Not provided'}
+              </div>
+              <div className="rounded-[22px] bg-slate-50 p-4">
                 Views: {idea?.viewCount ?? 0}
               </div>
               <div className="rounded-[22px] bg-slate-50 p-4">
@@ -927,6 +1144,153 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
         onConfirm={() => void handleDeleteIdea()}
         onCancel={() => setIsDeleteConfirmOpen(false)}
       />
+
+      <Modal
+        isOpen={isEditModalOpen}
+        title="Edit idea"
+        description="Update your own idea details and upload replacement supporting PDFs if needed."
+        onClose={closeEditIdeaModal}
+        maxWidthClassName="max-w-3xl"
+        footer={
+          <>
+            <AppButton
+              type="button"
+              variant="ghost"
+              onClick={closeEditIdeaModal}
+              disabled={isUpdatingIdea}
+            >
+              Cancel
+            </AppButton>
+            <AppButton
+              type="button"
+              variant="secondary"
+              onClick={() => void handleUpdateIdea()}
+              disabled={isUpdatingIdea}
+            >
+              {isUpdatingIdea ? 'Saving...' : 'Save changes'}
+            </AppButton>
+          </>
+        }
+      >
+        <div className="space-y-5">
+          <FormField label="Idea title" htmlFor="edit-idea-title" required>
+            <FormInput
+              id="edit-idea-title"
+              name="edit-idea-title"
+              aria-label="Idea title"
+              value={editForm.title}
+              onChange={(event) =>
+                setEditForm((previousForm) => ({
+                  ...previousForm,
+                  title: event.target.value,
+                }))
+              }
+              placeholder="Enter a concise title"
+            />
+          </FormField>
+
+          <FormField label="Content" htmlFor="edit-idea-description" required>
+            <FormTextarea
+              id="edit-idea-description"
+              name="edit-idea-description"
+              aria-label="Idea content"
+              value={editForm.description}
+              onChange={(event) =>
+                setEditForm((previousForm) => ({
+                  ...previousForm,
+                  description: event.target.value,
+                }))
+              }
+              placeholder="Describe the idea clearly"
+            />
+          </FormField>
+
+          <div className="grid gap-5 md:grid-cols-2">
+            <FormField label="Category" htmlFor="edit-idea-category" required>
+              <select
+                id="edit-idea-category"
+                name="edit-idea-category"
+                aria-label="Idea category"
+                value={editForm.categoryId}
+                onChange={(event) =>
+                  setEditForm((previousForm) => ({
+                    ...previousForm,
+                    categoryId: event.target.value,
+                  }))
+                }
+                className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+              >
+                <option value="">Select category</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+              {categoriesLoading ? (
+                <p className="text-xs text-slate-500">Loading categories...</p>
+              ) : null}
+            </FormField>
+
+            <FormField label="Anonymous submission" htmlFor="edit-idea-anonymous">
+              <label className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                <input
+                  id="edit-idea-anonymous"
+                  name="edit-idea-anonymous"
+                  aria-label="Anonymous submission"
+                  type="checkbox"
+                  checked={editForm.isAnonymous}
+                  onChange={(event) =>
+                    setEditForm((previousForm) => ({
+                      ...previousForm,
+                      isAnonymous: event.target.checked,
+                    }))
+                  }
+                />
+                Hide author identity from public idea views.
+              </label>
+            </FormField>
+          </div>
+
+          <FormField label="Supporting files" htmlFor="edit-idea-uploaded-files">
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6">
+              <label className="flex cursor-pointer flex-col items-center justify-center gap-3 text-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white shadow-sm">
+                  <FileUp className="h-6 w-6 text-slate-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-900">
+                    Upload replacement files
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    PDF files only. Leave empty to keep current documents.
+                  </p>
+                </div>
+                <input
+                  id="edit-idea-uploaded-files"
+                  name="edit-idea-uploaded-files"
+                  aria-label="Supporting files"
+                  multiple
+                  type="file"
+                  accept=".pdf,application/pdf"
+                  className="hidden"
+                  onChange={(event) => handleEditFileChange(event.target.files)}
+                />
+              </label>
+              <p className="mt-4 text-sm text-slate-600">
+                {editForm.uploadFiles.length
+                  ? editForm.uploadFiles.map((file) => file.name).join(', ')
+                  : 'No new files selected.'}
+              </p>
+              {fileValidationMessage ? (
+                <p className="mt-3 text-sm text-red-600">
+                  {fileValidationMessage}
+                </p>
+              ) : null}
+            </div>
+          </FormField>
+        </div>
+      </Modal>
 
     </div>
   )
