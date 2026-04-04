@@ -5,7 +5,10 @@ import type {
 } from '@/types'
 import { categoryService } from '@/api/categories'
 
-export const useIdeaCategories = (params?: IdeaCategoryListQueryParams) => {
+export const useIdeaCategories = (
+  params?: IdeaCategoryListQueryParams,
+  options?: { enabled?: boolean },
+) => {
   return useQuery({
     queryKey: ['ideaCategories', params],
     queryFn: async () => {
@@ -13,6 +16,7 @@ export const useIdeaCategories = (params?: IdeaCategoryListQueryParams) => {
       if (response.success) return response.data
       throw new Error(response.error ?? 'Unable to load idea categories.')
     },
+    enabled: options?.enabled ?? true,
   })
 }
 

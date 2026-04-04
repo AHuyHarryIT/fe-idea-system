@@ -1,4 +1,4 @@
-import { useDeferredValue, useMemo, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { Input } from 'antd'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
@@ -11,15 +11,19 @@ import {
 } from 'lucide-react'
 import type { Idea } from '@/types'
 import { AppButton } from '@/components/app/AppButton'
+import { AppPagination } from '@/components/shared/AppPagination'
 import { FormField } from '@/components/forms/FormField'
 import { FormTextarea } from '@/components/forms/FormInput'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
-import { useAllIdeasMatching, useReviewIdea } from '@/hooks/useIdeas'
+import { useAllIdeas, useReviewIdea } from '@/hooks/useIdeas'
 import { formatAppDateTime, getDateTimestamp } from '@/lib/date'
 import { normalizeIdeaResponse } from '@/lib/idea-response-mapper'
 import { appNotification } from '@/lib/notifications'
+
+const DEFAULT_PAGE_SIZE = 10
+const PAGE_SIZE_OPTIONS = ['10', '20', '50']
 
 function getStatusLabel(status?: string) {
   if (!status) return 'Pending review'
@@ -55,9 +59,13 @@ function isReviewableIdea(status?: string) {
 
 export default function ReviewIdea() {
   const queryClient = useQueryClient()
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE)
   const [search, setSearch] = useState('')
   const deferredSearch = useDeferredValue(search.trim())
-  const { data, isLoading, error } = useAllIdeasMatching({
+  const { data, isLoading, error } = useAllIdeas({
+    pageNumber: currentPage,
+    pageSize,
     reviewStatus: 0,
     searchTerm: deferredSearch || undefined,
   })
@@ -71,6 +79,19 @@ export default function ReviewIdea() {
     () => [...ideas].filter((idea) => isReviewableIdea(idea.status)).sort(sortByNewest),
     [ideas],
   )
+  const totalIdeas =
+    data?.pagination?.totalCount ?? data?.totalCount ?? reviewQueue.length
+  const totalPages = Math.max(1, Math.ceil(totalIdeas / pageSize))
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [deferredSearch])
+
+  useEffect(() => {
+    if (!isLoading && currentPage > totalPages) {
+      setCurrentPage(totalPages)
+    }
+  }, [currentPage, isLoading, totalPages])
 
   const handleReview = async (ideaId: string, isApproved: boolean) => {
     const rejectionReason = (reviewReasons[ideaId] || '').trim()
@@ -246,6 +267,25 @@ export default function ReviewIdea() {
                 </article>
               )
             })}
+
+            <AppPagination
+              current={currentPage}
+              total={totalIdeas}
+              pageSize={pageSize}
+              pageSizeOptions={PAGE_SIZE_OPTIONS}
+              onChange={(page, nextPageSize) => {
+                if (nextPageSize !== pageSize) {
+                  setPageSize(nextPageSize)
+                  setCurrentPage(1)
+                  return
+                }
+
+                setCurrentPage(page)
+              }}
+              showTotal={(total, range) =>
+                `Showing ${range[0]}-${range[1]} of ${total} ideas awaiting review`
+              }
+            />
           </div>
         ) : (
           <EmptyState

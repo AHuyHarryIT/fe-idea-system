@@ -1,1 +1,1 @@
-export const CATEGORY_SELECT_PAGE_SIZE = 100
+export const CATEGORY_SELECT_PAGE_SIZE = 10

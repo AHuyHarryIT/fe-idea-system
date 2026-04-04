@@ -5,7 +5,10 @@ import type {
 } from '@/types'
 import { submissionService } from '@/api/submissions'
 
-export const useSubmissions = (params?: SubmissionListQueryParams) => {
+export const useSubmissions = (
+  params?: SubmissionListQueryParams,
+  options?: { enabled?: boolean },
+) => {
   return useQuery({
     queryKey: ['submissions', params],
     queryFn: async () => {
@@ -13,6 +16,7 @@ export const useSubmissions = (params?: SubmissionListQueryParams) => {
       if (response.success) return response.data
       throw new Error(response.error ?? 'Unable to load submissions.')
     },
+    enabled: options?.enabled ?? true,
   })
 }
 

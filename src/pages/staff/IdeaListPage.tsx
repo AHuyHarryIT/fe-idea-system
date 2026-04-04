@@ -1,5 +1,6 @@
-import { useDeferredValue, useEffect, useMemo, useState } from 'react'
-import { Input } from 'antd'
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import type { UIEvent } from 'react'
+import { Input, Select } from 'antd'
 import { Lightbulb, Search } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import { AppButton } from '@/components/app/AppButton'
@@ -19,6 +20,7 @@ import { useIdeaCategories } from '@/hooks/useCategories'
 
 const DEFAULT_PAGE_SIZE = 5
 const PAGE_SIZE_OPTIONS = ['5', '10', '20', '50']
+const OPTION_SCROLL_THRESHOLD = 16
 
 export default function IdeaListPage() {
   const {
@@ -31,6 +33,18 @@ export default function IdeaListPage() {
   } = useIdeaFilters()
   const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE)
   const [currentPage, setCurrentPage] = useState(1)
+  const [shouldLoadCategories, setShouldLoadCategories] = useState(false)
+  const [shouldLoadSubmissions, setShouldLoadSubmissions] = useState(false)
+  const [categoryOptionPage, setCategoryOptionPage] = useState(1)
+  const [submissionOptionPage, setSubmissionOptionPage] = useState(1)
+  const [categoryOptions, setCategoryOptions] = useState<
+    { label: string; value: string }[]
+  >([])
+  const [submissionOptions, setSubmissionOptions] = useState<
+    { label: string; value: string }[]
+  >([])
+  const categoryLoadLockRef = useRef(false)
+  const submissionLoadLockRef = useRef(false)
   const deferredSearch = useDeferredValue(search.trim())
   const { data, isLoading, error } = useAllIdeas({
     pageNumber: currentPage,
@@ -39,14 +53,22 @@ export default function IdeaListPage() {
     submissionId: submissionId || undefined,
     categoryId: categoryId || undefined,
   })
-  const { data: categoryData } = useIdeaCategories({
-    pageNumber: 1,
-    pageSize: CATEGORY_SELECT_PAGE_SIZE,
-  })
-  const { data: submissionData } = useSubmissions({
-    pageNumber: 1,
-    pageSize: SUBMISSION_SELECT_PAGE_SIZE,
-  })
+  const { data: categoryData, isFetching: isFetchingCategories } =
+    useIdeaCategories(
+      {
+        pageNumber: categoryOptionPage,
+        pageSize: CATEGORY_SELECT_PAGE_SIZE,
+      },
+      { enabled: shouldLoadCategories },
+    )
+  const { data: submissionData, isFetching: isFetchingSubmissions } =
+    useSubmissions(
+      {
+        pageNumber: submissionOptionPage,
+        pageSize: SUBMISSION_SELECT_PAGE_SIZE,
+      },
+      { enabled: shouldLoadSubmissions },
+    )
 
   const ideas = useMemo(() => {
     const ideaList = normalizeIdeaResponse(data)
@@ -87,6 +109,10 @@ export default function IdeaListPage() {
     hasCategoryFilter || hasSubmissionFilter
       ? `${totalIdeas} ideas matched your current filters.`
       : `${totalIdeas} ideas are currently available in the live university catalogue.`
+  const hasMoreCategories =
+    (categoryData?.pagination?.totalPages ?? 1) > categoryOptionPage
+  const hasMoreSubmissions =
+    (submissionData?.pagination?.totalPages ?? 1) > submissionOptionPage
 
   useEffect(() => {
     if (currentPage > totalPages) {
@@ -97,6 +123,96 @@ export default function IdeaListPage() {
   useEffect(() => {
     setCurrentPage(1)
   }, [categoryId, submissionId, deferredSearch])
+
+  useEffect(() => {
+    if (!isFetchingCategories) {
+      categoryLoadLockRef.current = false
+    }
+  }, [isFetchingCategories])
+
+  useEffect(() => {
+    if (!isFetchingSubmissions) {
+      submissionLoadLockRef.current = false
+    }
+  }, [isFetchingSubmissions])
+
+  useEffect(() => {
+    if (!categoryData || categoryData.categories.length === 0) {
+      return
+    }
+
+    setCategoryOptions((currentOptions) => {
+      const seenValues = new Set(currentOptions.map((option) => option.value))
+      const nextOptions = [...currentOptions]
+
+      categories.forEach((categoryOption) => {
+        if (!seenValues.has(categoryOption.id)) {
+          nextOptions.push({
+            value: categoryOption.id,
+            label: categoryOption.name,
+          })
+        }
+      })
+
+      return nextOptions
+    })
+  }, [categories, categoryData])
+
+  useEffect(() => {
+    if (!submissionData?.submissions?.length) {
+      return
+    }
+
+    setSubmissionOptions((currentOptions) => {
+      const seenValues = new Set(currentOptions.map((option) => option.value))
+      const nextOptions = [...currentOptions]
+
+      submissions.forEach((submissionOption) => {
+        if (!seenValues.has(submissionOption.id)) {
+          nextOptions.push({
+            value: submissionOption.id,
+            label: submissionOption.name,
+          })
+        }
+      })
+
+      return nextOptions
+    })
+  }, [submissionData, submissions])
+
+  const handleSubmissionPopupScroll = (event: UIEvent<HTMLDivElement>) => {
+    const target = event.currentTarget
+    const isNearBottom =
+      target.scrollTop + target.clientHeight >=
+      target.scrollHeight - OPTION_SCROLL_THRESHOLD
+
+    if (
+      isNearBottom &&
+      hasMoreSubmissions &&
+      !isFetchingSubmissions &&
+      !submissionLoadLockRef.current
+    ) {
+      submissionLoadLockRef.current = true
+      setSubmissionOptionPage((currentValue) => currentValue + 1)
+    }
+  }
+
+  const handleCategoryPopupScroll = (event: UIEvent<HTMLDivElement>) => {
+    const target = event.currentTarget
+    const isNearBottom =
+      target.scrollTop + target.clientHeight >=
+      target.scrollHeight - OPTION_SCROLL_THRESHOLD
+
+    if (
+      isNearBottom &&
+      hasMoreCategories &&
+      !isFetchingCategories &&
+      !categoryLoadLockRef.current
+    ) {
+      categoryLoadLockRef.current = true
+      setCategoryOptionPage((currentValue) => currentValue + 1)
+    }
+  }
 
   return (
     <div className="mx-auto w-full max-w-7xl">
@@ -128,34 +244,46 @@ export default function IdeaListPage() {
               className="rounded-2xl"
             />
           </label>
-          <select
-            id="idea-submission-filter"
-            name="idea-submission-filter"
-            value={submissionId}
-            onChange={(event) => setSubmissionId(event.target.value)}
-            className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-          >
-            <option value="">All submissions</option>
-            {submissions.map((submissionOption) => (
-              <option key={submissionOption.id} value={submissionOption.id}>
-                {submissionOption.name}
-              </option>
-            ))}
-          </select>
-          <select
-            id="idea-category-filter"
-            name="idea-category-filter"
-            value={categoryId}
-            onChange={(event) => setCategoryId(event.target.value)}
-            className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-          >
-            <option value="">All categories</option>
-            {categories.map((categoryOption) => (
-              <option key={categoryOption.id} value={categoryOption.id}>
-                {categoryOption.name}
-              </option>
-            ))}
-          </select>
+          <label className="block">
+            <Select<string>
+              value={submissionId || undefined}
+              size="large"
+              allowClear
+              showSearch={false}
+              loading={isFetchingSubmissions}
+              placeholder="All submissions"
+              options={submissionOptions}
+              onOpenChange={(open) => {
+                if (open) {
+                  setShouldLoadSubmissions(true)
+                }
+              }}
+              onPopupScroll={handleSubmissionPopupScroll}
+              onChange={(value) => setSubmissionId(value)}
+              onClear={() => setSubmissionId('')}
+              className="w-full"
+            />
+          </label>
+          <label className="block">
+            <Select<string>
+              value={categoryId || undefined}
+              size="large"
+              allowClear
+              showSearch={false}
+              loading={isFetchingCategories}
+              placeholder="All categories"
+              options={categoryOptions}
+              onOpenChange={(open) => {
+                if (open) {
+                  setShouldLoadCategories(true)
+                }
+              }}
+              onPopupScroll={handleCategoryPopupScroll}
+              onChange={(value) => setCategoryId(value)}
+              onClear={() => setCategoryId('')}
+              className="w-full"
+            />
+          </label>
           <AppButton
             type="button"
             variant="ghost"
@@ -173,16 +301,16 @@ export default function IdeaListPage() {
           <span className="rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-700">
             {totalIdeas} total ideas
           </span>
-          {selectedCategory ? (
+          {selectedCategory && (
             <span className="rounded-full bg-blue-50 px-3 py-1 font-medium text-blue-700">
               Category: {selectedCategory.name}
             </span>
-          ) : null}
-          {selectedSubmission ? (
+          )}
+          {selectedSubmission && (
             <span className="rounded-full bg-emerald-50 px-3 py-1 font-medium text-emerald-700">
               Submission: {selectedSubmission.name}
             </span>
-          ) : null}
+          )}
         </div>
       </SectionCard>
 
