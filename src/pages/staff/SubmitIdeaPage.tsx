@@ -183,7 +183,7 @@ export default function SubmitIdeaPage() {
 
     if (isSubmissionClosed(selectedSubmission.closureDate)) {
       appNotification.warning(
-        'This submission window is already closed. Please choose another available submission.',
+        'This submission is already closed. Please choose another available submission.',
       )
       return
     }
@@ -237,12 +237,12 @@ export default function SubmitIdeaPage() {
     <div className="mx-auto w-full max-w-7xl">
       <PageHeader
         title="Submit Idea"
-        description="Browse available submission windows, review the details, then open the idea form when you are ready to submit."
+        description="Browse available submissions, review the details, then open the idea form when you are ready to submit."
       />
 
       {!selectedSubmission ? (
         <SectionCard
-          title="Available submission windows"
+          title="Available submissions"
           description="Choose one submission campaign to review its description and dates before you continue."
         >
           {error ? (
@@ -253,7 +253,7 @@ export default function SubmitIdeaPage() {
             />
           ) : submissionsLoading ? (
             <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600">
-              Loading submission windows...
+              Loading submissions...
             </div>
           ) : (
             <div className="space-y-4">
@@ -302,7 +302,7 @@ export default function SubmitIdeaPage() {
                       </div>
                       <p className="max-w-3xl text-sm text-slate-600">
                         {submission.description?.trim() ||
-                          'No description has been added for this submission window yet.'}
+                          'No description has been added for this submission yet.'}
                       </p>
                       <div className="grid gap-2 text-sm text-slate-600 md:grid-cols-2">
                         <p>
@@ -335,14 +335,14 @@ export default function SubmitIdeaPage() {
               ) : deferredSearch ? (
                 <EmptyState
                   icon={CalendarRange}
-                  title="No submission windows match this search"
+                  title="No submissions match this search"
                   description="Try another keyword or clear the search."
                 />
               ) : (
                 <EmptyState
                   icon={CalendarRange}
                   title="No submissions available"
-                  description="Please wait for an administrator or QA manager to create a submission window."
+                  description="Please wait for an administrator or QA manager to create a submission."
                 />
               )}
 
@@ -362,7 +362,7 @@ export default function SubmitIdeaPage() {
                     setCurrentPage(page)
                   }}
                   showTotal={(total, range) =>
-                    `Showing ${range[0]}-${range[1]} of ${total} submission windows`
+                    `Showing ${range[0]}-${range[1]} of ${total} submissions`
                   }
                 />
               ) : null}
@@ -378,7 +378,7 @@ export default function SubmitIdeaPage() {
 
           <SectionCard
             title={selectedSubmission.name}
-            description="Review the submission window details before opening the submit form."
+            description="Review the submission details before opening the submit form."
           >
             <div className="space-y-4">
               <div className="flex flex-wrap items-center gap-2">
@@ -401,7 +401,7 @@ export default function SubmitIdeaPage() {
                 </p>
                 <p className="mt-2 text-sm leading-6 text-slate-600">
                   {selectedSubmission.description?.trim() ||
-                    'No description has been added for this submission window yet.'}
+                    'No description has been added for this submission yet.'}
                 </p>
               </div>
 
@@ -497,7 +497,7 @@ export default function SubmitIdeaPage() {
 
           <SectionCard
             title="Classification & privacy"
-            description="Categories are loaded from the live API for the selected submission window."
+            description="Categories are loaded from the live API for the selected submission."
           >
             <div className="grid gap-5 md:grid-cols-2">
               <FormField label="Category" required>
@@ -527,7 +527,7 @@ export default function SubmitIdeaPage() {
                 )}
               </FormField>
 
-              <FormField label="Submission window">
+              <FormField label="Submission">
                 <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
                   <p className="font-medium text-slate-900">
                     {selectedSubmission.name}

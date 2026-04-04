@@ -258,7 +258,7 @@ export default function ManageSubmissionPage() {
     <div className="mx-auto w-full max-w-7xl">
       <PageHeader
         title="Manage Submissions"
-        description="Create and maintain submission windows, descriptions, closure dates, and final closure dates."
+        description="Create and maintain submissions, descriptions, closure dates, and final closure dates."
       />
 
       <SectionCard>
@@ -315,7 +315,7 @@ export default function ManageSubmissionPage() {
         <p className="mb-5 text-sm text-slate-500">
           {statusFilter !== 'all'
             ? `${filteredSubmissions.length} lifecycle matches on this page, sorted by most recent final closure date.`
-            : `${totalSubmissions} submission windows available, sorted by most recent final closure date.`}
+            : `${totalSubmissions} submissions available, sorted by most recent final closure date.`}
         </p>
 
         {error ? (
@@ -326,7 +326,7 @@ export default function ManageSubmissionPage() {
           />
         ) : isLoading ? (
           <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600">
-            Loading submission windows...
+            Loading submissions...
           </div>
         ) : filteredSubmissions.length > 0 ? (
           <div className="space-y-4">
@@ -354,7 +354,7 @@ export default function ManageSubmissionPage() {
                       </div>
                       <p className="max-w-3xl text-sm text-slate-600">
                         {submission.description?.trim() ||
-                          'No description has been added for this submission window yet.'}
+                          'No description has been added for this submission yet.'}
                       </p>
                       <div className="grid gap-2 text-sm text-slate-600 md:grid-cols-2">
                         <p>
@@ -405,8 +405,8 @@ export default function ManageSubmissionPage() {
               }}
               showTotal={(total, range) =>
                 statusFilter !== 'all'
-                  ? `${filteredSubmissions.length} lifecycle matches on this page · ${total} total matching submission windows`
-                  : `Showing ${range[0]}-${range[1]} of ${total} submission windows`
+                  ? `${filteredSubmissions.length} lifecycle matches on this page · ${total} total matching submissions`
+                  : `Showing ${range[0]}-${range[1]} of ${total} submissions`
               }
             />
           </div>
@@ -416,17 +416,17 @@ export default function ManageSubmissionPage() {
               icon={CalendarRange}
               title={
                 statusFilter !== 'all'
-                  ? 'No submission windows match this lifecycle filter'
+                  ? 'No submissions match this lifecycle filter'
                   : deferredSearch
-                    ? 'No submission windows match this search'
-                    : 'No submission windows found'
+                    ? 'No submissions match this search'
+                    : 'No submissions found'
               }
               description={
                 statusFilter !== 'all'
                   ? 'Try another lifecycle filter or clear the filters.'
                   : deferredSearch
                     ? 'Try another keyword or clear the search.'
-                    : 'Create the first submission window to let staff submit ideas within a controlled campaign period.'
+                    : 'Create the first submission to let staff submit ideas within a controlled campaign period.'
               }
             />
 
@@ -447,8 +447,8 @@ export default function ManageSubmissionPage() {
                 }}
                 showTotal={(total) =>
                   statusFilter !== 'all'
-                    ? `${filteredSubmissions.length} lifecycle matches on this page · ${total} total matching submission windows`
-                    : `${total} total submission windows`
+                    ? `${filteredSubmissions.length} lifecycle matches on this page · ${total} total matching submissions`
+                    : `${total} total submissions`
                 }
               />
             )}
@@ -503,7 +503,7 @@ export default function ManageSubmissionPage() {
 
           <FormField
             label="Description"
-            hint="Add context so staff understand what this submission window is for."
+            hint="Add context so staff understand what this submission is for."
           >
             <FormTextarea
               id="submission-description"
@@ -574,7 +574,7 @@ export default function ManageSubmissionPage() {
       <ConfirmDialog
         isOpen={!!deleteConfirmId}
         title="Delete Submission"
-        message="Are you sure you want to delete this submission window? This action cannot be undone."
+        message="Are you sure you want to delete this submission? This action cannot be undone."
         confirmText="Delete"
         cancelText="Cancel"
         isDangerous

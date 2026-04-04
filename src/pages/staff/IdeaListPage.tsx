@@ -112,7 +112,7 @@ export default function IdeaListPage() {
 
       <SectionCard
         title="Discover ideas"
-        description="Search the catalogue, narrow by category or submission window, and open any idea to read the full proposal and discussion."
+        description="Search the catalogue, narrow by category or submission, and open any idea to read the full proposal and discussion."
       >
         <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr_1fr_auto]">
           <label className="block">
@@ -234,7 +234,7 @@ export default function IdeaListPage() {
               title="No idea records loaded"
               description={
                 hasCategoryFilter || hasSubmissionFilter
-                  ? 'Try another category, submission window, or clear the filters.'
+                  ? 'Try another category, submission, or clear the filters.'
                   : deferredSearch
                     ? 'Try another keyword or clear the search.'
                     : 'Try adjusting your page selection.'

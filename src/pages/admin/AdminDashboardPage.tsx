@@ -157,7 +157,7 @@ export default function AdminDashboardPage() {
                 {reviewBacklog} ideas waiting for review
               </span>
               <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-slate-100">
-                {openSubmissionCount} active submission windows
+                {openSubmissionCount} active submissions
               </span>
               <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-slate-100">
                 {data?.userTotal || 0} active accounts in directory
@@ -171,7 +171,7 @@ export default function AdminDashboardPage() {
                 Latest campaign
               </p>
               <p className="mt-3 text-lg font-semibold text-slate-950">
-                {latestSubmission?.name || 'No submission window yet'}
+                {latestSubmission?.name || 'No submission yet'}
               </p>
               <p className="mt-2 text-sm leading-6 text-slate-600">
                 Final closure{' '}
@@ -212,7 +212,7 @@ export default function AdminDashboardPage() {
         />
         <StatCard
           icon={CalendarRange}
-          title="Submission windows"
+          title="Submissions"
           value={isLoading ? '...' : `${data?.submissionTotal ?? 0}`}
           description="Open and historical submission periods."
           accent="amber"
@@ -342,7 +342,7 @@ export default function AdminDashboardPage() {
             <EmptyState
               icon={CalendarRange}
               title="No submissions configured"
-              description="Create a submission window to start accepting ideas."
+              description="Create a submission to start accepting ideas."
             />
           )}
         </SectionCard>
