@@ -329,6 +329,16 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
     ])
   }
 
+  const refreshIdeaListQueries = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['allIdeas'] }),
+      queryClient.invalidateQueries({ queryKey: ['myIdeas'] }),
+      queryClient.invalidateQueries({ queryKey: ['qaManagerIdeas'] }),
+      queryClient.invalidateQueries({ queryKey: ['qaCoordinatorIdeas'] }),
+      queryClient.invalidateQueries({ queryKey: ['adminIdeas'] }),
+    ])
+  }
+
   const handleLike = async () => {
     const previousThumbStatus = currentThumbStatus
 
@@ -604,8 +614,9 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
       return
     }
 
-    await refreshIdeaQueries()
     setIsDeleteConfirmOpen(false)
+    queryClient.removeQueries({ queryKey: ['idea', ideaId], exact: true })
+    await refreshIdeaListQueries()
     appNotification.success('Idea deleted successfully.')
     void navigate({ to: '/ideas' })
   }
