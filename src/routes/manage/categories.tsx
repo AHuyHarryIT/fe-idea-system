@@ -9,7 +9,7 @@ export const Route = createFileRoute('/manage/categories')({
 // Restricts the category management interface to administrator accounts.
 function RouteComponent() {
   return (
-    <ProtectedPage allowedRoles={['admin']}>
+    <ProtectedPage allowedRoles={['admin', 'qa_manager']}>
       <ManageCategoryPage />
     </ProtectedPage>
   )
