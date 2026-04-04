@@ -4,6 +4,12 @@ export interface DashboardStats {
   totalComments?: number
   departmentIdeas?: number
   pendingReview?: number
+  totalCategories?: number
+  totalDepartments?: number
+  totalUsers?: number
+  ideasWithoutComments?: number
+  ideasThisMonth?: number
+  totalPendingIdeas?: number
 }
 
 export interface DepartmentStat {

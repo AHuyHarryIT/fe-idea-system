@@ -1,36 +1,25 @@
 import { useMemo } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { CalendarRange, ListChecks, Tags, Users } from 'lucide-react'
-import { Link, useNavigate } from '@tanstack/react-router'
 import {
-  categoryService,
-  ideaService,
-  submissionService,
-  userService,
-} from '@/api'
-import { SUBMISSION_SELECT_PAGE_SIZE } from '@/constants/submission'
-import type { Idea, IdeaListResponse, Submission } from '@/types'
+  AlertCircle,
+  Building2,
+  CalendarRange,
+  FolderKanban,
+  ListChecks,
+  Tags,
+  Users,
+} from 'lucide-react'
+import { Link, useNavigate } from '@tanstack/react-router'
+import { dashboardService, submissionService } from '@/api'
 import { AppButton } from '@/components/app/AppButton'
+import { ManageButton } from '@/components/app/ManageButton'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { StatCard } from '@/components/shared/StatCard'
-import { ManageButton } from '@/components/app/ManageButton'
-import { normalizeIdeaResponse } from '@/lib/idea-response-mapper'
-import { extractCollection } from '@/lib/api-mappers'
+import { SUBMISSION_SELECT_PAGE_SIZE } from '@/constants/submission'
+import { useQuery } from '@tanstack/react-query'
 import { formatAppDateTime, getDateTimestamp } from '@/lib/date'
-
-function isReviewableIdea(status?: string) {
-  if (!status) return true
-
-  return [
-    'submitted',
-    'under_review',
-    'pending',
-    'pending_review',
-    'awaiting_review',
-  ].includes(status.toLowerCase().replace(/\s+/g, '_'))
-}
+import type { DashboardStats, Submission } from '@/types'
 
 function isSubmissionOpen(submission: Submission) {
   const finalClosureTimestamp = getDateTimestamp(submission.finalClosureDate)
@@ -38,65 +27,49 @@ function isSubmissionOpen(submission: Submission) {
   return finalClosureTimestamp > Date.now()
 }
 
+function getStatValue(value?: number) {
+  return typeof value === 'number' ? value : 0
+}
+
 export default function AdminDashboardPage() {
   const navigate = useNavigate()
   const { data, isLoading, error } = useQuery({
-    queryKey: ['adminOverview'],
+    queryKey: ['adminDashboardOverview'],
     queryFn: async () => {
-      const [
-        usersResponse,
-        categoriesResponse,
-        submissionsResponse,
-        ideasResponse,
-      ] = await Promise.all([
-        userService.getUsers(),
-        categoryService.getIdeaCategories(),
+      const [statsResponse, submissionsResponse] = await Promise.all([
+        dashboardService.getAdminStatistics(),
         submissionService.getSubmissions({
           pageNumber: 1,
           pageSize: SUBMISSION_SELECT_PAGE_SIZE,
         }),
-        ideaService.getAllIdeas(),
       ])
 
-      if (
-        !usersResponse.success ||
-        !categoriesResponse.success ||
-        !submissionsResponse.success ||
-        !ideasResponse.success
-      ) {
+      if (!statsResponse.success || !submissionsResponse.success) {
         throw new Error(
-          usersResponse.error ??
-            categoriesResponse.error ??
+          statsResponse.error ??
             submissionsResponse.error ??
-            ideasResponse.error ??
-            'Unable to load admin overview.',
+            'Unable to load admin dashboard.',
         )
       }
 
-      // Handle API response formats
-      // API returns direct array: [{id, title, ...}]
-      // But code expects: {ideas: [...]} or {items: [...]}
-      const mappedIdeas = normalizeIdeaResponse(
-        ideasResponse.data as IdeaListResponse | Idea[] | undefined,
-      )
-
       return {
-        users: usersResponse.data?.users ?? [],
-        userTotal:
-          usersResponse.data?.pagination?.totalCount ??
-          (usersResponse.data?.users.length ?? 0),
-        categories: extractCollection(categoriesResponse.data, ['categories']),
-        categoryTotal:
-          categoriesResponse.data?.pagination?.totalCount ??
-          extractCollection(categoriesResponse.data, ['categories']).length,
+        stats: statsResponse.data ?? {},
         submissions: submissionsResponse.data?.submissions ?? [],
         submissionTotal:
           submissionsResponse.data?.pagination?.totalCount ??
           (submissionsResponse.data?.submissions?.length ?? 0),
-        ideas: mappedIdeas,
       }
     },
   })
+
+  const stats = data?.stats
+  const totalIdeas = getStatValue(stats?.totalIdeas)
+  const totalUsers = getStatValue(stats?.totalUsers)
+  const totalCategories = getStatValue(stats?.totalCategories)
+  const totalDepartments = getStatValue(stats?.totalDepartments)
+  const ideasThisMonth = getStatValue(stats?.ideasThisMonth)
+  const ideasWithoutComments = getStatValue(stats?.ideasWithoutComments)
+  const reviewBacklog = getStatValue(stats?.totalPendingIdeas ?? stats?.pendingReview)
 
   const recentSubmissions = useMemo(
     () =>
@@ -107,17 +80,14 @@ export default function AdminDashboardPage() {
             getDateTimestamp(left.finalClosureDate),
         )
         .slice(0, 4),
-    [data],
-  )
-
-  const reviewBacklog = useMemo(
-    () => (data?.ideas ?? []).filter((idea) => isReviewableIdea(idea.status)).length,
-    [data],
+    [data?.submissions],
   )
 
   const openSubmissionCount = useMemo(
-    () => (data?.submissions ?? []).filter((submission) => isSubmissionOpen(submission)).length,
-    [data],
+    () =>
+      (data?.submissions ?? []).filter((submission) => isSubmissionOpen(submission))
+        .length,
+    [data?.submissions],
   )
 
   const latestSubmission = recentSubmissions.at(0)
@@ -126,7 +96,7 @@ export default function AdminDashboardPage() {
     <div className="mx-auto w-full max-w-7xl">
       <PageHeader
         title="Administration"
-        description="Live admin control center for users, categories, submissions, and university ideas."
+        description="University-wide analytics and management shortcuts powered by the live dashboard API."
         actions={
           <>
             <Link to="/manage/users">
@@ -143,13 +113,19 @@ export default function AdminDashboardPage() {
         <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
           <div className="rounded-[28px] border border-slate-200/80 bg-[linear-gradient(135deg,rgba(15,23,42,0.98)_0%,rgba(30,41,59,0.96)_52%,rgba(37,99,235,0.88)_100%)] p-7 text-white">
             <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-blue-100/80">
-              Platform pulse
+              Analytics dashboard
             </p>
             <h2 className="mt-4 max-w-2xl text-3xl font-semibold tracking-tight">
-              Keep the university idea programme healthy from one command surface.
+              Monitor platform scale, review pressure, and campaign activity from one admin surface.
             </h2>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-200">
-              Review backlog, active campaigns, and core module counts are surfaced here so admin work can start with the highest-impact queue.
+              These headline figures now come directly from the live
+              {' '}
+              <code className="rounded bg-white/10 px-1.5 py-0.5 text-[12px] text-blue-50">
+                /api/stats/dashboard
+              </code>
+              {' '}
+              endpoint, so the dashboard matches the backend reporting view.
             </p>
 
             <div className="mt-6 flex flex-wrap gap-3 text-sm">
@@ -157,10 +133,13 @@ export default function AdminDashboardPage() {
                 {reviewBacklog} ideas waiting for review
               </span>
               <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-slate-100">
-                {openSubmissionCount} active submissions
+                {ideasWithoutComments} ideas without comments
               </span>
               <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-slate-100">
-                {data?.userTotal || 0} active accounts in directory
+                {ideasThisMonth} ideas this month
+              </span>
+              <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-slate-100">
+                {openSubmissionCount} open submissions
               </span>
             </div>
           </div>
@@ -168,70 +147,73 @@ export default function AdminDashboardPage() {
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-1">
             <div className="rounded-[24px] border border-slate-200 bg-slate-50/90 p-5">
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">
-                Latest campaign
+                Latest submission
               </p>
               <p className="mt-3 text-lg font-semibold text-slate-950">
                 {latestSubmission?.name || 'No submission yet'}
               </p>
               <p className="mt-2 text-sm leading-6 text-slate-600">
                 Final closure{' '}
-                {formatAppDateTime(latestSubmission?.finalClosureDate, 'Not scheduled')}
+                {formatAppDateTime(
+                  latestSubmission?.finalClosureDate,
+                  'Not scheduled',
+                )}
               </p>
             </div>
             <div className="rounded-[24px] border border-slate-200 bg-slate-50/90 p-5">
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">
-                Admin focus
+                Reporting health
               </p>
               <p className="mt-3 text-lg font-semibold text-slate-950">
-                Directory, review, and campaign governance
+                {totalDepartments} departments · {totalCategories} categories
               </p>
               <p className="mt-2 text-sm leading-6 text-slate-600">
-                Use the module cards below as direct entry points into the main admin workflows.
+                Track taxonomy coverage and organisational breadth without leaving the admin home.
               </p>
             </div>
           </div>
         </div>
       </SectionCard>
 
-      <div className="grid gap-6 mt-6 md:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          icon={FolderKanban}
+          title="Total ideas"
+          value={isLoading ? '...' : `${totalIdeas}`}
+          description="All ideas currently counted by the live admin stats endpoint."
+          accent="blue"
+          meta={`${ideasThisMonth} this month`}
+        />
         <StatCard
           icon={Users}
-          title="Users"
-          value={isLoading ? '...' : `${data?.userTotal ?? 0}`}
-          description="Accounts currently available in the central user directory."
-          accent="blue"
+          title="Total users"
+          value={isLoading ? '...' : `${totalUsers}`}
+          description="Accounts available across the platform directory."
+          accent="violet"
           meta="Directory"
         />
         <StatCard
           icon={Tags}
           title="Categories"
-          value={isLoading ? '...' : `${data?.categoryTotal ?? 0}`}
-          description="Currently configured idea categories."
-          accent="violet"
-          meta="Taxonomy"
-        />
-        <StatCard
-          icon={CalendarRange}
-          title="Submissions"
-          value={isLoading ? '...' : `${data?.submissionTotal ?? 0}`}
-          description="Open and historical submission periods."
+          value={isLoading ? '...' : `${totalCategories}`}
+          description="Configured idea categories for submission classification."
           accent="amber"
-          meta={`${openSubmissionCount} open`}
+          meta={`${totalDepartments} departments`}
         />
         <StatCard
           icon={ListChecks}
-          title="Ideas"
-          value={isLoading ? '...' : `${data?.ideas.length ?? 0}`}
-          description="University-wide idea count from the admin API."
+          title="Pending review"
+          value={isLoading ? '...' : `${reviewBacklog}`}
+          description="Ideas still waiting for a review decision."
           accent="emerald"
-          meta={`${reviewBacklog} pending`}
+          meta={`${ideasWithoutComments} no comments`}
         />
       </div>
 
-      <div className="mt-6 grid gap-6 xl:grid-cols-2">
+      <div className="mt-6 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
         <SectionCard
           title="Management modules"
-          description="Live summaries you can use as entry points for dedicated CRUD screens."
+          description="Jump straight into the core admin screens with counts aligned to the live stats service."
         >
           {error ? (
             <EmptyState
@@ -243,7 +225,7 @@ export default function AdminDashboardPage() {
             <div className="grid gap-4 md:grid-cols-2">
               <ManageButton
                 variant="blue"
-                title={`Manage users · ${data?.userTotal ?? 0}`}
+                title={`Manage users · ${totalUsers}`}
                 description="Open the directory to create, edit, and manage account roles across the platform."
                 meta="Accounts"
                 onClick={() => navigate({ to: '/manage/users' })}
@@ -251,7 +233,7 @@ export default function AdminDashboardPage() {
 
               <ManageButton
                 variant="violet"
-                title={`Manage categories · ${data?.categoryTotal ?? 0}`}
+                title={`Manage categories · ${totalCategories}`}
                 description="Maintain idea themes so submissions remain easy to classify and report on."
                 meta="Taxonomy"
                 onClick={() => navigate({ to: '/manage/categories' })}
@@ -260,14 +242,14 @@ export default function AdminDashboardPage() {
               <ManageButton
                 variant="amber"
                 title={`Manage submissions · ${data?.submissionTotal ?? 0}`}
-                description="Schedule campaign windows, update closure times, and keep submissions aligned."
-                meta="Campaigns"
+                description="Schedule submissions, update closure times, and keep campaigns aligned."
+                meta={`${openSubmissionCount} open`}
                 onClick={() => navigate({ to: '/manage/submissions' })}
               />
               <ManageButton
                 variant="emerald"
                 title={`Review ideas · ${reviewBacklog}`}
-                description="Go directly to the moderation queue to approve or reject new ideas."
+                description="Go directly to the moderation queue to approve or reject pending ideas."
                 meta="Moderation"
                 onClick={() => navigate({ to: '/manage/review' })}
               />
@@ -276,8 +258,61 @@ export default function AdminDashboardPage() {
         </SectionCard>
 
         <SectionCard
+          title="Reporting highlights"
+          description="High-signal figures from the live stats endpoint that need admin attention."
+        >
+          {error ? (
+            <EmptyState
+              icon={AlertCircle}
+              title="Stats are unavailable"
+              description={error.message}
+            />
+          ) : (
+            <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-1">
+              <div className="rounded-[24px] border border-slate-200 bg-[linear-gradient(180deg,rgba(255,251,235,0.92)_0%,rgba(255,255,255,1)_65%)] p-5">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                  Ideas without comments
+                </p>
+                <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+                  {ideasWithoutComments}
+                </p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  Ideas that may need visibility, outreach, or moderation follow-up.
+                </p>
+              </div>
+
+              <div className="rounded-[24px] border border-slate-200 bg-[linear-gradient(180deg,rgba(239,246,255,0.9)_0%,rgba(255,255,255,1)_65%)] p-5">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                  Ideas this month
+                </p>
+                <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+                  {ideasThisMonth}
+                </p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  Current-month contribution velocity from the live backend report.
+                </p>
+              </div>
+
+              <div className="rounded-[24px] border border-slate-200 bg-[linear-gradient(180deg,rgba(245,243,255,0.92)_0%,rgba(255,255,255,1)_65%)] p-5">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                  Platform footprint
+                </p>
+                <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+                  {totalDepartments}
+                </p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  Departments represented in the current reporting scope.
+                </p>
+              </div>
+            </div>
+          )}
+        </SectionCard>
+      </div>
+
+      <div className="mt-6">
+        <SectionCard
           title="Recent submissions"
-          description="Most recent campaign windows loaded from the admin submission API."
+          description="Latest campaign windows loaded from the submission API."
         >
           {error ? (
             <EmptyState
@@ -299,7 +334,7 @@ export default function AdminDashboardPage() {
                       </p>
                       <p className="mt-2 max-w-xl text-sm leading-6 text-slate-600">
                         {submission.description?.trim() ||
-                          'No submission description has been entered for this campaign yet.'}
+                          'No submission description has been entered yet.'}
                       </p>
                     </div>
                     <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
@@ -340,7 +375,7 @@ export default function AdminDashboardPage() {
             </div>
           ) : (
             <EmptyState
-              icon={CalendarRange}
+              icon={Building2}
               title="No submissions configured"
               description="Create a submission to start accepting ideas."
             />
