@@ -12,15 +12,6 @@ export default function Sidebar({ userRole }: SidebarProps) {
 
   return (
     <aside className="fixed bottom-0 left-0 top-[73px] hidden w-72 border-r border-slate-200/70 bg-white/75 backdrop-blur xl:block">
-      <div className="border-b border-slate-200/70 px-6 py-5">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">
-          Workspace
-        </p>
-        <p className="mt-2 text-sm leading-6 text-slate-500">
-          Navigate core tasks, review ideas, and keep your campaign workflow
-          focused.
-        </p>
-      </div>
       <nav className="p-5">
         <ul className="space-y-1">
           {navItems.map((item) => {
