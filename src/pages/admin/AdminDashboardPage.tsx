@@ -19,7 +19,7 @@ import { StatCard } from '@/components/shared/StatCard'
 import { SUBMISSION_SELECT_PAGE_SIZE } from '@/constants/submission'
 import { useQuery } from '@tanstack/react-query'
 import { formatAppDateTime, getDateTimestamp } from '@/lib/date'
-import type { DashboardStats, Submission } from '@/types'
+import type { Submission } from '@/types'
 
 function isSubmissionOpen(submission: Submission) {
   const finalClosureTimestamp = getDateTimestamp(submission.finalClosureDate)

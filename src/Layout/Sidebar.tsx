@@ -4,14 +4,27 @@ import type { Role } from '@/types/auth'
 
 interface SidebarProps {
   userRole: Role
+  isOpen: boolean
+  onClose: () => void
 }
 
-export default function Sidebar({ userRole }: SidebarProps) {
+export default function Sidebar({ userRole, isOpen, onClose }: SidebarProps) {
   const location = useLocation()
   const navItems = navigationByRole[userRole]
 
+  const handleNavItemClick = () => {
+    if (typeof window !== 'undefined' && window.innerWidth < 1280) {
+      onClose()
+    }
+  }
+
   return (
-    <aside className="fixed bottom-0 left-0 top-[73px] hidden w-72 border-r border-slate-200/70 bg-white/75 backdrop-blur xl:block">
+    <aside
+      className={`fixed bottom-0 left-0 top-[73px] z-40 w-72 border-r border-slate-200/70 bg-white/90 backdrop-blur-xl transition-transform duration-200 ${
+        isOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}
+      aria-hidden={!isOpen}
+    >
       <nav className="p-5">
         <ul className="space-y-1">
           {navItems.map((item) => {
@@ -22,6 +35,7 @@ export default function Sidebar({ userRole }: SidebarProps) {
               <li key={item.path}>
                 <Link
                   to={item.path}
+                  onClick={handleNavItemClick}
                   className={`group flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm transition ${
                     isActive
                       ? 'border-blue-200 bg-white font-medium text-slate-950 shadow-sm'
