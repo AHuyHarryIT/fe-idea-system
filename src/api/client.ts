@@ -1,3 +1,5 @@
+import axios, { isAxiosError } from 'axios'
+import type { AxiosInstance, Method } from 'axios'
 import { auth } from '@/lib/auth'
 import type { ApiResponse } from '@/types'
 
@@ -8,17 +10,31 @@ if (!API_BASE_URL) {
 }
 
 type ApiQueryValue = string | number | boolean | null | undefined
+type ApiQueryParams = Record<string, ApiQueryValue>
 
-interface RequestOptions<TParams extends object = Record<string, ApiQueryValue>>
-  extends RequestInit {
+interface RequestOptions<TParams extends object = ApiQueryParams> {
+  body?: unknown
+  headers?: Record<string, string>
+  method?: Method
   params?: TParams
+  signal?: AbortSignal
+}
+
+interface DownloadResponse {
+  blob: Blob
+  headers: Record<string, string | undefined>
 }
 
 class ApiClient {
-  private baseURL: string
+  private http: AxiosInstance
 
   constructor(baseURL: string) {
-    this.baseURL = baseURL
+    this.http = axios.create({
+      baseURL,
+      paramsSerializer: {
+        serialize: (params) => this.serializeParams(params),
+      },
+    })
   }
 
   private normalizeQueryParamKey(key: string) {
@@ -29,28 +45,11 @@ class ApiClient {
     return `${key[0].toUpperCase()}${key.slice(1)}`
   }
 
-  private isLoginEndpoint(endpoint: string) {
-    return endpoint === '/Auth/login'
-  }
-
-  private getHeaders(): HeadersInit {
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-    }
-
-    const token = auth.getToken()
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`
-    }
-
-    return headers
-  }
-
-  private buildUrl(endpoint: string, params?: object) {
-    const url = new URL(`${this.baseURL}${endpoint}`)
+  private serializeParams(params?: object) {
+    const searchParams = new URLSearchParams()
 
     if (!params) {
-      return url.toString()
+      return searchParams.toString()
     }
 
     Object.entries(params as Record<string, ApiQueryValue>).forEach(
@@ -59,35 +58,32 @@ class ApiClient {
           return
         }
 
-        url.searchParams.set(this.normalizeQueryParamKey(key), String(value))
+        searchParams.set(this.normalizeQueryParamKey(key), String(value))
       },
     )
 
-    return url.toString()
+    return searchParams.toString()
   }
 
-  private async parseResponseBody(response: Response): Promise<unknown> {
-    if (response.status === 204) {
-      return null
+  private isLoginEndpoint(endpoint: string) {
+    return endpoint === '/Auth/login'
+  }
+
+  private buildHeaders(customHeaders?: Record<string, string>, body?: unknown) {
+    const headers: Record<string, string> = {
+      ...(customHeaders ?? {}),
     }
 
-    const contentType = response.headers.get('content-type') ?? ''
-
-    if (contentType.includes('application/json')) {
-      return response.json()
+    const token = auth.getToken()
+    if (token) {
+      headers.Authorization = `Bearer ${token}`
     }
 
-    const text = await response.text()
-
-    if (!text) {
-      return null
+    if (!(body instanceof FormData) && body !== undefined) {
+      headers['Content-Type'] = headers['Content-Type'] ?? 'application/json'
     }
 
-    try {
-      return JSON.parse(text) as unknown
-    } catch {
-      return text
-    }
+    return headers
   }
 
   private getErrorMessage(payload: unknown, status: number) {
@@ -133,44 +129,66 @@ class ApiClient {
     return `HTTP ${status}`
   }
 
-  async request<T, TParams extends object = Record<string, ApiQueryValue>>(
+  private async getBlobErrorMessage(payload: unknown, status: number) {
+    if (payload instanceof Blob) {
+      try {
+        const text = await payload.text()
+
+        if (!text.trim()) {
+          return `HTTP ${status}`
+        }
+
+        try {
+          return this.getErrorMessage(JSON.parse(text) as unknown, status)
+        } catch {
+          return text
+        }
+      } catch {
+        return `HTTP ${status}`
+      }
+    }
+
+    return this.getErrorMessage(payload, status)
+  }
+
+  async request<T, TParams extends object = ApiQueryParams>(
     endpoint: string,
     options: RequestOptions<TParams> = {},
   ): Promise<ApiResponse<T>> {
-    const url = this.buildUrl(endpoint, options.params)
-
     try {
-      const response = await fetch(url, {
-        ...options,
-        headers: {
-          ...this.getHeaders(),
-          ...(options.headers || {}),
-        },
+      const response = await this.http.request<T>({
+        url: endpoint,
+        method: options.method ?? 'GET',
+        params: options.params as ApiQueryParams | undefined,
+        data: options.body,
+        headers: this.buildHeaders(options.headers, options.body),
+        signal: options.signal,
       })
 
-      const data = await this.parseResponseBody(response)
-
-      if (response.status === 401) {
-        if (!this.isLoginEndpoint(endpoint)) {
-          auth.logout()
-          window.location.href = '/login'
-        }
-
-        return {
-          success: false,
-          error: this.getErrorMessage(data, response.status),
-        }
-      }
-
-      if (!response.ok) {
-        return {
-          success: false,
-          error: this.getErrorMessage(data, response.status),
-        }
-      }
-
-      return { success: true, data: data as T }
+      return { success: true, data: (response.data ?? null) as T }
     } catch (error) {
+      if (isAxiosError(error)) {
+        const status = error.response?.status ?? 0
+        const data = error.response?.data
+
+        if (status === 401) {
+          if (!this.isLoginEndpoint(endpoint)) {
+            auth.logout()
+            window.location.href = '/login'
+          }
+
+          return {
+            success: false,
+            error: this.getErrorMessage(data, status),
+          }
+        }
+
+        return {
+          success: false,
+          error: this.getErrorMessage(data, status),
+        }
+      }
+
       console.error('API request failed:', error)
       return {
         success: false,
@@ -179,9 +197,9 @@ class ApiClient {
     }
   }
 
-  async get<T, TParams extends object = Record<string, ApiQueryValue>>(
+  async get<T, TParams extends object = ApiQueryParams>(
     endpoint: string,
-    options: Omit<RequestOptions<TParams>, 'method'> = {},
+    options: Omit<RequestOptions<TParams>, 'body' | 'method'> = {},
   ): Promise<ApiResponse<T>> {
     return this.request<T, TParams>(endpoint, { ...options, method: 'GET' })
   }
@@ -189,14 +207,14 @@ class ApiClient {
   async post<T>(endpoint: string, body?: unknown): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
       method: 'POST',
-      body: body ? JSON.stringify(body) : undefined,
+      body,
     })
   }
 
   async put<T>(endpoint: string, body?: unknown): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
       method: 'PUT',
-      body: body ? JSON.stringify(body) : undefined,
+      body,
     })
   }
 
@@ -208,55 +226,59 @@ class ApiClient {
     endpoint: string,
     formData: FormData,
   ): Promise<ApiResponse<T>> {
-    return this.sendFormData<T>(endpoint, formData, 'POST')
+    return this.request<T>(endpoint, {
+      method: 'POST',
+      body: formData,
+    })
   }
 
   async updateFiles<T>(
     endpoint: string,
     formData: FormData,
   ): Promise<ApiResponse<T>> {
-    return this.sendFormData<T>(endpoint, formData, 'PUT')
+    return this.request<T>(endpoint, {
+      method: 'PUT',
+      body: formData,
+    })
   }
 
-  private async sendFormData<T>(
-    endpoint: string,
-    formData: FormData,
-    method: 'POST' | 'PUT',
-  ): Promise<ApiResponse<T>> {
-    const url = `${this.baseURL}${endpoint}`
-
+  async download(endpoint: string): Promise<ApiResponse<DownloadResponse>> {
     try {
-      const token = auth.getToken()
-      const headers: HeadersInit = {}
-
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`
-      }
-
-      const response = await fetch(url, {
-        method,
-        headers,
-        body: formData,
+      const response = await this.http.request<Blob>({
+        url: endpoint,
+        method: 'GET',
+        responseType: 'blob',
+        headers: this.buildHeaders(),
       })
 
-      if (response.status === 401) {
-        auth.logout()
-        window.location.href = '/login'
-        return { success: false, error: 'Unauthorized' }
+      return {
+        success: true,
+        data: {
+          blob: response.data,
+          headers: {
+            'content-disposition': response.headers['content-disposition'],
+            'content-type': response.headers['content-type'],
+          },
+        },
       }
+    } catch (error) {
+      if (isAxiosError(error)) {
+        const status = error.response?.status ?? 0
+        const data = error.response?.data
 
-      const data = await this.parseResponseBody(response)
+        if (status === 401) {
+          auth.logout()
+          window.location.href = '/login'
+          return { success: false, error: 'Unauthorized' }
+        }
 
-      if (!response.ok) {
         return {
           success: false,
-          error: this.getErrorMessage(data, response.status),
+          error: await this.getBlobErrorMessage(data, status),
         }
       }
 
-      return { success: true, data: data as T }
-    } catch (error) {
-      console.error('File upload failed:', error)
+      console.error('File download failed:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : 'An error occurred',
