@@ -1,11 +1,11 @@
 import { ProtectedPage } from '@/components/app/ProtectedPage'
-import ReviewIdea from '@/pages/admin/ReviewIdea'
+import ReviewQueuePage from '@/features/review/pages/ReviewQueuePage'
 import { createFileRoute } from '@tanstack/react-router'
 
 function RouteComponent() {
   return (
     <ProtectedPage allowedRoles={['admin', 'qa_manager', 'qa_coordinator']}>
-      <ReviewIdea />
+      <ReviewQueuePage />
     </ProtectedPage>
   )
 }

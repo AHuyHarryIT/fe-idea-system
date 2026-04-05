@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { ProtectedPage } from '@/components/app/ProtectedPage'
-import DashboardPage from '@/pages/staff/DashboardPage'
+import StaffDashboardPage from '@/features/dashboard/staff/pages/StaffDashboardPage'
 
 export const Route = createFileRoute('/dashboard')({
   component: RouteComponent,
@@ -9,7 +9,7 @@ export const Route = createFileRoute('/dashboard')({
 function RouteComponent() {
   return (
     <ProtectedPage allowedRoles={['staff']}>
-      <DashboardPage />
+      <StaffDashboardPage />
     </ProtectedPage>
   )
 }

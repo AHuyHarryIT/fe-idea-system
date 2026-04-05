@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { ProtectedPage } from '@/components/app/ProtectedPage'
-import ManageCategoryPage from '@/pages/admin/ManageCaterogyPage'
+import CategoryManagementPage from '@/features/categories/pages/CategoryManagementPage'
 
 // Defines the admin route for managing idea categories.
 export const Route = createFileRoute('/manage/categories')({
@@ -10,7 +10,7 @@ export const Route = createFileRoute('/manage/categories')({
 function RouteComponent() {
   return (
     <ProtectedPage allowedRoles={['admin', 'qa_manager']}>
-      <ManageCategoryPage />
+      <CategoryManagementPage />
     </ProtectedPage>
   )
 }

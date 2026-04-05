@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import IdeaDetailPage from '@/pages/staff/IdeaDetailPage'
+import IdeaDetailPage from '@/features/ideas/pages/IdeaDetailPage'
 
 export const Route = createFileRoute('/ideas/$ideaId')({
   component: RouteComponent,

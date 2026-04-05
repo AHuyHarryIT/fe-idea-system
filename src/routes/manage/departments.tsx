@@ -1,11 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { ProtectedPage } from '@/components/app/ProtectedPage'
-import ManageDepartmentsPage from '@/pages/admin/ManageDepartmentsPage'
+import DepartmentManagementPage from '@/features/departments/pages/DepartmentManagementPage'
 
 function RouteComponent() {
   return (
     <ProtectedPage allowedRoles={['admin']}>
-      <ManageDepartmentsPage />
+      <DepartmentManagementPage />
     </ProtectedPage>
   )
 }

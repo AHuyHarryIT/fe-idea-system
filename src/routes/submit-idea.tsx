@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { ProtectedPage } from '@/components/app/ProtectedPage'
-import SubmitIdeaPage from '@/pages/staff/SubmitIdeaPage'
+import SubmitIdeaPage from '@/features/ideas/pages/SubmitIdeaPage'
 
 export const Route = createFileRoute('/submit-idea')({
   component: RouteComponent,

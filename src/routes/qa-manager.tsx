@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { ProtectedPage } from '@/components/app/ProtectedPage'
-import QAManagerPage from '@/pages/qa/QAManagerPage'
+import QAManagerDashboardPage from '@/features/dashboard/qa-manager/pages/QAManagerDashboardPage'
 
 export const Route = createFileRoute('/qa-manager')({
   component: RouteComponent,
@@ -9,7 +9,7 @@ export const Route = createFileRoute('/qa-manager')({
 function RouteComponent() {
   return (
     <ProtectedPage allowedRoles={['qa_manager', 'admin']}>
-      <QAManagerPage />
+      <QAManagerDashboardPage />
     </ProtectedPage>
   )
 }

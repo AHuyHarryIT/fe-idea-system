@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { ProtectedPage } from '@/components/app/ProtectedPage'
-import DashboardPage from '@/pages/staff/DashboardPage'
+import StaffDashboardPage from '@/features/dashboard/staff/pages/StaffDashboardPage'
 
 export const Route = createFileRoute('/my-ideas')({
   component: RouteComponent,
@@ -9,7 +9,7 @@ export const Route = createFileRoute('/my-ideas')({
 function RouteComponent() {
   return (
     <ProtectedPage>
-      <DashboardPage
+      <StaffDashboardPage
         title="My Ideas"
         description="Track your pending ideas, review outcomes, and rejection notes in one dedicated view."
         enablePagination
