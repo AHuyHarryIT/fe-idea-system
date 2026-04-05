@@ -77,6 +77,7 @@ export default function SubmitIdeaPage() {
       submissions.find((submission) => submission.id === selectedSubmissionId),
     [selectedSubmissionId, submissions],
   )
+  const currentStep = !selectedSubmission ? 1 : !showSubmitForm ? 2 : 3
 
   useEffect(() => {
     if (!submissionsLoading && currentPage > totalPages) {
@@ -222,6 +223,76 @@ export default function SubmitIdeaPage() {
         title="Submit Idea"
         description="Browse available submissions, review the details, then open the idea form when you are ready to submit."
       />
+
+      <div className="mb-6 rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+              Submission flow
+            </p>
+            <h2 className="mt-2 text-lg font-semibold text-slate-950">
+              Step {currentStep} of 3
+            </h2>
+            <p className="mt-1 text-sm text-slate-600">
+              {currentStep === 1
+                ? 'Choose an active submission campaign that fits your idea.'
+                : currentStep === 2
+                  ? 'Review the campaign timeline before starting the form.'
+                  : 'Complete the form and confirm the submission terms.'}
+            </p>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[34rem]">
+            {[
+              {
+                step: 1,
+                title: 'Choose submission',
+                description: 'Select a campaign',
+              },
+              {
+                step: 2,
+                title: 'Review details',
+                description: 'Check dates and scope',
+              },
+              {
+                step: 3,
+                title: 'Submit idea',
+                description: 'Complete the form',
+              },
+            ].map((item) => {
+              const isActive = currentStep === item.step
+              const isCompleted = currentStep > item.step
+
+              return (
+                <div
+                  key={item.step}
+                  className={`rounded-[22px] border px-4 py-4 ${
+                    isActive
+                      ? 'border-blue-200 bg-blue-50'
+                      : isCompleted
+                        ? 'border-emerald-200 bg-emerald-50'
+                        : 'border-slate-200 bg-slate-50'
+                  }`}
+                >
+                  <p
+                    className={`text-xs font-semibold uppercase tracking-[0.16em] ${
+                      isActive
+                        ? 'text-blue-700'
+                        : isCompleted
+                          ? 'text-emerald-700'
+                          : 'text-slate-400'
+                    }`}
+                  >
+                    Step {item.step}
+                  </p>
+                  <p className="mt-2 text-sm font-semibold text-slate-950">{item.title}</p>
+                  <p className="mt-1 text-sm text-slate-600">{item.description}</p>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
 
       {!selectedSubmission ? (
         <SubmissionListSection

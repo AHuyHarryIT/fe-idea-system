@@ -1,0 +1,90 @@
+UI Consistency Checklist for Future Pages
+
+1. Page header
+- Every page must have a clear H1 and one supporting description line.
+- Primary page action should appear in the header area when the page has one obvious next step.
+- Avoid large decorative hero blocks unless they add immediate operational value.
+
+2. Information hierarchy
+- Show the most important task or metric first.
+- Avoid repeating the same KPI in multiple sections unless each occurrence adds different context.
+- Pair high-priority metrics with a relevant CTA when possible.
+
+3. Layout and spacing
+- Use the 8px spacing system only.
+- Keep content inside a consistent max-width container.
+- Use 20-24px radius for major cards and 12-14px radius for controls.
+- Keep section spacing visually consistent across dashboards, forms, and CRUD pages.
+
+4. Surfaces and borders
+- Use app background, surface, and elevated surface tokens consistently.
+- Prefer subtle borders plus light shadow instead of heavy shadows.
+- Do not mix unrelated card styles on the same page without purpose.
+
+5. Typography
+- Use one consistent heading scale.
+- Use strong contrast for titles and labels.
+- Body copy should remain readable and concise.
+- Avoid oversized marketing text on task-focused screens.
+
+6. Buttons and actions
+- Use one clear primary action per area.
+- Secondary actions should be visually quieter than the primary action.
+- Destructive actions must use the destructive style only.
+- Button labels should be direct action verbs.
+
+7. Forms
+- Every input must have a visible label.
+- Required fields must be clearly marked.
+- Validation must be visible near the problem field or in a clear form-level message.
+- Do not add fake support links or non-working helper actions.
+- Helper text should explain purpose, not restate the label.
+
+8. Tables and lists
+- Search and filters should appear above the list/table.
+- Empty states must explain what happened and what to do next.
+- Pagination text must clearly state the visible range.
+- Row/card actions must be easy to discover and consistent across pages.
+
+9. Status and badges
+- Use consistent color meaning:
+  - blue/info
+  - green/success
+  - amber/warning/pending
+  - red/destructive/rejected
+  - violet/secondary analytics accent
+- Status badges should be short, scannable, and consistent across all features.
+
+10. Dashboards
+- Top row should focus on 3-4 key metrics maximum.
+- Add trend or delta indicators where data supports them.
+- Charts must always include a title, short description, and empty state.
+- Insight cards should lead to action when appropriate.
+
+11. Navigation
+- Group sidebar items by purpose when item count grows.
+- Keep naming consistent between page title, route intent, and sidebar label.
+- Personal actions and admin actions should feel clearly separated.
+
+12. Accessibility and usability
+- Maintain clear focus states for interactive controls.
+- Keep label contrast and helper text contrast readable.
+- Do not rely on color alone to communicate meaning.
+- Ensure all clickable controls look clickable.
+
+13. Content style
+- Use concise product language.
+- Prefer operational wording over marketing wording inside the app.
+- Avoid vague CTA labels such as Continue when Sign in, Review, Save, or Create is clearer.
+
+14. Feature ownership
+- Generic UI belongs in shared components.
+- Business-specific UI belongs in the owning feature.
+- Feature helpers should stay feature-local unless truly cross-feature.
+
+15. Pre-merge visual check
+- Check one empty state.
+- Check one validation state.
+- Check one loading state.
+- Check one successful action state.
+- Check browser console for errors.

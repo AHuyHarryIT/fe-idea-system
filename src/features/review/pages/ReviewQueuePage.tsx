@@ -17,6 +17,7 @@ export default function ReviewQueuePage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(DEFAULT_REVIEW_PAGE_SIZE)
   const [search, setSearch] = useState('')
+  const [expandedRejectIdeaId, setExpandedRejectIdeaId] = useState<string | null>(null)
   const deferredSearch = useDeferredValue(search.trim())
   const { data, isLoading, error } = useAllIdeas({
     pageNumber: currentPage,
@@ -75,6 +76,9 @@ export default function ReviewQueuePage() {
       ...prev,
       [ideaId]: '',
     }))
+    setExpandedRejectIdeaId((currentValue) =>
+      currentValue === ideaId ? null : currentValue,
+    )
 
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['allIdeas'] }),
@@ -97,6 +101,44 @@ export default function ReviewQueuePage() {
         description={`${reviewQueue.length} ideas currently need a moderation decision.`}
       />
 
+      <div className="mb-6 grid gap-4 md:grid-cols-3">
+        <div className="rounded-[24px] border border-slate-200 bg-white px-5 py-4 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+            Awaiting review
+          </p>
+          <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+            {reviewQueue.length}
+          </p>
+          <p className="mt-2 text-sm text-slate-600">
+            Decisions still needed in the current moderation queue.
+          </p>
+        </div>
+        <div className="rounded-[24px] border border-slate-200 bg-white px-5 py-4 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+            Search scope
+          </p>
+          <p className="mt-3 text-lg font-semibold text-slate-950">
+            {deferredSearch ? 'Filtered queue' : 'All pending ideas'}
+          </p>
+          <p className="mt-2 text-sm text-slate-600">
+            {deferredSearch
+              ? `Showing results for “${deferredSearch}”.`
+              : 'Search by title, author, description, or category.'}
+          </p>
+        </div>
+        <div className="rounded-[24px] border border-slate-200 bg-white px-5 py-4 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+            Faster moderation
+          </p>
+          <p className="mt-3 text-lg font-semibold text-slate-950">
+            Open details only when needed
+          </p>
+          <p className="mt-2 text-sm text-slate-600">
+            Approve directly from the queue or expand a rejection reason for exceptions.
+          </p>
+        </div>
+      </div>
+
       <ReviewQueueListSection
         search={search}
         onSearchChange={setSearch}
@@ -104,11 +146,17 @@ export default function ReviewQueuePage() {
         isLoading={isLoading}
         reviewQueue={reviewQueue}
         reviewReasons={reviewReasons}
+        expandedRejectIdeaId={expandedRejectIdeaId}
         onReviewReasonChange={(ideaId, value) =>
           setReviewReasons((prev) => ({
             ...prev,
             [ideaId]: value,
           }))
+        }
+        onToggleRejectReason={(ideaId) =>
+          setExpandedRejectIdeaId((currentValue) =>
+            currentValue === ideaId ? null : ideaId,
+          )
         }
         onReview={(ideaId, isApproved) => void handleReview(ideaId, isApproved)}
         isReviewing={isReviewing}

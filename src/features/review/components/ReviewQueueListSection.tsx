@@ -21,7 +21,9 @@ interface ReviewQueueListSectionProps {
   isLoading: boolean
   reviewQueue: Idea[]
   reviewReasons: Record<string, string>
+  expandedRejectIdeaId: string | null
   onReviewReasonChange: (ideaId: string, value: string) => void
+  onToggleRejectReason: (ideaId: string) => void
   onReview: (ideaId: string, isApproved: boolean) => void
   isReviewing: boolean
   activeIdeaId: string | null
@@ -38,7 +40,9 @@ export function ReviewQueueListSection({
   isLoading,
   reviewQueue,
   reviewReasons,
+  expandedRejectIdeaId,
   onReviewReasonChange,
+  onToggleRejectReason,
   onReview,
   isReviewing,
   activeIdeaId,
@@ -77,11 +81,12 @@ export function ReviewQueueListSection({
         <div className="space-y-5">
           {reviewQueue.map((idea) => {
             const isSubmitting = isReviewing && activeIdeaId === idea.id
+            const isRejectExpanded = expandedRejectIdeaId === idea.id
 
             return (
               <article
                 key={idea.id}
-                className="rounded-2xl border border-slate-200 bg-slate-50 p-6"
+                className="rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,rgba(248,250,252,0.96)_0%,rgba(255,255,255,1)_100%)] p-6 shadow-sm"
               >
                 <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                   <div className="space-y-3">
@@ -114,28 +119,46 @@ export function ReviewQueueListSection({
                   </div>
 
                   <Link to="/ideas/$ideaId" params={{ ideaId: idea.id }}>
-                    <AppButton type="button" variant="ghost">
+                    <AppButton type="button" variant="secondary">
                       Open detail
                     </AppButton>
                   </Link>
                 </div>
 
-                <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
-                  <FormField
-                    label="Rejection reason"
-                    hint="Required only if you reject the idea."
-                  >
-                    <FormTextarea
-                      id={`rejection-reason-${idea.id}`}
-                      name={`rejection-reason-${idea.id}`}
-                      value={reviewReasons[idea.id] ?? ''}
-                      onChange={(event) => onReviewReasonChange(idea.id, event.target.value)}
-                      placeholder="Explain what needs to change before this idea can be accepted."
-                      disabled={isSubmitting}
-                    />
-                  </FormField>
+                <div className="mt-5 flex flex-col gap-4 rounded-[22px] border border-slate-200 bg-white p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">
+                        Moderation actions
+                      </p>
+                      <p className="mt-1 text-sm text-slate-500">
+                        Approve immediately or open a rejection reason when the idea needs revision.
+                      </p>
+                    </div>
 
-                  <div className="flex flex-wrap gap-3">
+                    <div className="flex flex-wrap gap-3">
+                      <AppButton
+                        type="button"
+                        variant={isRejectExpanded ? 'ghost' : 'red'}
+                        onClick={() => onToggleRejectReason(idea.id)}
+                        disabled={isSubmitting}
+                      >
+                        <XCircle className="mr-2 h-4 w-4" />
+                        {isRejectExpanded ? 'Hide rejection' : 'Reject with reason'}
+                      </AppButton>
+
+                      {isRejectExpanded ? (
+                        <AppButton
+                          type="button"
+                          variant="red"
+                          onClick={() => onReview(idea.id, false)}
+                          disabled={isSubmitting}
+                        >
+                          <XCircle className="mr-2 h-4 w-4" />
+                          {isSubmitting ? 'Saving...' : 'Submit rejection'}
+                        </AppButton>
+                      ) : null}
+
                     <AppButton
                       type="button"
                       onClick={() => onReview(idea.id, true)}
@@ -144,16 +167,24 @@ export function ReviewQueueListSection({
                       <CheckCircle2 className="mr-2 h-4 w-4" />
                       {isSubmitting ? 'Saving...' : 'Approve'}
                     </AppButton>
-                    <AppButton
-                      type="button"
-                      variant="red"
-                      onClick={() => onReview(idea.id, false)}
-                      disabled={isSubmitting}
-                    >
-                      <XCircle className="mr-2 h-4 w-4" />
-                      {isSubmitting ? 'Saving...' : 'Reject'}
-                    </AppButton>
                   </div>
+                </div>
+
+                  {isRejectExpanded ? (
+                    <FormField
+                      label="Rejection reason"
+                      hint="Required before the rejection can be submitted."
+                    >
+                      <FormTextarea
+                        id={`rejection-reason-${idea.id}`}
+                        name={`rejection-reason-${idea.id}`}
+                        value={reviewReasons[idea.id] ?? ''}
+                        onChange={(event) => onReviewReasonChange(idea.id, event.target.value)}
+                        placeholder="Explain what needs to change before this idea can be accepted."
+                        disabled={isSubmitting}
+                      />
+                    </FormField>
+                  ) : null}
                 </div>
               </article>
             )
