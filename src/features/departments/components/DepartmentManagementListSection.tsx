@@ -11,9 +11,10 @@ import { FormInput, FormTextarea } from '@/components/forms/FormInput'
 import { Modal } from '@/components/shared/Modal'
 import { SectionCard } from '@/components/shared/SectionCard'
 import {
-  DEPARTMENT_PAGE_SIZE_OPTIONS,
-  type DepartmentManagementFormState,
+  DEPARTMENT_PAGE_SIZE_OPTIONS
+  
 } from '@/features/departments/helpers/department-management'
+import type {DepartmentManagementFormState} from '@/features/departments/helpers/department-management';
 
 interface DepartmentManagementListSectionProps {
   departments: Department[]

@@ -4,9 +4,10 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { SectionCard } from '@/components/shared/SectionCard'
 import {
   QA_MANAGER_DEPARTMENT_SERIES,
-  QA_MANAGER_TREND_SERIES,
-  type DepartmentSummary,
+  QA_MANAGER_TREND_SERIES
+  
 } from '@/features/dashboard/qa-manager/helpers/qa-manager-dashboard'
+import type {DepartmentSummary} from '@/features/dashboard/qa-manager/helpers/qa-manager-dashboard';
 
 interface QAManagerChartsSectionProps {
   error?: Error | null

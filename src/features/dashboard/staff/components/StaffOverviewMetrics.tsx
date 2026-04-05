@@ -1,9 +1,10 @@
 import { CheckCircle2, Lightbulb, TrendingUp } from 'lucide-react'
 import type { Idea } from '@/types'
 import {
-  overviewMetricAccentClassNames,
-  type OverviewMetricAccent,
+  overviewMetricAccentClassNames
+  
 } from '@/features/dashboard/staff/helpers/staff-dashboard'
+import type {OverviewMetricAccent} from '@/features/dashboard/staff/helpers/staff-dashboard';
 
 interface StaffOverviewMetricCardProps {
   title: string

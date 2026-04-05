@@ -15,9 +15,10 @@ import {
   buildCategoryManagementPayload,
   DEFAULT_CATEGORY_PAGE_SIZE,
   initialCategoryManagementForm,
-  type CategoryManagementFormState,
-  validateCategoryManagementForm,
+  
+  validateCategoryManagementForm
 } from '@/features/categories/helpers/category-management'
+import type {CategoryManagementFormState} from '@/features/categories/helpers/category-management';
 
 export default function CategoryManagementPage() {
   const queryClient = useQueryClient()

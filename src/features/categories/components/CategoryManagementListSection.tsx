@@ -11,9 +11,10 @@ import { FormInput } from '@/components/forms/FormInput'
 import { Modal } from '@/components/shared/Modal'
 import { SectionCard } from '@/components/shared/SectionCard'
 import {
-  CATEGORY_PAGE_SIZE_OPTIONS,
-  type CategoryManagementFormState,
+  CATEGORY_PAGE_SIZE_OPTIONS
+  
 } from '@/features/categories/helpers/category-management'
+import type {CategoryManagementFormState} from '@/features/categories/helpers/category-management';
 
 interface CategoryManagementListSectionProps {
   categories: IdeaCategory[]

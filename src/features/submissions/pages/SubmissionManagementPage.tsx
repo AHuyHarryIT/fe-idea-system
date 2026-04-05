@@ -17,10 +17,11 @@ import {
   DEFAULT_SUBMISSION_MANAGEMENT_PAGE_SIZE,
   getSubmissionLifecycle,
   initialSubmissionManagementForm,
-  type SubmissionLifecycle,
-  type SubmissionManagementFormState,
-  validateSubmissionManagementForm,
+  
+  
+  validateSubmissionManagementForm
 } from '@/features/submissions/helpers/submission-management'
+import type {SubmissionLifecycle, SubmissionManagementFormState} from '@/features/submissions/helpers/submission-management';
 
 export default function SubmissionManagementPage() {
   const queryClient = useQueryClient()

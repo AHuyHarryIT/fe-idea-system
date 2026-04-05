@@ -5,9 +5,10 @@ import { getDateTimestamp } from '@/utils/date'
 import { normalizeIdeaResponse } from '@/utils/idea-response-mapper'
 import {
   DEFAULT_MY_IDEA_PAGE_SIZE,
-  getIdeaDateValue,
-  type IdeaStatusFilter,
+  getIdeaDateValue
+  
 } from '@/features/dashboard/staff/helpers/staff-dashboard'
+import type {IdeaStatusFilter} from '@/features/dashboard/staff/helpers/staff-dashboard';
 import { StaffDashboardOverview } from '@/features/dashboard/staff/components/StaffDashboardOverview'
 import { StaffMyIdeasTracker } from '@/features/dashboard/staff/components/StaffMyIdeasTracker'
 

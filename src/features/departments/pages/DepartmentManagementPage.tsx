@@ -10,9 +10,10 @@ import {
   buildDepartmentManagementPayload,
   DEFAULT_DEPARTMENT_PAGE_SIZE,
   initialDepartmentManagementForm,
-  type DepartmentManagementFormState,
-  validateDepartmentManagementForm,
+  
+  validateDepartmentManagementForm
 } from '@/features/departments/helpers/department-management'
+import type {DepartmentManagementFormState} from '@/features/departments/helpers/department-management';
 
 export default function DepartmentManagementPage() {
   const queryClient = useQueryClient()

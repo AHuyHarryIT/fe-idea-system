@@ -13,9 +13,10 @@ import {
   getIdeaStatusMeta,
   getIdeaStatusValue,
   getIdeaTitle,
-  MY_IDEA_PAGE_SIZE_OPTIONS,
-  type IdeaStatusFilter,
+  MY_IDEA_PAGE_SIZE_OPTIONS
+  
 } from '@/features/dashboard/staff/helpers/staff-dashboard'
+import type {IdeaStatusFilter} from '@/features/dashboard/staff/helpers/staff-dashboard';
 
 interface StaffMyIdeasTrackerProps {
   title: string

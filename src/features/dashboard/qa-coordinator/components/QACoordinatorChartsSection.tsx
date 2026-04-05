@@ -2,7 +2,8 @@ import { Column, Pie } from '@ant-design/charts'
 import { BarChart3, ClipboardCheck } from 'lucide-react'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { SectionCard } from '@/components/shared/SectionCard'
-import { coordinatorTrendSeriesColors, type CategorySlice } from '@/features/dashboard/qa-coordinator/helpers/qa-coordinator-dashboard'
+import { coordinatorTrendSeriesColors  } from '@/features/dashboard/qa-coordinator/helpers/qa-coordinator-dashboard'
+import type {CategorySlice} from '@/features/dashboard/qa-coordinator/helpers/qa-coordinator-dashboard';
 
 interface QACoordinatorChartsSectionProps {
   error?: Error | null

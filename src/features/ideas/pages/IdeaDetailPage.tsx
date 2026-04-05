@@ -36,9 +36,10 @@ import { IdeaProposalSection } from '@/features/ideas/components/IdeaProposalSec
 import { IdeaCommentsSection } from '@/features/ideas/components/IdeaCommentsSection'
 import { IdeaDetailSidebar } from '@/features/ideas/components/IdeaDetailSidebar'
 import {
-  EditIdeaModal,
-  type EditIdeaFormState,
+  EditIdeaModal
+  
 } from '@/features/ideas/components/EditIdeaModal'
+import type {EditIdeaFormState} from '@/features/ideas/components/EditIdeaModal';
 import {
   getAttachmentUrl,
   getIdeaStatusLabel,
