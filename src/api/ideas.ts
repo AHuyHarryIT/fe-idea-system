@@ -28,7 +28,7 @@ function getIdeasFromListResponse(data?: IdeaListResponse): Idea[] {
   return []
 }
 
-function mapReviewStatusToStatus(value: unknown) {
+function mapReviewStatusToStatus(value: number | string | null | undefined) {
   if (typeof value === 'number') {
     switch (value) {
       case 0:

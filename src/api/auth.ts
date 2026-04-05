@@ -1,13 +1,11 @@
 import { apiClient } from './client'
-import type { ApiResponse, AuthResponse, LoginRequest } from '@/types'
+import type { ApiResponse, AuthResponse, JsonObject, JsonValue, LoginRequest } from '@/types'
 
-type UnknownRecord = Record<string, unknown>
-
-function isRecord(value: unknown): value is UnknownRecord {
+function isRecord(value: object | JsonValue | null | undefined): value is JsonObject {
   return typeof value === 'object' && value !== null
 }
 
-function getString(value: unknown) {
+function getString(value: JsonValue | undefined) {
   if (typeof value === 'string') {
     return value
   }
@@ -19,7 +17,7 @@ function getString(value: unknown) {
   return ''
 }
 
-function getFirstString(value: unknown) {
+function getFirstString(value: JsonValue | undefined) {
   if (Array.isArray(value)) {
     const firstString = value.find((item) => typeof item === 'string')
 
@@ -29,7 +27,7 @@ function getFirstString(value: unknown) {
   return getString(value)
 }
 
-function parseJwtPayload(token: string): UnknownRecord | null {
+function parseJwtPayload(token: string): JsonObject | null {
   if (!token) {
     return null
   }
@@ -52,7 +50,7 @@ function parseJwtPayload(token: string): UnknownRecord | null {
   }
 }
 
-function getRoleFromClaims(claims: UnknownRecord | null) {
+function getRoleFromClaims(claims: JsonObject | null) {
   if (!claims) {
     return ''
   }
@@ -64,7 +62,7 @@ function getRoleFromClaims(claims: UnknownRecord | null) {
   )
 }
 
-function getUserIdFromClaims(claims: UnknownRecord | null) {
+function getUserIdFromClaims(claims: JsonObject | null) {
   if (!claims) {
     return ''
   }
@@ -78,7 +76,7 @@ function getUserIdFromClaims(claims: UnknownRecord | null) {
   )
 }
 
-function getNameFromClaims(claims: UnknownRecord | null) {
+function getNameFromClaims(claims: JsonObject | null) {
   if (!claims) {
     return ''
   }
@@ -115,12 +113,14 @@ function inferRoleFromIdentity(email: string, name: string) {
   return ''
 }
 
-export function extractAuthResponse(payload: unknown): AuthResponse | null {
-  const record = isRecord(payload)
-    ? payload
-    : isRecord((payload as UnknownRecord | null)?.data)
-      ? ((payload as UnknownRecord).data as UnknownRecord)
-      : null
+export function extractAuthResponse(
+  payload: object | JsonValue | null | undefined,
+): AuthResponse | null {
+  const directRecord = isRecord(payload) ? payload : null
+  const nestedRecord = directRecord && isRecord(directRecord.data)
+    ? directRecord.data
+    : null
+  const record = nestedRecord ?? directRecord
 
   if (!record) {
     return null

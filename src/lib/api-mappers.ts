@@ -1,8 +1,6 @@
-import type { IdeaCategory, Submission } from '@/types'
+import type { IdeaCategory, Submission, JsonObject, JsonValue  } from '@/types'
 import type { IdeaDetailModel, IdeaSummary } from '@/types/idea'
 import { formatAppDate } from '@/lib/date'
-
-type UnknownRecord = Record<string, unknown>
 
 const defaultCollectionKeys = [
   'data',
@@ -16,12 +14,12 @@ const defaultCollectionKeys = [
   'attachments',
 ]
 
-function isRecord(value: unknown): value is UnknownRecord {
+function isRecord(value: object | JsonValue | null | undefined): value is JsonObject {
   return typeof value === 'object' && value !== null
 }
 
-function getNestedValue(record: UnknownRecord, keys: string[]) {
-  let current: unknown = record
+function getNestedValue(record: JsonObject, keys: string[]) {
+  let current: JsonValue = record
 
   for (const key of keys) {
     if (!isRecord(current)) {
@@ -34,8 +32,8 @@ function getNestedValue(record: UnknownRecord, keys: string[]) {
   return current
 }
 
-export function extractCollection<T = unknown>(
-  value: unknown,
+export function extractCollection<T = JsonValue>(
+  value: object | JsonValue | null | undefined,
   keys: string[] = defaultCollectionKeys,
 ): T[] {
   if (Array.isArray(value)) {
@@ -66,10 +64,22 @@ export function extractCollection<T = unknown>(
     }
   }
 
+  for (const nested of Object.values(value)) {
+    if (isRecord(nested)) {
+      const collection = extractCollection<T>(nested, keys)
+
+      if (collection.length > 0) {
+        return collection
+      }
+    }
+  }
+
   return []
 }
 
-export function extractRecord(value: unknown): UnknownRecord | null {
+export function extractRecord(
+  value: object | JsonValue | null | undefined,
+): JsonObject | null {
   if (isRecord(value)) {
     for (const key of ['data', 'result', 'item']) {
       const nested = value[key]
@@ -85,7 +95,7 @@ export function extractRecord(value: unknown): UnknownRecord | null {
   return null
 }
 
-export function asString(value: unknown, fallback = '') {
+export function asString(value: JsonValue | undefined, fallback = '') {
   if (typeof value === 'string') {
     return value
   }
@@ -97,7 +107,7 @@ export function asString(value: unknown, fallback = '') {
   return fallback
 }
 
-export function asNumber(value: unknown, fallback = 0) {
+export function asNumber(value: JsonValue | undefined, fallback = 0) {
   if (typeof value === 'number' && Number.isFinite(value)) {
     return value
   }
@@ -113,7 +123,7 @@ export function asNumber(value: unknown, fallback = 0) {
   return fallback
 }
 
-function asOptionalString(value: unknown) {
+function asOptionalString(value: JsonValue | undefined) {
   if (typeof value === 'string') {
     return value
   }
@@ -121,7 +131,7 @@ function asOptionalString(value: unknown) {
   return undefined
 }
 
-function asOptionalNumber(value: unknown) {
+function asOptionalNumber(value: JsonValue | undefined) {
   if (typeof value === 'number' && Number.isFinite(value)) {
     return value
   }
@@ -137,7 +147,7 @@ function asOptionalNumber(value: unknown) {
   return undefined
 }
 
-function asBoolean(value: unknown, fallback = false) {
+function asBoolean(value: JsonValue | undefined, fallback = false) {
   if (typeof value === 'boolean') {
     return value
   }
@@ -149,7 +159,7 @@ function asBoolean(value: unknown, fallback = false) {
   return fallback
 }
 
-function normalizeIdeaStatus(value: unknown): IdeaSummary['status'] {
+function normalizeIdeaStatus(value: JsonValue | undefined): IdeaSummary['status'] {
   const status = asString(value)
     .toLowerCase()
     .replace(/[^a-z]/g, '')
@@ -179,7 +189,9 @@ export function formatDateLabel(value: string | undefined, emptyLabel = '—') {
   return formatAppDate(value, emptyLabel)
 }
 
-export function mapIdeaSummary(value: unknown): IdeaSummary {
+export function mapIdeaSummary(
+  value: object | JsonValue | null | undefined,
+): IdeaSummary {
   const record = extractRecord(value) ?? {}
   const comments = extractCollection(record.comments ?? record.commentList)
 
@@ -219,7 +231,9 @@ export function mapIdeaSummary(value: unknown): IdeaSummary {
   }
 }
 
-export function mapIdeaDetail(value: unknown): IdeaDetailModel {
+export function mapIdeaDetail(
+  value: object | JsonValue | null | undefined,
+): IdeaDetailModel {
   const record = extractRecord(value) ?? {}
   const summary = mapIdeaSummary(record)
   const attachments = extractCollection(
@@ -295,7 +309,9 @@ export function mapIdeaDetail(value: unknown): IdeaDetailModel {
   }
 }
 
-export function mapCategory(value: unknown): IdeaCategory {
+export function mapCategory(
+  value: object | JsonValue | null | undefined,
+): IdeaCategory {
   const record = extractRecord(value) ?? {}
 
   return {
@@ -304,7 +320,9 @@ export function mapCategory(value: unknown): IdeaCategory {
   }
 }
 
-export function mapSubmission(value: unknown): Submission {
+export function mapSubmission(
+  value: object | JsonValue | null | undefined,
+): Submission {
   const record = extractRecord(value) ?? {}
 
   return {

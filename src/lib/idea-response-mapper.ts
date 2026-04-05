@@ -9,7 +9,7 @@ type IdeaResponseData =
   | null
   | undefined
 
-function mapReviewStatusToStatus(value: unknown): Idea['status'] {
+function mapReviewStatusToStatus(value: number | string | null | undefined): Idea['status'] {
   if (typeof value === 'number') {
     switch (value) {
       case 0:
@@ -20,6 +20,14 @@ function mapReviewStatusToStatus(value: unknown): Idea['status'] {
         return 'rejected'
       default:
         return undefined
+    }
+  }
+
+  if (typeof value === 'string' && value.trim()) {
+    const numericValue = Number(value)
+
+    if (Number.isFinite(numericValue)) {
+      return mapReviewStatusToStatus(numericValue)
     }
   }
 

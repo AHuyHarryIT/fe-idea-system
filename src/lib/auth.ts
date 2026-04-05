@@ -1,4 +1,5 @@
 import type { Role } from '@/types/auth'
+import type { JsonObject, JsonValue } from '@/types'
 
 const TOKEN_KEY = 'idea_system_access_token'
 const USER_ID_KEY = 'idea_system_user_id'
@@ -7,7 +8,7 @@ const DISPLAY_NAME_KEY = 'idea_system_display_name'
 const DEPARTMENT_NAME_KEY = 'idea_system_department_name'
 const EMAIL_KEY = 'idea_system_email'
 
-function parseJwtPayload(token: string): Record<string, unknown> | null {
+function parseJwtPayload(token: string): JsonObject | null {
   if (!token) {
     return null
   }
@@ -24,15 +25,15 @@ function parseJwtPayload(token: string): Record<string, unknown> | null {
     const decoded = atob(padded)
     const parsed = JSON.parse(decoded)
 
-    return typeof parsed === 'object' && parsed !== null
-      ? (parsed as Record<string, unknown>)
+    return typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)
+      ? (parsed as JsonObject)
       : null
   } catch {
     return null
   }
 }
 
-function getClaimString(value: unknown) {
+function getClaimString(value: JsonValue | undefined) {
   if (typeof value === 'string') {
     return value
   }

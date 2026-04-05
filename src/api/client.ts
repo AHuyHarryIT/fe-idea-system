@@ -1,7 +1,7 @@
 import axios, { isAxiosError } from 'axios'
 import type { AxiosInstance, Method } from 'axios'
 import { auth } from '@/lib/auth'
-import type { ApiResponse } from '@/types'
+import type { ApiRequestBody, ApiResponse, JsonObject, JsonValue } from '@/types'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL
 
@@ -13,7 +13,7 @@ type ApiQueryValue = string | number | boolean | null | undefined
 type ApiQueryParams = Record<string, ApiQueryValue>
 
 interface RequestOptions<TParams extends object = ApiQueryParams> {
-  body?: unknown
+  body?: ApiRequestBody
   headers?: Record<string, string>
   method?: Method
   params?: TParams
@@ -69,7 +69,10 @@ class ApiClient {
     return endpoint === '/Auth/login'
   }
 
-  private buildHeaders(customHeaders?: Record<string, string>, body?: unknown) {
+  private buildHeaders(
+    customHeaders?: Record<string, string>,
+    body?: ApiRequestBody,
+  ) {
     const headers: Record<string, string> = {
       ...(customHeaders ?? {}),
     }
@@ -86,16 +89,29 @@ class ApiClient {
     return headers
   }
 
-  private getErrorMessage(payload: unknown, status: number) {
+  private isJsonObject(
+    value: object | JsonValue | FormData | Blob | undefined,
+  ): value is JsonObject {
+    return typeof value === 'object' && value !== null && !(value instanceof FormData) && !(value instanceof Blob) && !Array.isArray(value)
+  }
+
+  private getErrorMessage(
+    payload: object | JsonValue | FormData | Blob | undefined,
+    status: number,
+  ) {
     if (typeof payload === 'string' && payload.trim()) {
       return payload
     }
 
-    if (payload && typeof payload === 'object') {
-      const record = payload as Record<string, unknown>
+    if (this.isJsonObject(payload)) {
+      const record = payload
       const validationErrors = record.errors
 
-      if (validationErrors && typeof validationErrors === 'object') {
+      if (
+        validationErrors &&
+        typeof validationErrors === 'object' &&
+        !Array.isArray(validationErrors)
+      ) {
         const messages = Object.values(validationErrors)
           .flatMap((value) => {
             if (Array.isArray(value)) {
@@ -129,7 +145,10 @@ class ApiClient {
     return `HTTP ${status}`
   }
 
-  private async getBlobErrorMessage(payload: unknown, status: number) {
+  private async getBlobErrorMessage(
+    payload: object | JsonValue | Blob | FormData | undefined,
+    status: number,
+  ) {
     if (payload instanceof Blob) {
       try {
         const text = await payload.text()
@@ -139,7 +158,7 @@ class ApiClient {
         }
 
         try {
-          return this.getErrorMessage(JSON.parse(text) as unknown, status)
+          return this.getErrorMessage(JSON.parse(text) as JsonValue, status)
         } catch {
           return text
         }
@@ -204,14 +223,14 @@ class ApiClient {
     return this.request<T, TParams>(endpoint, { ...options, method: 'GET' })
   }
 
-  async post<T>(endpoint: string, body?: unknown): Promise<ApiResponse<T>> {
+  async post<T>(endpoint: string, body?: ApiRequestBody): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
       method: 'POST',
       body,
     })
   }
 
-  async put<T>(endpoint: string, body?: unknown): Promise<ApiResponse<T>> {
+  async put<T>(endpoint: string, body?: ApiRequestBody): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
       method: 'PUT',
       body,
