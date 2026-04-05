@@ -18,8 +18,8 @@ import {
   useIdeaCategories,
   useUpdateIdeaCategory,
 } from '@/hooks/useCategories'
-import { extractCollection, mapCategory } from '@/lib/api-mappers'
-import { appNotification } from '@/lib/notifications'
+import { extractCollection, mapCategory } from '@/utils/api-mappers'
+import { appNotification } from '@/utils/notifications'
 
 const DEFAULT_PAGE_SIZE = 10
 const PAGE_SIZE_OPTIONS = ['10', '20', '50']

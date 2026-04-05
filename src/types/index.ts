@@ -52,3 +52,5 @@ export type {
   QAManagerDashboard,
 } from './dashboard'
 export type { NavItem } from './navigation'
+
+export type { AppButtonVariant } from './ui'

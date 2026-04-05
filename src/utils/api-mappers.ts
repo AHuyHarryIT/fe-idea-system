@@ -1,6 +1,6 @@
 import type { IdeaCategory, Submission, JsonObject, JsonValue  } from '@/types'
 import type { IdeaDetailModel, IdeaSummary } from '@/types/idea'
-import { formatAppDate } from '@/lib/date'
+import { formatAppDate } from '@/utils/date'
 
 const defaultCollectionKeys = [
   'data',

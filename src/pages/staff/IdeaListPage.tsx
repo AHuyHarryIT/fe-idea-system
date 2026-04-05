@@ -15,7 +15,7 @@ import { SUBMISSION_SELECT_PAGE_SIZE } from '@/constants/submission'
 import { useIdeaFilters } from '@/hooks/useIdeaFilters'
 import { useAllIdeas } from '@/hooks/useIdeas'
 import { useSubmissions } from '@/hooks/useSubmissions'
-import { normalizeIdeaResponse } from '@/lib/idea-response-mapper'
+import { normalizeIdeaResponse } from '@/utils/idea-response-mapper'
 import { useIdeaCategories } from '@/hooks/useCategories'
 
 const DEFAULT_PAGE_SIZE = 5

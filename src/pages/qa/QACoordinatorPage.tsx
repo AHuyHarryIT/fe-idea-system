@@ -16,9 +16,9 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { useQACoordinatorIdeas } from '@/hooks/useIdeas'
-import { auth } from '@/lib/auth'
-import { formatAppDateTime, formatMonthLabel, getDateTimestamp } from '@/lib/date'
-import { normalizeIdeaResponse } from '@/lib/idea-response-mapper'
+import { auth } from '@/utils/auth'
+import { formatAppDateTime, formatMonthLabel, getDateTimestamp } from '@/utils/date'
+import { normalizeIdeaResponse } from '@/utils/idea-response-mapper'
 
 type CoordinatorMetricAccent = 'blue' | 'emerald' | 'violet' | 'amber'
 

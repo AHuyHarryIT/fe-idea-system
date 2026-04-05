@@ -18,7 +18,7 @@ import { SectionCard } from '@/components/shared/SectionCard'
 import { StatCard } from '@/components/shared/StatCard'
 import { SUBMISSION_SELECT_PAGE_SIZE } from '@/constants/submission'
 import { useQuery } from '@tanstack/react-query'
-import { formatAppDateTime, getDateTimestamp } from '@/lib/date'
+import { formatAppDateTime, getDateTimestamp } from '@/utils/date'
 import type { Submission } from '@/types'
 
 function isSubmissionOpen(submission: Submission) {

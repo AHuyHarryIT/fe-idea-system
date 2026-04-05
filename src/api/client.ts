@@ -1,6 +1,6 @@
 import axios, { isAxiosError } from 'axios'
 import type { AxiosInstance, Method } from 'axios'
-import { auth } from '@/lib/auth'
+import { auth } from '@/utils/auth'
 import type { ApiRequestBody, ApiResponse, JsonObject, JsonValue } from '@/types'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL

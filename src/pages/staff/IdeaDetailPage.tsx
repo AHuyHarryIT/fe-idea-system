@@ -39,8 +39,8 @@ import {
   useVoteOnIdea,
 } from '@/hooks/useIdeas'
 import { useSubmissions } from '@/hooks/useSubmissions'
-import { formatAppDateTime, getDateTimestamp } from '@/lib/date'
-import { auth } from '@/lib/auth'
+import { formatAppDateTime, getDateTimestamp } from '@/utils/date'
+import { auth } from '@/utils/auth'
 import {
   getIdeaVoteFeedbackMessage,
   getNextIdeaVoteState,
@@ -49,8 +49,8 @@ import {
   IDEA_VOTE_STATUS_LIKED,
   resolveIdeaVoteStateFromCounts,
   setStoredIdeaVoteStatus,
-} from '@/lib/idea-vote-status'
-import { appNotification } from '@/lib/notifications'
+} from '@/utils/idea-vote-status'
+import { appNotification } from '@/utils/notifications'
 
 interface IdeaDetailPageProps {
   ideaId: string

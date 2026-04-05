@@ -15,9 +15,9 @@ import { SectionCard } from '@/components/shared/SectionCard'
 import { useSubmitIdea } from '@/hooks/useIdeas'
 import { useSubmissions } from '@/hooks/useSubmissions'
 import { CATEGORY_SELECT_PAGE_SIZE } from '@/constants/category'
-import { auth } from '@/lib/auth'
-import { formatAppDateTime, getDateTimestamp } from '@/lib/date'
-import { appNotification } from '@/lib/notifications'
+import { auth } from '@/utils/auth'
+import { formatAppDateTime, getDateTimestamp } from '@/utils/date'
+import { appNotification } from '@/utils/notifications'
 
 const initialForm: IdeaSubmitPayload = {
   title: '',

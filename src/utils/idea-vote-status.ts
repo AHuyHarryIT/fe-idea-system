@@ -1,4 +1,4 @@
-import { auth } from '@/lib/auth'
+import { auth } from '@/utils/auth'
 
 const IDEA_VOTE_STATUS_STORAGE_KEY = 'idea_system_vote_status'
 

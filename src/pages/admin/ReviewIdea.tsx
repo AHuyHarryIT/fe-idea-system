@@ -18,9 +18,9 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { useAllIdeas, useReviewIdea } from '@/hooks/useIdeas'
-import { formatAppDateTime, getDateTimestamp } from '@/lib/date'
-import { normalizeIdeaResponse } from '@/lib/idea-response-mapper'
-import { appNotification } from '@/lib/notifications'
+import { formatAppDateTime, getDateTimestamp } from '@/utils/date'
+import { normalizeIdeaResponse } from '@/utils/idea-response-mapper'
+import { appNotification } from '@/utils/notifications'
 
 const DEFAULT_PAGE_SIZE = 10
 const PAGE_SIZE_OPTIONS = ['10', '20', '50']

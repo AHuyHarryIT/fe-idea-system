@@ -24,8 +24,8 @@ import {
   formatAppDateTime,
   formatMonthLabel,
   getDateTimestamp,
-} from '@/lib/date'
-import { normalizeIdeaResponse } from '@/lib/idea-response-mapper'
+} from '@/utils/date'
+import { normalizeIdeaResponse } from '@/utils/idea-response-mapper'
 
 interface TrendPoint {
   label: string

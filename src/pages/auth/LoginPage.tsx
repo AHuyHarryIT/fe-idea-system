@@ -6,7 +6,7 @@ import { AppButton } from '@/components/app/AppButton'
 import { FormField } from '@/components/forms/FormField'
 import { FormInput } from '@/components/forms/FormInput'
 import { useLogin } from '@/hooks/useAuth'
-import { auth, getHomeRouteForRole } from '@/lib/auth'
+import { auth, getHomeRouteForRole } from '@/utils/auth'
 
 function getLoginErrorMessage(error?: string) {
   const normalizedError = error?.trim().toLowerCase() ?? ''

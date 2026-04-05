@@ -13,7 +13,7 @@ import type { Idea } from '@/types'
 import { ideaService } from '@/api'
 import { AppButton } from '@/components/app/AppButton'
 import { useVoteOnIdea } from '@/hooks/useIdeas'
-import { formatAppDateTime } from '@/lib/date'
+import { formatAppDateTime } from '@/utils/date'
 import {
   getIdeaVoteFeedbackMessage,
   getNextIdeaVoteState,
@@ -22,8 +22,8 @@ import {
   IDEA_VOTE_STATUS_LIKED,
   resolveIdeaVoteStateFromCounts,
   setStoredIdeaVoteStatus,
-} from '@/lib/idea-vote-status'
-import { appNotification } from '@/lib/notifications'
+} from '@/utils/idea-vote-status'
+import { appNotification } from '@/utils/notifications'
 
 interface IdeaCardProps {
   idea: Idea

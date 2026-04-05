@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import type { Role } from '@/types/auth'
 import { departmentService } from '@/api/departments'
-import { auth } from '@/lib/auth'
+import { auth } from '@/utils/auth'
 
 interface TopNavProps {
   onLogout?: () => void

@@ -14,7 +14,7 @@ import { EmptyState } from '@/components/shared/EmptyState'
 import { Modal } from '@/components/shared/Modal'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
-import { appNotification } from '@/lib/notifications'
+import { appNotification } from '@/utils/notifications'
 
 interface DepartmentForm {
   name: string

@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { Navigate } from '@tanstack/react-router'
 import type { Role } from '@/types/auth'
 import Layout from '@/Layout/LayoutPage'
-import { auth, getHomeRouteForRole } from '@/lib/auth'
+import { auth, getHomeRouteForRole } from '@/utils/auth'
 
 interface ProtectedPageProps {
   children: React.ReactNode
