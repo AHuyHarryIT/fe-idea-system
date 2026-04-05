@@ -46,7 +46,7 @@ export function IdeaProposalSection({
                 <div
                   key={attachment.id}
                   className={`flex flex-col gap-4 rounded-[22px] border bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between ${
-                    attachment.id === selectedAttachment?.id
+                    attachment.id === selectedAttachment.id
                       ? 'border-blue-200 ring-2 ring-blue-100'
                       : 'border-slate-200'
                   }`}
@@ -66,7 +66,7 @@ export function IdeaProposalSection({
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <AppButton
-                      variant={attachment.id === selectedAttachment?.id ? 'primary' : 'ghost'}
+                      variant={attachment.id === selectedAttachment.id ? 'primary' : 'ghost'}
                       onClick={() => onSelectAttachment(attachment.id)}
                       disabled={!attachment.fileUrl}
                     >
@@ -93,8 +93,7 @@ export function IdeaProposalSection({
               ))}
             </div>
 
-            {selectedAttachment ? (
-              <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-white">
+            <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-white">
                 <div className="flex flex-col gap-3 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-sm font-semibold text-slate-900">
@@ -148,7 +147,6 @@ export function IdeaProposalSection({
                   </div>
                 )}
               </div>
-            ) : null}
           </div>
         ) : null}
       </div>
