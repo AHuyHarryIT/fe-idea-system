@@ -1,5 +1,8 @@
-import { useState } from 'react'
+import { useLogin } from '@/hooks/useAuth'
+import type { LoginFormValues } from '@/types/auth'
+import { auth, getHomeRouteForRole } from '@/utils/auth'
 import { useNavigate } from '@tanstack/react-router'
+import { Form, Input } from 'antd'
 import {
   ArrowRight,
   GraduationCap,
@@ -7,11 +10,7 @@ import {
   ShieldCheck,
   Sparkles,
 } from 'lucide-react'
-import type { LoginFormValues } from '@/types/auth'
-import { FormField } from '@/components/forms/FormField'
-import { FormInput } from '@/components/forms/FormInput'
-import { useLogin } from '@/hooks/useAuth'
-import { auth, getHomeRouteForRole } from '@/utils/auth'
+import { useState } from 'react'
 
 function getLoginErrorMessage(error?: string) {
   const normalizedError = error?.trim().toLowerCase() ?? ''
@@ -32,18 +31,13 @@ function getLoginErrorMessage(error?: string) {
 export default function LoginPage() {
   const navigate = useNavigate()
   const { mutateAsync: login, isPending } = useLogin()
-  const [formValues, setFormValues] = useState<LoginFormValues>({
-    email: '',
-    password: '',
-  })
+  const [form] = Form.useForm()
   const [errorMessage, setErrorMessage] = useState('')
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-
+  const handleFinish = async (values: LoginFormValues) => {
     setErrorMessage('')
 
-    const response = await login(formValues)
+    const response = await login(values)
 
     if (!response.success) {
       setErrorMessage(getLoginErrorMessage(response.error))
@@ -77,7 +71,8 @@ export default function LoginPage() {
             </h1>
 
             <p className="mt-5 max-w-2xl text-base leading-7 text-[var(--app-text-secondary)]">
-              Access role-based tools for idea submission, moderation, analytics, and campaign management from one secure portal.
+              Access role-based tools for idea submission, moderation,
+              analytics, and campaign management from one secure portal.
             </p>
           </div>
 
@@ -85,17 +80,20 @@ export default function LoginPage() {
             {[
               {
                 title: 'Role-based access',
-                description: 'Staff, QA, and admins see the workflows that matter to them.',
+                description:
+                  'Staff, QA, and admins see the workflows that matter to them.',
                 icon: ShieldCheck,
               },
               {
                 title: 'Secure workspace',
-                description: 'Use your university credentials to enter a protected environment.',
+                description:
+                  'Use your university credentials to enter a protected environment.',
                 icon: KeyRound,
               },
               {
                 title: 'Reviewed submissions',
-                description: 'Move from submission to review and reporting in one system.',
+                description:
+                  'Move from submission to review and reporting in one system.',
                 icon: Sparkles,
               },
             ].map((item) => {
@@ -139,71 +137,61 @@ export default function LoginPage() {
           </div>
 
           <p className="mb-6 text-sm leading-6 text-slate-600">
-            Use your university account to access idea submission, moderation, analytics, and management tools.
+            Use your university account to access idea submission, moderation,
+            analytics, and management tools.
           </p>
 
-          <form className="space-y-5" onSubmit={handleSubmit}>
-            <FormField label="University email" required>
-              <FormInput
-                id="login-email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                placeholder="name@university.edu"
-                value={formValues.email}
-                onChange={(event) =>
-                  setFormValues((prev) => ({
-                    ...prev,
-                    email: event.target.value,
-                  }))
-                }
-              />
-            </FormField>
+          <Form
+            form={form}
+            onFinish={handleFinish}
+            className="space-y-5"
+            layout="vertical"
+            requiredMark="optional"
+          >
+            <Form.Item
+              name="email"
+              label="Email"
+              rules={[
+                { required: true, message: 'Email is required' },
+                {
+                  type: 'email',
+                  message: 'Please enter a valid email address',
+                },
+              ]}
+            >
+              <Input autoComplete="email" placeholder="name@university.edu" />
+            </Form.Item>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between gap-3">
-                <label htmlFor="login-password" className="text-sm font-medium text-slate-700">
-                  Password <span className="text-rose-500">*</span>
-                </label>
-                <span className="text-sm text-slate-500">
-                  Contact your system administrator for password support
-                </span>
-              </div>
-              <FormInput
-                id="login-password"
-                name="password"
-                type="password"
+            <Form.Item
+              name="password"
+              label="Password"
+              rules={[{ required: true, message: 'Password is required' }]}
+            >
+              <Input.Password
                 autoComplete="current-password"
                 placeholder="Enter password"
-                value={formValues.password}
-                onChange={(event) =>
-                  setFormValues((prev) => ({
-                    ...prev,
-                    password: event.target.value,
-                  }))
-                }
               />
-            </div>
+            </Form.Item>
 
-            {errorMessage ? (
-              <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-                {errorMessage}
-              </p>
-            ) : null}
+            {errorMessage && (
+              <Form.Item>
+                <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                  {errorMessage}
+                </div>
+              </Form.Item>
+            )}
 
-            <button
-              type="submit"
-              disabled={isPending}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-[14px] bg-[var(--app-primary)] px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-[var(--app-primary-hover)] disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              {isPending ? 'Signing in...' : 'Sign in'}
-              {isPending ? null : <ArrowRight className="h-4 w-4" />}
-            </button>
-          </form>
-
-          <div className="mt-6 border-t border-slate-200 pt-5 text-sm text-slate-500">
-            Guest access is available from the header navigation if your workflow allows browsing without signing in.
-          </div>
+            <Form.Item>
+              <button
+                type="submit"
+                disabled={isPending}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-[14px] bg-[var(--app-primary)] px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-[var(--app-primary-hover)] disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {isPending ? 'Signing in...' : 'Sign in'}
+                {!isPending && <ArrowRight className="h-4 w-4" />}
+              </button>
+            </Form.Item>
+          </Form>
         </div>
       </section>
     </div>
