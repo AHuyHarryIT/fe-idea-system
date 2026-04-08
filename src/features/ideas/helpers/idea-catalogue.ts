@@ -1,8 +1,8 @@
 import type { Idea, IdeaCategory, Submission } from '@/types'
 import { getDateTimestamp } from '@/utils/date'
 
-export const DEFAULT_IDEA_CATALOGUE_PAGE_SIZE = 5
-export const IDEA_CATALOGUE_PAGE_SIZE_OPTIONS = ['5', '10', '20', '50']
+export const DEFAULT_IDEA_CATALOGUE_PAGE_SIZE = 10
+export const IDEA_CATALOGUE_PAGE_SIZE_OPTIONS = ['10', '20', '50', '100']
 export const IDEA_OPTION_SCROLL_THRESHOLD = 16
 export type IdeaCatalogueSortOption = 'newest' | 'most-liked' | 'most-viewed'
 

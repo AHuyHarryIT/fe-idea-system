@@ -70,13 +70,13 @@ export function IdeaCatalogueResultsSection({
         <div className="space-y-6">
           <EmptyState
             icon={Lightbulb}
-            title="No idea records loaded"
+            title="No ideas found"
             description={
-              hasCategoryFilter || hasSubmissionFilter
+              deferredSearch
+                ? 'Try another keyword or clear the search.'
+                : hasCategoryFilter || hasSubmissionFilter
                 ? 'Try another category, submission, or clear the filters.'
-                : deferredSearch
-                  ? 'Try another keyword or clear the search.'
-                  : 'Try adjusting your page selection.'
+                : 'No ideas have been created yet.'
             }
           />
 

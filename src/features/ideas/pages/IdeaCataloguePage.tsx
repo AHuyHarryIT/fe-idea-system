@@ -13,13 +13,9 @@ import {
   appendUniqueCategoryOptions,
   appendUniqueSubmissionOptions,
   DEFAULT_IDEA_CATALOGUE_PAGE_SIZE,
-  IDEA_CATALOGUE_SORT_OPTIONS,
   IDEA_OPTION_SCROLL_THRESHOLD,
-  sortIdeaCatalogueItems
-  
-  
 } from '@/features/ideas/helpers/idea-catalogue'
-import type {IdeaCatalogueSortOption, SelectOptionItem} from '@/features/ideas/helpers/idea-catalogue';
+import type { SelectOptionItem } from '@/features/ideas/helpers/idea-catalogue'
 
 export default function IdeaCataloguePage() {
   const {
@@ -32,7 +28,6 @@ export default function IdeaCataloguePage() {
   } = useIdeaFilters()
   const [pageSize, setPageSize] = useState<number>(DEFAULT_IDEA_CATALOGUE_PAGE_SIZE)
   const [currentPage, setCurrentPage] = useState(1)
-  const [sortBy, setSortBy] = useState<IdeaCatalogueSortOption>('newest')
   const [shouldLoadCategories, setShouldLoadCategories] = useState(false)
   const [shouldLoadSubmissions, setShouldLoadSubmissions] = useState(false)
   const [categoryOptionPage, setCategoryOptionPage] = useState(1)
@@ -66,13 +61,8 @@ export default function IdeaCataloguePage() {
 
   const ideas = useMemo(() => {
     const ideaList = normalizeIdeaResponse(data)
-    return Array.isArray(ideaList)
-      ? sortIdeaCatalogueItems(
-          ideaList.filter((idea) => idea.id),
-          sortBy,
-        )
-      : []
-  }, [data, sortBy])
+    return Array.isArray(ideaList) ? ideaList.filter((idea) => idea.id) : []
+  }, [data])
 
   const categories = useMemo(() => {
     const categoryList = categoryData?.categories ?? []
@@ -96,8 +86,8 @@ export default function IdeaCataloguePage() {
   const totalIdeas =
     data?.pagination?.totalCount ?? data?.totalCount ?? data?.total ?? ideas.length
   const totalPages = Math.max(1, Math.ceil(totalIdeas / pageSize))
-  const hasCategoryFilter = categoryId.length > 0
-  const hasSubmissionFilter = submissionId.length > 0
+  const hasCategoryFilter = (categoryId?.length ?? 0) > 0
+  const hasSubmissionFilter = (submissionId?.length ?? 0) > 0
   const listDescription =
     hasCategoryFilter || hasSubmissionFilter
       ? `${totalIdeas} ideas matched your current filters.`
@@ -196,8 +186,6 @@ export default function IdeaCataloguePage() {
         totalIdeas={totalIdeas}
         selectedSubmission={selectedSubmission}
         selectedCategory={selectedCategory}
-        sortBy={sortBy}
-        sortOptions={IDEA_CATALOGUE_SORT_OPTIONS}
         onSearchChange={setSearch}
         onSubmissionOpenChange={(open) => {
           if (open) {
@@ -215,13 +203,6 @@ export default function IdeaCataloguePage() {
         onSubmissionClear={() => setSubmissionId('')}
         onCategoryChange={setCategoryId}
         onCategoryClear={() => setCategoryId('')}
-        onSortChange={setSortBy}
-        onReset={() => {
-          setSearch('')
-          setCategoryId('')
-          setSubmissionId('')
-          setSortBy('newest')
-        }}
       />
 
       <IdeaCatalogueResultsSection
