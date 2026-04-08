@@ -26,14 +26,18 @@ export default function IdeaCataloguePage() {
     submissionId,
     setSubmissionId,
   } = useIdeaFilters()
-  const [pageSize, setPageSize] = useState<number>(DEFAULT_IDEA_CATALOGUE_PAGE_SIZE)
+  const [pageSize, setPageSize] = useState<number>(
+    DEFAULT_IDEA_CATALOGUE_PAGE_SIZE,
+  )
   const [currentPage, setCurrentPage] = useState(1)
   const [shouldLoadCategories, setShouldLoadCategories] = useState(false)
   const [shouldLoadSubmissions, setShouldLoadSubmissions] = useState(false)
   const [categoryOptionPage, setCategoryOptionPage] = useState(1)
   const [submissionOptionPage, setSubmissionOptionPage] = useState(1)
   const [categoryOptions, setCategoryOptions] = useState<SelectOptionItem[]>([])
-  const [submissionOptions, setSubmissionOptions] = useState<SelectOptionItem[]>([])
+  const [submissionOptions, setSubmissionOptions] = useState<
+    SelectOptionItem[]
+  >([])
   const categoryLoadLockRef = useRef(false)
   const submissionLoadLockRef = useRef(false)
   const deferredSearch = useDeferredValue(search.trim())
@@ -45,20 +49,22 @@ export default function IdeaCataloguePage() {
     categoryId: categoryId || undefined,
     reviewStatus: 1,
   })
-  const { data: categoryData, isFetching: isFetchingCategories } = useIdeaCategories(
-    {
-      pageNumber: categoryOptionPage,
-      pageSize: CATEGORY_SELECT_PAGE_SIZE,
-    },
-    { enabled: shouldLoadCategories },
-  )
-  const { data: submissionData, isFetching: isFetchingSubmissions } = useSubmissions(
-    {
-      pageNumber: submissionOptionPage,
-      pageSize: SUBMISSION_SELECT_PAGE_SIZE,
-    },
-    { enabled: shouldLoadSubmissions },
-  )
+  const { data: categoryData, isFetching: isFetchingCategories } =
+    useIdeaCategories(
+      {
+        pageNumber: categoryOptionPage,
+        pageSize: CATEGORY_SELECT_PAGE_SIZE,
+      },
+      { enabled: shouldLoadCategories },
+    )
+  const { data: submissionData, isFetching: isFetchingSubmissions } =
+    useSubmissions(
+      {
+        pageNumber: submissionOptionPage,
+        pageSize: SUBMISSION_SELECT_PAGE_SIZE,
+      },
+      { enabled: shouldLoadSubmissions },
+    )
 
   const ideas = useMemo(() => {
     const ideaList = normalizeIdeaResponse(data)
@@ -67,7 +73,9 @@ export default function IdeaCataloguePage() {
 
   const categories = useMemo(() => {
     const categoryList = categoryData?.categories ?? []
-    return Array.isArray(categoryList) ? categoryList.filter((item) => item.id) : []
+    return Array.isArray(categoryList)
+      ? categoryList.filter((item) => item.id)
+      : []
   }, [categoryData])
   const submissions = useMemo(() => {
     const submissionList = submissionData?.submissions ?? []
@@ -76,7 +84,10 @@ export default function IdeaCataloguePage() {
       : []
   }, [submissionData])
   const selectedSubmission = useMemo(
-    () => submissions.find((submissionOption) => submissionOption.id === submissionId),
+    () =>
+      submissions.find(
+        (submissionOption) => submissionOption.id === submissionId,
+      ),
     [submissionId, submissions],
   )
   const selectedCategory = useMemo(
@@ -85,15 +96,19 @@ export default function IdeaCataloguePage() {
   )
 
   const totalIdeas =
-    data?.pagination?.totalCount ?? data?.totalCount ?? data?.total ?? ideas.length
+    data?.pagination?.totalCount ??
+    data?.totalCount ??
+    data?.total ??
+    ideas.length
   const totalPages = Math.max(1, Math.ceil(totalIdeas / pageSize))
-  const hasCategoryFilter = (categoryId?.length ?? 0) > 0
-  const hasSubmissionFilter = (submissionId?.length ?? 0) > 0
+  const hasCategoryFilter = !!categoryId
+  const hasSubmissionFilter = !!submissionId
   const listDescription =
     hasCategoryFilter || hasSubmissionFilter
       ? `${totalIdeas} ideas matched your current filters.`
       : `${totalIdeas} ideas are currently available in the live university catalogue.`
-  const hasMoreCategories = (categoryData?.pagination?.totalPages ?? 1) > categoryOptionPage
+  const hasMoreCategories =
+    (categoryData?.pagination?.totalPages ?? 1) > categoryOptionPage
   const hasMoreSubmissions =
     (submissionData?.pagination?.totalPages ?? 1) > submissionOptionPage
 
