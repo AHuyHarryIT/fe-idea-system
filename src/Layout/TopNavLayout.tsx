@@ -1,16 +1,14 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Tag, Dropdown, Menu, Button, Space, Avatar } from 'antd'
+import { departmentService } from '@/api/departments'
+import type { Role } from '@/types/auth'
+import { auth } from '@/utils/auth'
+import { Avatar, Dropdown, Menu, Space, Tag } from 'antd'
 import {
-  ChevronDown,
   GraduationCap,
   LogOut,
-  Menu as MenuIcon,
   PanelLeftClose,
-  UserCircle2,
+  UserCircle2
 } from 'lucide-react'
-import type { Role } from '@/types/auth'
-import { departmentService } from '@/api/departments'
-import { auth } from '@/utils/auth'
+import { useEffect, useMemo, useState } from 'react'
 
 interface TopNavProps {
   onLogout?: () => void

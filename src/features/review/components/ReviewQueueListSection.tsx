@@ -1,16 +1,9 @@
-import { AppButton } from '@/components/app/AppButton'
 import { AppPagination } from '@/components/shared/AppPagination'
-import { EmptyState } from '@/components/shared/EmptyState'
 import { SectionCard } from '@/components/shared/SectionCard'
-import {
-  getReviewStatusLabel,
-  REVIEW_PAGE_SIZE_OPTIONS,
-} from '@/features/review/helpers/review-queue'
 import type { Idea } from '@/types'
-import { formatAppDateTime } from '@/utils/date'
-import { Link } from '@tanstack/react-router'
-import { Input } from 'antd'
-import { Clock3, MessageSquare, Search } from 'lucide-react'
+import { Empty, Input } from 'antd'
+import { Search } from 'lucide-react'
+import { ReviewCard } from './ReviewCard'
 
 interface ReviewQueueListSectionProps {
   search: string
@@ -52,11 +45,7 @@ export function ReviewQueueListSection({
       </label>
 
       {error ? (
-        <EmptyState
-          icon={MessageSquare}
-          title="Unable to load review queue"
-          description={error.message}
-        />
+        <Empty description="Unable to load review queue" />
       ) : isLoading ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600">
           Loading ideas for review...
@@ -64,59 +53,13 @@ export function ReviewQueueListSection({
       ) : reviewQueue.length > 0 ? (
         <div className="space-y-5">
           {reviewQueue.map((idea) => {
-            return (
-              <article
-                key={idea.id}
-                className="rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,rgba(248,250,252,0.96)_0%,rgba(255,255,255,1)_100%)] p-6 shadow-sm"
-              >
-                <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-                  <div className="space-y-3">
-                    <div className="flex flex-wrap items-center gap-2 text-xs font-medium">
-                      <span className="rounded-full bg-amber-100 px-3 py-1 text-amber-700">
-                        {getReviewStatusLabel(idea.status)}
-                      </span>
-                      <span className="rounded-full bg-blue-50 px-3 py-1 text-blue-700">
-                        {idea.categoryName || 'Uncategorized'}
-                      </span>
-                    </div>
-
-                    <div>
-                      <h2 className="text-lg font-semibold text-slate-900">
-                        {idea.text || idea.title || 'Untitled idea'}
-                      </h2>
-                      <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-                        {idea.description || 'No description available.'}
-                      </p>
-                    </div>
-
-                    <div className="flex flex-wrap gap-4 text-sm text-slate-500">
-                      <span>Author: {idea.authorName || 'Anonymous'}</span>
-                      <span>
-                        Department: {idea.departmentName || 'Unknown'}
-                      </span>
-                      <span>
-                        Created:{' '}
-                        {formatAppDateTime(idea.createdAt || idea.createdDate)}
-                      </span>
-                      <span>Comments: {idea.commentCount ?? 0}</span>
-                    </div>
-                  </div>
-
-                  <Link to="/ideas/$ideaId" params={{ ideaId: idea.id }}>
-                    <AppButton type="button" variant="secondary">
-                      Open detail
-                    </AppButton>
-                  </Link>
-                </div>
-              </article>
-            )
+            return <ReviewCard key={idea.id} idea={idea} />
           })}
 
           <AppPagination
             current={currentPage}
             total={totalIdeas}
             pageSize={pageSize}
-            pageSizeOptions={REVIEW_PAGE_SIZE_OPTIONS}
             onChange={onPageChange}
             showTotal={(total, range) =>
               `Showing ${range[0]}-${range[1]} of ${total} ideas awaiting review`
@@ -124,11 +67,7 @@ export function ReviewQueueListSection({
           />
         </div>
       ) : (
-        <EmptyState
-          icon={Clock3}
-          title="No ideas waiting for review"
-          description="Submitted or under-review ideas will show up here when they need approval or rejection."
-        />
+        <Empty description="No ideas waiting for review" />
       )}
     </SectionCard>
   )

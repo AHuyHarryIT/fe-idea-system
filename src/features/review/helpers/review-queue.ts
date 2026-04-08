@@ -2,7 +2,6 @@ import type { Idea } from '@/types'
 import { getDateTimestamp } from '@/utils/date'
 
 export const DEFAULT_REVIEW_PAGE_SIZE = 10
-export const REVIEW_PAGE_SIZE_OPTIONS = ['10', '20', '50']
 
 export function getReviewStatusLabel(status?: string) {
   if (!status) return 'Pending review'
