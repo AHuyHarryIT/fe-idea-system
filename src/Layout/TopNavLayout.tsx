@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Tag } from 'antd'
+import { Tag, Dropdown, Menu, Button, Space, Avatar } from 'antd'
 import {
   ChevronDown,
   GraduationCap,
   LogOut,
-  Menu,
+  Menu as MenuIcon,
   PanelLeftClose,
   UserCircle2,
 } from 'lucide-react'
@@ -27,7 +27,6 @@ export default function TopNav({
   isSidebarOpen = false,
   onToggleSidebar,
 }: TopNavProps) {
-  const [showProfileDropdown, setShowProfileDropdown] = useState(false)
   const showProfileMenu = Boolean(userRole && onLogout)
   const displayName = useMemo(() => auth.getDisplayName() ?? 'User', [])
   const email = useMemo(() => auth.getEmail() ?? '', [])
@@ -133,7 +132,7 @@ export default function TopNav({
         </div>
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-          {showProfileMenu ? (
+          {showProfileMenu && (
             <div className="relative flex items-center gap-2 sm:gap-3">
               <div className="hidden lg:block">
                 <Tag
@@ -143,65 +142,68 @@ export default function TopNav({
                   {departmentName.trim() ? departmentName : 'No Department'}
                 </Tag>
               </div>
-              <button
-                type="button"
-                onClick={() => setShowProfileDropdown((prev) => !prev)}
-                className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2 py-2 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 sm:gap-3 sm:px-3"
+              <Dropdown
+                menu={{
+                  items: [
+                    {
+                      key: 'header',
+                      type: 'group' as const,
+                      label: (
+                        <div className="px-2">
+                          <p className="mt-2 text-base font-semibold text-slate-950">
+                            {displayName}
+                          </p>
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            <Tag className="m-0 rounded-full border-0 px-3 py-1 text-xs font-medium">
+                              {roleLabel}
+                            </Tag>
+                            <Tag
+                              color="blue"
+                              className="m-0 rounded-full border-0 px-3 py-1 text-xs font-medium"
+                            >
+                              {departmentName.trim()
+                                ? departmentName
+                                : 'No Department'}
+                            </Tag>
+                          </div>
+                          {email ? (
+                            <p className="mt-3 text-sm text-slate-500">
+                              {email}
+                            </p>
+                          ) : null}
+                        </div>
+                      ),
+                    },
+                    {
+                      key: 'signout',
+                      label: (
+                        <span className="flex items-center gap-2">
+                          <LogOut className="h-4 w-4" />
+                          Sign out
+                        </span>
+                      ),
+                      onClick: onLogout,
+                    },
+                  ],
+                }}
+                trigger={['click']}
+                placement="bottomRight"
               >
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-500 sm:h-10 sm:w-10">
-                  <UserCircle2 className="h-5 w-5 sm:h-6 sm:w-6" />
-                </div>
-                <div className="hidden min-w-0 text-left lg:block">
-                  <p className="truncate text-sm font-semibold text-slate-900">
-                    {displayName}
-                  </p>
-                  <p className="mt-0.5 text-xs font-medium text-slate-500">
-                    {roleLabel}
-                  </p>
-                </div>
-                <ChevronDown className="hidden h-4 w-4 text-slate-500 sm:block" />
-              </button>
-
-              {showProfileDropdown && (
-                <div className="absolute right-0 top-[calc(100%+0.75rem)] w-72 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_18px_48px_rgba(15,23,42,0.12)]">
-                  <div className="border-b border-slate-200 px-4 py-4">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
-                      Signed in as
-                    </p>
-                    <p className="mt-2 text-base font-semibold text-slate-950">
+                <Space className="cursor-pointer">
+                  <div className="hidden min-w-0 text-left lg:block">
+                    <p className="truncate text-sm font-semibold text-slate-900">
                       {displayName}
                     </p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <Tag className="m-0 rounded-full border-0 px-3 py-1 text-xs font-medium">
-                        {roleLabel}
-                      </Tag>
-                      <Tag
-                        color="blue"
-                        className="m-0 rounded-full border-0 px-3 py-1 text-xs font-medium"
-                      >
-                        {departmentName.trim()
-                          ? departmentName
-                          : 'No Department'}
-                      </Tag>
-                    </div>
-                    {email ? (
-                      <p className="mt-3 text-sm text-slate-500">{email}</p>
-                    ) : null}
+                    <p className="mt-0.5 text-xs font-medium text-slate-500">
+                      {roleLabel}
+                    </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={onLogout}
-                    className="flex w-full items-center gap-2 px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Sign out
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-slate-500">
-              Guest Access
+                  <Avatar
+                    icon={<UserCircle2 className="h-5 w-5 sm:h-6 sm:w-6" />}
+                    size={'large'}
+                  />
+                </Space>
+              </Dropdown>
             </div>
           )}
         </div>
