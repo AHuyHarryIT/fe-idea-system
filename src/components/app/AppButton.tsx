@@ -23,7 +23,7 @@ export function AppButton({
   return (
     <button
       {...props}
-      className={`inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60 ${variantClassNames[variant]} ${className ?? ''}`.trim()}
+      className={`inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-medium transition cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 ${variantClassNames[variant]} ${className ?? ''}`.trim()}
     />
   )
 }
