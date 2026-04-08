@@ -185,7 +185,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isPending}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-[14px] bg-[var(--app-primary)] px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-[var(--app-primary-hover)] disabled:cursor-not-allowed disabled:opacity-70"
+                className="inline-flex w-full items-center justify-center gap-2 cursor-pointer rounded-[14px]  bg-[var(--app-primary)] px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-[var(--app-primary-hover)] disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {isPending ? 'Signing in...' : 'Sign in'}
                 {!isPending && <ArrowRight className="h-4 w-4" />}
