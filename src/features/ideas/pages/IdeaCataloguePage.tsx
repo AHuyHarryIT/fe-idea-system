@@ -43,6 +43,7 @@ export default function IdeaCataloguePage() {
     searchTerm: deferredSearch || undefined,
     submissionId: submissionId || undefined,
     categoryId: categoryId || undefined,
+    reviewStatus: 1,
   })
   const { data: categoryData, isFetching: isFetchingCategories } = useIdeaCategories(
     {
