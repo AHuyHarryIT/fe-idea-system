@@ -38,7 +38,7 @@ export function IdeaProposalSection({
           </p>
         </div>
 
-        {attachments.length > 0 ? (
+        {attachments.length > 0 &&  (
           <div className="space-y-3">
             <p className="text-sm font-semibold text-slate-900">Attached documents</p>
             <div className="space-y-3">
@@ -72,7 +72,7 @@ export function IdeaProposalSection({
                     >
                       View document
                     </AppButton>
-                    {attachment.fileUrl ? (
+                    {attachment.fileUrl &&  (
                       <AppButton
                         variant="ghost"
                         type="button"
@@ -87,7 +87,7 @@ export function IdeaProposalSection({
                         <ExternalLink className="h-4 w-4" />
                         Open tab
                       </AppButton>
-                    ) : null}
+                    )}
                   </div>
                 </div>
               ))}
@@ -103,7 +103,7 @@ export function IdeaProposalSection({
                       {selectedAttachment.fileSize || 'Document preview'}
                     </p>
                   </div>
-                  {selectedAttachment.fileUrl ? (
+                  {selectedAttachment.fileUrl &&  (
                     <AppButton
                       variant="ghost"
                       type="button"
@@ -118,7 +118,7 @@ export function IdeaProposalSection({
                       <ExternalLink className="h-4 w-4" />
                       Open in new tab
                     </AppButton>
-                  ) : null}
+                  )}
                 </div>
 
                 {selectedAttachment.fileUrl ? (
@@ -148,7 +148,7 @@ export function IdeaProposalSection({
                 )}
               </div>
           </div>
-        ) : null}
+        )}
       </div>
     </SectionCard>
   )

@@ -120,7 +120,7 @@ export function IdeaCatalogueFiltersSection({
           <span className="rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-700">
             {totalIdeas} total ideas
           </span>
-          {selectedCategory ? (
+          {selectedCategory &&  (
             <button
               type="button"
               onClick={onCategoryClear}
@@ -129,8 +129,8 @@ export function IdeaCatalogueFiltersSection({
               Category: {selectedCategory.name}
               <X className="h-3.5 w-3.5" />
             </button>
-          ) : null}
-          {selectedSubmission ? (
+          )}
+          {selectedSubmission &&  (
             <button
               type="button"
               onClick={onSubmissionClear}
@@ -139,7 +139,7 @@ export function IdeaCatalogueFiltersSection({
               Submission: {selectedSubmission.name}
               <X className="h-3.5 w-3.5" />
             </button>
-          ) : null}
+          )}
         </div>
       </SectionCard>
     </>

@@ -164,11 +164,11 @@ export default function TopNav({
                                 : 'No Department'}
                             </Tag>
                           </div>
-                          {email ? (
+                          {email &&  (
                             <p className="mt-3 text-sm text-slate-500">
                               {email}
                             </p>
-                          ) : null}
+                          )}
                         </div>
                       ),
                     },

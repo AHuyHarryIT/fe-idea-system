@@ -36,11 +36,11 @@ export function ManageButton({
     >
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-3">
-          {meta ? (
+          {meta &&  (
             <span className="inline-flex rounded-full bg-white/80 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
               {meta}
             </span>
-          ) : null}
+          )}
           <div>
             <p className="text-base font-semibold text-slate-950">{title}</p>
             <p className="mt-2 text-sm leading-6 text-slate-600">

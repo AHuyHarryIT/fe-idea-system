@@ -143,7 +143,7 @@ export function SubmissionListSection({
             />
           )}
 
-          {submissions.length ? (
+          {submissions.length &&  (
             <AppPagination
               current={currentPage}
               total={totalSubmissions}
@@ -154,7 +154,7 @@ export function SubmissionListSection({
                 `Showing ${range[0]}-${range[1]} of ${total} submissions`
               }
             />
-          ) : null}
+          )}
         </div>
       )}
     </SectionCard>

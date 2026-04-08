@@ -74,7 +74,7 @@ export function IdeaDetailSidebar({
         </div>
       </SectionCard>
 
-      {canReview ? (
+      {canReview &&  (
         <SectionCard
           title="Review decision"
           description="Approve the idea for publication or reject it with feedback."
@@ -107,7 +107,7 @@ export function IdeaDetailSidebar({
             </div>
 
             <div className="mt-5 flex flex-wrap gap-3">
-              {!isApprovedStatus ? (
+              {!isApprovedStatus &&  (
                 <AppButton
                   type="button"
                   onClick={() => onReview(true)}
@@ -116,7 +116,7 @@ export function IdeaDetailSidebar({
                   <CheckCircle2 className="mr-2 h-4 w-4" />
                   {isReviewing ? 'Saving...' : 'Approve idea'}
                 </AppButton>
-              ) : null}
+              )}
               <AppButton
                 type="button"
                 variant="red"
@@ -129,7 +129,7 @@ export function IdeaDetailSidebar({
             </div>
           </div>
         </SectionCard>
-      ) : null}
+      )}
     </div>
   )
 }

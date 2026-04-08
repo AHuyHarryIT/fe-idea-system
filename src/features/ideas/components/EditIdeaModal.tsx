@@ -103,9 +103,9 @@ export function EditIdeaModal({
                 </option>
               ))}
             </select>
-            {categoriesLoading ? (
+            {categoriesLoading &&  (
               <p className="text-xs text-slate-500">Loading categories...</p>
-            ) : null}
+            )}
           </FormField>
 
           <FormField label="Anonymous submission" htmlFor="edit-idea-anonymous">
@@ -153,9 +153,9 @@ export function EditIdeaModal({
                 ? editForm.uploadFiles.map((file) => file.name).join(', ')
                 : 'No new files selected.'}
             </p>
-            {fileValidationMessage ? (
+            {fileValidationMessage &&  (
               <p className="mt-3 text-sm text-red-600">{fileValidationMessage}</p>
-            ) : null}
+            )}
           </div>
         </FormField>
       </div>

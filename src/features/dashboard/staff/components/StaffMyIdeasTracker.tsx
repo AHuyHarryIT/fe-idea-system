@@ -186,11 +186,11 @@ export function StaffMyIdeasTracker({
                           <span>Department: {idea.departmentName || 'Unassigned'}</span>
                           <span>Submission: {idea.submissionName || 'Not provided'}</span>
                         </div>
-                        {status === 'rejected' ? (
+                        {status === 'rejected' &&  (
                           <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
                             Rejected idea. Open details to review the rejection note.
                           </div>
-                        ) : null}
+                        )}
                       </div>
                     </div>
                   </div>

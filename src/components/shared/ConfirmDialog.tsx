@@ -30,8 +30,7 @@ export function ConfirmDialog({
       isOpen={isOpen}
       title={title}
       titleIcon={
-        isDangerous ? <AlertTriangle className="h-5 w-5 text-red-600" /> : null
-      }
+        isDangerous &&  <AlertTriangle className="h-5 w-5 text-red-600" />}
       onClose={onCancel}
       maxWidthClassName="max-w-md"
       contentClassName="px-6 py-5"

@@ -180,13 +180,13 @@ export function IdeaCard({ idea }: IdeaCardProps) {
             <span className="rounded-full bg-slate-900 px-3 py-1 text-xs font-medium text-white">
               {categoryLabel}
             </span>
-            {idea.status ? (
+            {idea.status &&  (
               <span
                 className={`rounded-full px-3 py-1 text-xs font-medium ${reviewStatusMeta.className}`}
               >
                 {reviewStatusMeta.label}
               </span>
-            ) : null}
+            )}
           </div>
 
           <div className="block space-y-3">
@@ -203,11 +203,11 @@ export function IdeaCard({ idea }: IdeaCardProps) {
               <BadgeCheck className="h-4 w-4 text-slate-400" />
               {authorLabel}
             </span>
-            {!idea.isAnonymous ? (
+            {!idea.isAnonymous &&  (
               <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
                 {roleLabel}
               </span>
-            ) : null}
+            )}
             <span className="inline-flex items-center gap-2">
               <Tag className="h-4 w-4 text-slate-400" />
               {categoryLabel}

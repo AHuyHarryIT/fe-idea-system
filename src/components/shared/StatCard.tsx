@@ -71,13 +71,13 @@ export function StatCard({
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
               {title}
             </p>
-            {meta ? (
+            {meta &&  (
               <span
                 className={`rounded-full px-2.5 py-1 text-[11px] font-medium ${accentClasses.badge}`}
               >
                 {meta}
               </span>
-            ) : null}
+            )}
           </div>
           <p className="text-3xl font-semibold tracking-tight text-slate-950">
             {value}

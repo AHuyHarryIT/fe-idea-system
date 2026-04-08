@@ -80,7 +80,7 @@ export function IdeaCatalogueResultsSection({
             }
           />
 
-          {totalIdeas > 0 ? (
+          {totalIdeas > 0 &&  (
             <AppPagination
               current={currentPage}
               total={totalIdeas}
@@ -93,7 +93,7 @@ export function IdeaCatalogueResultsSection({
                   : `${total} total ideas`
               }
             />
-          ) : null}
+          )}
         </div>
       )}
     </div>

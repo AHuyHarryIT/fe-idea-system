@@ -65,16 +65,16 @@ export function Modal({
           <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5">
             <div className="min-w-0">
               <div className="flex items-center gap-3">
-                {titleIcon ? (
+                {titleIcon &&  (
                   <span className="shrink-0 text-slate-500">{titleIcon}</span>
-                ) : null}
+                )}
                 <h2 className="text-xl font-semibold text-slate-900">{title}</h2>
               </div>
-              {description ? (
+              {description &&  (
                 <p className="mt-1 text-sm text-slate-500">{description}</p>
-              ) : null}
+              )}
             </div>
-            {showCloseButton ? (
+            {showCloseButton &&  (
               <button
                 type="button"
                 onClick={onClose}
@@ -83,14 +83,14 @@ export function Modal({
               >
                 <X className="h-5 w-5" />
               </button>
-            ) : null}
+            )}
           </div>
           <div className={contentClassName}>{children}</div>
-          {footer ? (
+          {footer &&  (
             <div className={footerClassName}>
               {footer}
             </div>
-          ) : null}
+          )}
         </div>
       </div>
     </>

@@ -84,11 +84,11 @@ export function IdeaDetailHero({
               <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
                 {statusLabel}
               </span>
-              {idea?.departmentName ? (
+              {idea?.departmentName &&  (
                 <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
                   {idea.departmentName}
                 </span>
-              ) : null}
+              )}
             </div>
 
             <div className="space-y-4">
@@ -121,18 +121,18 @@ export function IdeaDetailHero({
                   No submission linked
                 </span>
               )}
-              {linkedSubmission?.closureDate ? (
+              {linkedSubmission?.closureDate &&  (
                 <span className="inline-flex items-center gap-2">
                   <CalendarDays className="h-4 w-4 text-slate-400" />
                   Closure: {formatAppDateTime(linkedSubmission.closureDate)}
                 </span>
-              ) : null}
-              {linkedSubmission?.finalClosureDate ? (
+              )}
+              {linkedSubmission?.finalClosureDate &&  (
                 <span className="inline-flex items-center gap-2">
                   <CalendarDays className="h-4 w-4 text-slate-400" />
                   Final closure: {formatAppDateTime(linkedSubmission.finalClosureDate)}
                 </span>
-              ) : null}
+              )}
             </div>
 
             <div className="flex flex-wrap gap-3 pt-1">
@@ -163,7 +163,7 @@ export function IdeaDetailHero({
                 <ThumbsDown className="mr-2 h-4 w-4" />
                 {isDisliked ? 'Disliked' : 'Dislike'}
               </AppButton>
-              {canComment ? (
+              {canComment &&  (
                 <AppButton
                   onClick={() => {
                     document
@@ -174,8 +174,8 @@ export function IdeaDetailHero({
                   <MessageSquare className="mr-2 h-4 w-4" />
                   Add comment
                 </AppButton>
-              ) : null}
-              {canEditIdea ? (
+              )}
+              {canEditIdea &&  (
                 <AppButton
                   variant="ghost"
                   onClick={onOpenEditIdea}
@@ -183,8 +183,8 @@ export function IdeaDetailHero({
                 >
                   {isUpdatingIdea ? 'Saving...' : 'Edit idea'}
                 </AppButton>
-              ) : null}
-              {canDeleteIdea ? (
+              )}
+              {canDeleteIdea &&  (
                 <AppButton
                   variant="red"
                   onClick={onOpenDeleteConfirm}
@@ -192,17 +192,17 @@ export function IdeaDetailHero({
                 >
                   {isDeletingIdea ? 'Deleting...' : 'Delete idea'}
                 </AppButton>
-              ) : null}
-              {isPastSubmissionClosure ? (
+              )}
+              {isPastSubmissionClosure &&  (
                 <div className="w-full rounded-[22px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                   Editing and deleting are unavailable after the submission closure date.
                 </div>
-              ) : null}
-              {isPastFinalSubmissionClosure ? (
+              )}
+              {isPastFinalSubmissionClosure &&  (
                 <div className="w-full rounded-[22px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                   Commenting is unavailable after the final closure date.
                 </div>
-              ) : null}
+              )}
             </div>
           </div>
 

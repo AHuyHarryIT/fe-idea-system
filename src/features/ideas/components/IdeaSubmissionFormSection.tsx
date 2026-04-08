@@ -101,9 +101,9 @@ export function IdeaSubmissionFormSection({
                 </option>
               ))}
             </select>
-            {categoriesLoading ? (
+            {categoriesLoading &&  (
               <p className="text-xs text-slate-500">Loading categories...</p>
-            ) : null}
+            )}
           </FormField>
 
           <FormField label="Submission">
@@ -155,9 +155,9 @@ export function IdeaSubmissionFormSection({
             />
           </label>
           <p className="mt-4 text-sm text-slate-600">{fileNames || 'No files selected yet.'}</p>
-          {fileValidationMessage ? (
+          {fileValidationMessage &&  (
             <p className="mt-3 text-sm text-red-600">{fileValidationMessage}</p>
-          ) : null}
+          )}
         </div>
       </SectionCard>
 

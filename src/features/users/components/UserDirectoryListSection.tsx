@@ -102,16 +102,16 @@ export function UserDirectoryListSection({
             <span className="rounded-full bg-slate-100 px-3 py-1">
               {totalUsers} total matching users
             </span>
-            {deferredSearch ? (
+            {deferredSearch &&  (
               <span className="rounded-full bg-blue-50 px-3 py-1 text-blue-700">
                 Search: {deferredSearch}
               </span>
-            ) : null}
-            {roleFilter !== 'all' ? (
+            )}
+            {roleFilter !== 'all' &&  (
               <span className="rounded-full bg-blue-50 px-3 py-1 text-blue-700">
                 Filtered by {roleFilter}
               </span>
-            ) : null}
+            )}
           </div>
 
           {isLoading ? (
@@ -152,11 +152,11 @@ export function UserDirectoryListSection({
                           <span className="rounded-full bg-white px-3 py-1 text-xs font-medium text-slate-600">
                             {formatUserRoleLabel(user.role)}
                           </span>
-                          {editingUserId === user.id ? (
+                          {editingUserId === user.id &&  (
                             <span className="rounded-full bg-blue-600 px-3 py-1 text-xs font-medium text-white">
                               Editing
                             </span>
-                          ) : null}
+                          )}
                         </div>
 
                         <div className="flex flex-wrap items-center gap-3 text-sm text-slate-600">
@@ -176,17 +176,17 @@ export function UserDirectoryListSection({
                       </div>
 
                       <div className="flex flex-wrap gap-2">
-                        {!isEditLocked ? (
+                        {!isEditLocked &&  (
                           <ActionButton type="button" action="edit" onClick={() => onEditUser(user)} />
-                        ) : null}
-                        {!isDeleteLocked ? (
+                        )}
+                        {!isDeleteLocked &&  (
                           <ActionButton
                             type="button"
                             action="delete"
                             onClick={() => onDeleteUser(user)}
                             disabled={deletePending}
                           />
-                        ) : null}
+                        )}
                       </div>
                     </div>
                   </article>
@@ -218,7 +218,7 @@ export function UserDirectoryListSection({
                 }
               />
 
-              {totalUsers > 0 ? (
+              {totalUsers > 0 &&  (
                 <AppPagination
                   current={currentPage}
                   total={totalUsers}
@@ -231,7 +231,7 @@ export function UserDirectoryListSection({
                       : `${total} total users`
                   }
                 />
-              ) : null}
+              )}
             </div>
           )}
         </>

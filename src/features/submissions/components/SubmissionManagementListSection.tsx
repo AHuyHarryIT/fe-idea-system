@@ -202,7 +202,7 @@ export function SubmissionManagementListSection({
               }
             />
 
-            {totalSubmissions > 0 ? (
+            {totalSubmissions > 0 &&  (
               <AppPagination
                 current={currentPage}
                 total={totalSubmissions}
@@ -211,7 +211,7 @@ export function SubmissionManagementListSection({
                 onChange={onPageChange}
                 showTotal={(total) => `${total} total submissions`}
               />
-            ) : null}
+            )}
           </div>
         )}
       </SectionCard>

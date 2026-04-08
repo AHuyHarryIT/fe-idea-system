@@ -60,7 +60,7 @@ export function QAManagerExportSection({
             </AppButton>
           </div>
 
-          {exportableSubmissions.length > 0 ? (
+          {exportableSubmissions.length > 0 &&  (
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
               {exportableSubmissions.slice(0, 3).map((submission) => (
                 <div
@@ -77,13 +77,13 @@ export function QAManagerExportSection({
                 </div>
               ))}
             </div>
-          ) : null}
+          )}
 
-          {exportFeedback ? (
+          {exportFeedback &&  (
             <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
               {exportFeedback}
             </p>
-          ) : null}
+          )}
         </div>
       )}
     </SectionCard>
