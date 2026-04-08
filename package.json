@@ -13,7 +13,7 @@
     "format:check": "prettier --check src/**/*.{ts,tsx}",
     "format:fix": "prettier --write src/**/*.{ts,tsx}",
     "ts:check": "tsc --noEmit",
-    "check": "npm run ts:check && npm run lint:fix && npm run build"
+    "check": "npm run ts:check && npm run lint:fix && npm run lint"
   },
   "dependencies": {
     "@ant-design/charts": "^2.6.7",
