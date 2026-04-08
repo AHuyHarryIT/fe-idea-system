@@ -14,19 +14,16 @@ import { formatAppDateTime, parseDateTimeInputValue } from '@/utils/date'
 import {
   getSubmissionLifecycle,
   getSubmissionLifecycleMeta,
-  
   SUBMISSION_MANAGEMENT_PAGE_SIZE_OPTIONS
-  
 } from '@/features/submissions/helpers/submission-management'
-import type {SubmissionLifecycle, SubmissionManagementFormState} from '@/features/submissions/helpers/submission-management';
+import type { SubmissionManagementFormState } from '@/features/submissions/helpers/submission-management'
 
 interface SubmissionManagementListSectionProps {
   error: Error | null
   isLoading: boolean
   searchValue: string
   deferredSearch: string
-  statusFilter: 'all' | SubmissionLifecycle
-  filteredSubmissions: Submission[]
+  submissions: Submission[]
   totalSubmissions: number
   currentPage: number
   pageSize: number
@@ -37,8 +34,6 @@ interface SubmissionManagementListSectionProps {
   isFormModalOpen: boolean
   deleteConfirmId: string | null
   onSearchChange: (value: string) => void
-  onStatusFilterChange: (value: 'all' | SubmissionLifecycle) => void
-  onResetFilters: () => void
   onOpenCreateModal: () => void
   onEditSubmission: (submission: Submission) => void
   onDeleteRequest: (submissionId: string) => void
@@ -55,8 +50,7 @@ export function SubmissionManagementListSection({
   isLoading,
   searchValue,
   deferredSearch,
-  statusFilter,
-  filteredSubmissions,
+  submissions,
   totalSubmissions,
   currentPage,
   pageSize,
@@ -67,8 +61,6 @@ export function SubmissionManagementListSection({
   isFormModalOpen,
   deleteConfirmId,
   onSearchChange,
-  onStatusFilterChange,
-  onResetFilters,
   onOpenCreateModal,
   onEditSubmission,
   onDeleteRequest,
@@ -83,7 +75,7 @@ export function SubmissionManagementListSection({
     <>
       <SectionCard>
         <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="grid gap-4 lg:min-w-[38rem] lg:grid-cols-[minmax(0,1.3fr)_220px_auto]">
+          <div className="grid gap-4 lg:min-w-[38rem] lg:grid-cols-[minmax(0,1fr)]">
             <label className="block">
               <Input
                 id="submission-search"
@@ -97,26 +89,6 @@ export function SubmissionManagementListSection({
                 className="rounded-xl"
               />
             </label>
-            <select
-              id="submission-status-filter"
-              name="submission-status-filter"
-              value={statusFilter}
-              onChange={(event) =>
-                onStatusFilterChange(event.target.value as 'all' | SubmissionLifecycle)
-              }
-              className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-            >
-              <option value="all">All lifecycle states</option>
-              <option value="open">Open</option>
-              <option value="closed">Closed</option>
-              <option value="archived">Archived</option>
-            </select>
-            <ActionButton
-              type="button"
-              action="ghost"
-              label="Reset filters"
-              onClick={onResetFilters}
-            />
           </div>
 
           <ActionButton
@@ -127,9 +99,7 @@ export function SubmissionManagementListSection({
           />
         </div>
         <p className="mb-5 text-sm text-slate-500">
-          {statusFilter !== 'all'
-            ? `${filteredSubmissions.length} lifecycle matches on this page, sorted by most recent final closure date.`
-            : `${totalSubmissions} submissions available, sorted by most recent final closure date.`}
+          {totalSubmissions} submissions available, sorted by most recent final closure date.
         </p>
 
         {error ? (
@@ -142,9 +112,15 @@ export function SubmissionManagementListSection({
           <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600">
             Loading submissions...
           </div>
-        ) : filteredSubmissions.length > 0 ? (
+        ) : submissions.length > 0 ? (
           <div className="space-y-4">
-            {filteredSubmissions.map((submission) => {
+            {submissions
+              .sort(
+                (left, right) =>
+                  new Date(right.finalClosureDate).getTime() -
+                  new Date(left.finalClosureDate).getTime(),
+              )
+              .map((submission) => {
               const lifecycleMeta = getSubmissionLifecycleMeta(
                 getSubmissionLifecycle(submission),
               )
@@ -206,9 +182,7 @@ export function SubmissionManagementListSection({
               pageSizeOptions={SUBMISSION_MANAGEMENT_PAGE_SIZE_OPTIONS}
               onChange={onPageChange}
               showTotal={(total, range) =>
-                statusFilter !== 'all'
-                  ? `${filteredSubmissions.length} lifecycle matches on this page · ${total} total matching submissions`
-                  : `Showing ${range[0]}-${range[1]} of ${total} submissions`
+                `Showing ${range[0]}-${range[1]} of ${total} submissions`
               }
             />
           </div>
@@ -217,18 +191,14 @@ export function SubmissionManagementListSection({
             <EmptyState
               icon={CalendarRange}
               title={
-                statusFilter !== 'all'
-                  ? 'No submissions match this lifecycle filter'
-                  : deferredSearch
-                    ? 'No submissions match this search'
-                    : 'No submissions found'
+                deferredSearch
+                  ? 'No submissions match this search'
+                  : 'No submissions found'
               }
               description={
-                statusFilter !== 'all'
-                  ? 'Try another lifecycle filter or clear the filters.'
-                  : deferredSearch
-                    ? 'Try another keyword or clear the search.'
-                    : 'Create the first submission to let staff submit ideas within a controlled campaign period.'
+                deferredSearch
+                  ? 'Try another keyword or clear the search.'
+                  : 'Create the first submission to let staff submit ideas within a controlled campaign period.'
               }
             />
 
@@ -239,11 +209,7 @@ export function SubmissionManagementListSection({
                 pageSize={pageSize}
                 pageSizeOptions={SUBMISSION_MANAGEMENT_PAGE_SIZE_OPTIONS}
                 onChange={onPageChange}
-                showTotal={(total) =>
-                  statusFilter !== 'all'
-                    ? `${filteredSubmissions.length} lifecycle matches on this page · ${total} total matching submissions`
-                    : `${total} total submissions`
-                }
+                showTotal={(total) => `${total} total submissions`}
               />
             ) : null}
           </div>

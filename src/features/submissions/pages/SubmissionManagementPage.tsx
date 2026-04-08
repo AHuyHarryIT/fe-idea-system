@@ -15,13 +15,10 @@ import {
   buildSubmissionEditForm,
   buildSubmissionManagementPayload,
   DEFAULT_SUBMISSION_MANAGEMENT_PAGE_SIZE,
-  getSubmissionLifecycle,
   initialSubmissionManagementForm,
-  
-  
   validateSubmissionManagementForm
 } from '@/features/submissions/helpers/submission-management'
-import type {SubmissionLifecycle, SubmissionManagementFormState} from '@/features/submissions/helpers/submission-management';
+import type { SubmissionManagementFormState } from '@/features/submissions/helpers/submission-management'
 
 export default function SubmissionManagementPage() {
   const queryClient = useQueryClient()
@@ -55,25 +52,10 @@ export default function SubmissionManagementPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
-  const [statusFilter, setStatusFilter] = useState<'all' | SubmissionLifecycle>('all')
 
   const submissions = useMemo(() => data?.submissions ?? [], [data])
   const totalSubmissions = data?.pagination?.totalCount ?? submissions.length
   const totalPages = Math.max(1, Math.ceil(totalSubmissions / pageSize))
-  const filteredSubmissions = useMemo(() => {
-    return [...submissions]
-      .sort(
-        (left, right) =>
-          new Date(right.finalClosureDate).getTime() -
-          new Date(left.finalClosureDate).getTime(),
-      )
-      .filter((submission) => {
-        const lifecycle = getSubmissionLifecycle(submission)
-        const matchesLifecycle = statusFilter === 'all' || lifecycle === statusFilter
-
-        return matchesLifecycle
-      })
-  }, [statusFilter, submissions])
 
   useEffect(() => {
     if (!isLoading && currentPage > totalPages) {
@@ -83,7 +65,7 @@ export default function SubmissionManagementPage() {
 
   useEffect(() => {
     setCurrentPage(1)
-  }, [deferredSearch, statusFilter])
+  }, [deferredSearch])
 
   const closeFormModal = () => {
     setIsFormModalOpen(false)
@@ -167,8 +149,7 @@ export default function SubmissionManagementPage() {
         isLoading={isLoading}
         searchValue={searchValue}
         deferredSearch={deferredSearch}
-        statusFilter={statusFilter}
-        filteredSubmissions={filteredSubmissions}
+        submissions={submissions}
         totalSubmissions={totalSubmissions}
         currentPage={currentPage}
         pageSize={pageSize}
@@ -179,12 +160,6 @@ export default function SubmissionManagementPage() {
         isFormModalOpen={isFormModalOpen}
         deleteConfirmId={deleteConfirmId}
         onSearchChange={setSearchValue}
-        onStatusFilterChange={setStatusFilter}
-        onResetFilters={() => {
-          setSearchValue('')
-          setStatusFilter('all')
-          setCurrentPage(1)
-        }}
         onOpenCreateModal={openCreateModal}
         onEditSubmission={handleEdit}
         onDeleteRequest={setDeleteConfirmId}
