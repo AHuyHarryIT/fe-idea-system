@@ -12,9 +12,10 @@ import { Modal } from '@/components/shared/Modal'
 import { SectionCard } from '@/components/shared/SectionCard'
 import {
   CATEGORY_PAGE_SIZE_OPTIONS
-  
+
 } from '@/features/categories/helpers/category-management'
 import type {CategoryManagementFormState} from '@/features/categories/helpers/category-management';
+import { CategoryCard } from './CategoryCard';
 
 interface CategoryManagementListSectionProps {
   categories: IdeaCategory[]
@@ -111,27 +112,14 @@ export function CategoryManagementListSection({
         ) : categories.length > 0 ? (
           <div className="space-y-4">
             {categories.map((category) => (
-              <div
+              <CategoryCard
                 key={category.id}
-                className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 md:flex-row md:items-start md:justify-between"
-              >
-                <div className="min-w-0">
-                  <p className="text-base font-medium text-slate-900">{category.name}</p>
-                  <p className="mt-2 text-xs text-slate-400">Category ID: {category.id}</p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <ActionButton
-                    action="edit"
-                    onClick={() => onEditCategory(category.id, category.name)}
-                    disabled={isSaving}
-                  />
-                  <ActionButton
-                    action="delete"
-                    onClick={() => onDeleteRequest(category.id)}
-                    disabled={isDeleting}
-                  />
-                </div>
-              </div>
+                category={category}
+                onEditCategory={onEditCategory}
+                onDeleteRequest={onDeleteRequest}
+                isSaving={isSaving}
+                isDeleting={isDeleting}
+              />
             ))}
 
             <AppPagination
