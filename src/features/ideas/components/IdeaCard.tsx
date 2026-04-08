@@ -223,7 +223,7 @@ export function IdeaCard({ idea }: IdeaCardProps) {
           </div>
         </div>
 
-        <div className="shrink-0 space-y-4 xl:w-[260px]">
+        <div className="shrink-0 space-y-4 xl:w-65">
           <div className="grid grid-cols-2 gap-3 rounded-[24px] border border-slate-200 bg-slate-50/80 p-4">
             <div className="rounded-2xl bg-white px-4 py-3">
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">

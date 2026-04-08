@@ -87,7 +87,7 @@ export function StatCard({
           </p>
         </div>
         <div
-          className={`flex h-14 w-14 items-center justify-center rounded-[20px] ${accentClasses.icon}`}
+          className={`flex h-14 w-14 items-center justify-center rounded-card-lg ${accentClasses.icon}`}
         >
           <Icon className="h-6 w-6" />
         </div>

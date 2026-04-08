@@ -126,7 +126,7 @@ export function IdeaProposalSection({
                     <iframe
                       title={selectedAttachment.fileName}
                       src={selectedAttachmentUrl}
-                      className="h-[680px] w-full border-0 bg-slate-50"
+                      className="h-170 w-full border-0 bg-slate-50"
                     />
                   ) : (
                     <div className="px-5 py-8">

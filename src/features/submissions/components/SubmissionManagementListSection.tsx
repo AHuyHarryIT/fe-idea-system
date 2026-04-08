@@ -75,7 +75,7 @@ export function SubmissionManagementListSection({
     <>
       <SectionCard>
         <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="grid gap-4 lg:min-w-[38rem] lg:grid-cols-[minmax(0,1fr)]">
+          <div className="grid gap-4 lg:min-w-152 lg:grid-cols-[minmax(0,1fr)]">
             <label className="block">
               <Input
                 id="submission-search"

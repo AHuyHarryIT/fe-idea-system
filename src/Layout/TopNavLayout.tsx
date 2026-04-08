@@ -96,7 +96,7 @@ export default function TopNav({
 
   return (
     <header className="fixed left-0 right-0 top-0 z-50 border-b border-slate-200/70 bg-white/88 backdrop-blur-xl">
-      <div className="flex h-[72px] items-center justify-between gap-3 px-4 sm:px-5 lg:px-8">
+      <div className="flex h-18 items-center justify-between gap-3 px-4 sm:px-5 lg:px-8">
         <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
           {showSidebarToggle && onToggleSidebar && (
             <button
@@ -113,10 +113,10 @@ export default function TopNav({
               )}
             </button>
           )}
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-slate-950 via-blue-700 to-sky-500 text-white shadow-[0_10px_30px_rgba(37,99,235,0.25)] sm:h-11 sm:w-11 sm:rounded-2xl">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-slate-950 via-blue-700 to-sky-500 text-white shadow-[0_10px_30px_rgba(37,99,235,0.25)] sm:h-11 sm:w-11 sm:rounded-2xl">
             <GraduationCap className="h-5 w-5" />
           </div>
-          <div className="min-w-0 max-w-[170px] sm:max-w-none">
+          <div className="min-w-0 max-w-42.5 sm:max-w-none">
             <p className="hidden text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-400 sm:block">
               University Management Portal
             </p>
