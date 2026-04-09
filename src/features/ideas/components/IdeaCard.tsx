@@ -262,16 +262,6 @@ export function IdeaCard({ idea }: IdeaCardProps) {
           <div className="flex flex-wrap gap-2 xl:justify-end">
             <AppButton
               type="button"
-              variant="secondary"
-              onClick={(event) => {
-                event.stopPropagation()
-                openIdeaDetail()
-              }}
-            >
-              Open details
-            </AppButton>
-            <AppButton
-              type="button"
               variant={isLiked ? 'primary' : 'ghost'}
               onClick={(event) => {
                 event.stopPropagation()
