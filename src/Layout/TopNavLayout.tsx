@@ -1,11 +1,12 @@
 import { departmentService } from '@/api/departments'
 import type { Role } from '@/types/auth'
 import { auth } from '@/utils/auth'
-import { Avatar, Dropdown, Menu, Space, Tag } from 'antd'
+import { Avatar, Dropdown, Space, Tag } from 'antd'
 import {
   GraduationCap,
   LogOut,
   PanelLeftClose,
+  PanelLeftOpen,
   UserCircle2
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
@@ -109,7 +110,7 @@ export default function TopNav({
               {isSidebarOpen ? (
                 <PanelLeftClose className="h-5 w-5" />
               ) : (
-                <Menu className="h-5 w-5" />
+                <PanelLeftOpen className="h-5 w-5" />
               )}
             </button>
           )}
