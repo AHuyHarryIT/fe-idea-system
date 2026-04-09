@@ -1,4 +1,5 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import type { UIEvent } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { PageHeader } from '@/components/shared/PageHeader'
@@ -14,9 +15,11 @@ import {
   isPdfFile,
   isSubmissionClosed,
 } from '@/features/ideas/helpers/submit-idea'
+import { IDEA_OPTION_SCROLL_THRESHOLD } from '@/features/ideas/helpers/idea-catalogue'
 import { IdeaSubmissionFormSection } from '@/features/ideas/components/IdeaSubmissionFormSection'
 import { SubmissionDetailsSection } from '@/features/submissions/components/SubmissionDetailsSection'
 import { SubmissionListSection } from '@/features/submissions/components/SubmissionListSection'
+import type { IdeaCategory } from '@/types'
 
 const initialForm: IdeaSubmitPayload = {
   title: '',
@@ -32,12 +35,21 @@ export default function SubmitIdeaPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const categoryLoadLockRef = useRef(false)
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(DEFAULT_SUBMISSION_PAGE_SIZE)
+  const [categoryOptionPage, setCategoryOptionPage] = useState(1)
+  const [categoryOptions, setCategoryOptions] = useState<IdeaCategory[]>([])
   const [searchValue, setSearchValue] = useState('')
   const deferredSearch = useDeferredValue(searchValue.trim())
-  const { data: categoryData, isLoading: categoriesLoading } =
-    useIdeaCategories({ pageNumber: 1, pageSize: CATEGORY_SELECT_PAGE_SIZE })
+  const {
+    data: categoryData,
+    isLoading: categoriesLoading,
+    isFetching: categoriesFetching,
+  } = useIdeaCategories({
+    pageNumber: categoryOptionPage,
+    pageSize: CATEGORY_SELECT_PAGE_SIZE,
+  })
   const {
     data: submissionData,
     isLoading: submissionsLoading,
@@ -60,10 +72,7 @@ export default function SubmitIdeaPage() {
     () => form.uploadFiles?.map((file) => file.name).join(', ') ?? '',
     [form.uploadFiles],
   )
-  const categories = useMemo(
-    () => categoryData?.categories ?? [],
-    [categoryData],
-  )
+  const categories = useMemo(() => categoryOptions, [categoryOptions])
   const submissions = useMemo(
     () => submissionData?.submissions ?? [],
     [submissionData],
@@ -71,6 +80,8 @@ export default function SubmitIdeaPage() {
   const totalSubmissions =
     submissionData?.pagination?.totalCount ?? submissions.length
   const totalPages = Math.max(1, Math.ceil(totalSubmissions / pageSize))
+  const hasMoreCategories =
+    (categoryData?.pagination?.totalPages ?? 1) > categoryOptionPage
 
   const selectedSubmission = useMemo(
     () =>
@@ -88,6 +99,48 @@ export default function SubmitIdeaPage() {
   useEffect(() => {
     setCurrentPage(1)
   }, [deferredSearch])
+
+  useEffect(() => {
+    if (!categoriesFetching) {
+      categoryLoadLockRef.current = false
+    }
+  }, [categoriesFetching])
+
+  useEffect(() => {
+    const nextCategories = categoryData?.categories ?? []
+
+    if (!nextCategories.length) {
+      return
+    }
+
+    setCategoryOptions((currentCategories) => {
+      const seenIds = new Set(currentCategories.map((category) => category.id))
+      const appended = nextCategories.filter((category) => !seenIds.has(category.id))
+
+      if (!appended.length) {
+        return currentCategories
+      }
+
+      return [...currentCategories, ...appended]
+    })
+  }, [categoryData])
+
+  const handleCategoryPopupScroll = (event: UIEvent<HTMLDivElement>) => {
+    const target = event.currentTarget
+    const isNearBottom =
+      target.scrollTop + target.clientHeight >=
+      target.scrollHeight - IDEA_OPTION_SCROLL_THRESHOLD
+
+    if (
+      isNearBottom &&
+      hasMoreCategories &&
+      !categoriesFetching &&
+      !categoryLoadLockRef.current
+    ) {
+      categoryLoadLockRef.current = true
+      setCategoryOptionPage((currentValue) => currentValue + 1)
+    }
+  }
 
   const handleReset = () => {
     setForm(initialForm)
@@ -220,7 +273,7 @@ export default function SubmitIdeaPage() {
   return (
     <div className="mx-auto w-full max-w-7xl">
       <PageHeader
-        title="Submit Idea"
+        title="Idea Submission"
         description="Browse available submissions, review the details, then open the idea form when you are ready to submit."
       />
 
@@ -242,7 +295,7 @@ export default function SubmitIdeaPage() {
             </p>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[34rem]">
+          <div className="grid gap-3 sm:grid-cols-3 lg:min-w-136">
             {[
               {
                 step: 1,
@@ -328,13 +381,14 @@ export default function SubmitIdeaPage() {
           selectedSubmission={selectedSubmission}
           form={form}
           categories={categories}
-          categoriesLoading={categoriesLoading}
+          categoriesLoading={categoriesLoading || categoriesFetching}
           fileInputRef={fileInputRef}
           fileNames={fileNames}
           fileValidationMessage={fileValidationMessage}
           agreedToTerms={agreedToTerms}
           isPending={isPending}
           onBackToDetails={handleBackToDetails}
+          onCategoryPopupScroll={handleCategoryPopupScroll}
           onFormChange={setForm}
           onAgreedToTermsChange={setAgreedToTerms}
           onFileChange={handleFileChange}

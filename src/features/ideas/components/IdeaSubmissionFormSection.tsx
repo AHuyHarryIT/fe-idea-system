@@ -1,3 +1,4 @@
+import type { UIEvent } from 'react'
 import { ArrowLeft, FileUp, Send } from 'lucide-react'
 import { AppButton } from '@/components/app/AppButton'
 import { FormField } from '@/components/forms/FormField'
@@ -5,6 +6,7 @@ import { FormInput, FormTextarea } from '@/components/forms/FormInput'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { formatAppDateTime } from '@/utils/date'
 import type { IdeaCategory, IdeaSubmitPayload, Submission } from '@/types'
+import { Select } from 'antd'
 
 interface IdeaSubmissionFormSectionProps {
   selectedSubmission: Submission
@@ -17,6 +19,7 @@ interface IdeaSubmissionFormSectionProps {
   agreedToTerms: boolean
   isPending: boolean
   onBackToDetails: () => void
+  onCategoryPopupScroll: (event: UIEvent<HTMLDivElement>) => void
   onFormChange: (nextForm: IdeaSubmitPayload) => void
   onAgreedToTermsChange: (value: boolean) => void
   onFileChange: (files: FileList | null) => void
@@ -34,6 +37,7 @@ export function IdeaSubmissionFormSection({
   agreedToTerms,
   isPending,
   onBackToDetails,
+  onCategoryPopupScroll,
   onFormChange,
   onAgreedToTermsChange,
   onFileChange,
@@ -87,20 +91,24 @@ export function IdeaSubmissionFormSection({
       >
         <div className="grid gap-5 md:grid-cols-2">
           <FormField label="Category" required>
-            <select
+            <Select<string>
               id="idea-category"
-              name="categoryId"
-              value={form.categoryId}
-              onChange={(event) => onFormChange({ ...form, categoryId: event.target.value })}
-              className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
-            >
-              <option value="">Select category</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
+              value={form.categoryId || undefined}
+              size="large"
+              onChange={(value) => onFormChange({ ...form, categoryId: value })}
+              onClear={() => onFormChange({ ...form, categoryId: '' })}
+              disabled={categoriesLoading}
+              loading={categoriesLoading}
+              allowClear
+              showSearch={false}
+              placeholder="Select category"
+              onPopupScroll={onCategoryPopupScroll}
+              options={categories.map((category) => ({
+                value: category.id,
+                label: category.name,
+              }))}
+              className="w-full"
+            />
             {categoriesLoading &&  (
               <p className="text-xs text-slate-500">Loading categories...</p>
             )}
