@@ -1,6 +1,5 @@
-import { apiClient } from "./client"
+import { createCrudServiceWithNormalizer } from "./crud-service-factory"
 import type {
-  ApiResponse,
   Submission,
   SubmissionCreateRequest,
   SubmissionListQueryParams,
@@ -24,84 +23,27 @@ function normalizeSubmissionsResponse(
   return { submissions: [] }
 }
 
+const baseSubmissionService = createCrudServiceWithNormalizer<
+  Submission,
+  SubmissionCreateRequest,
+  SubmissionCreateRequest,
+  SubmissionListResponse,
+  SubmissionListQueryParams,
+  Submission[] | SubmissionListResponse
+>("/submissions", normalizeSubmissionsResponse)
+
 export const submissionService = {
-  getActiveSubmissions: async (
-    params?: SubmissionListQueryParams,
-  ): Promise<ApiResponse<SubmissionListResponse>> => {
-    const response = await apiClient.get<
-      Submission[] | SubmissionListResponse,
-      SubmissionListQueryParams
-    >("/submissions", { params })
+  // Main API methods
+  getAll: baseSubmissionService.getAll,
+  getById: baseSubmissionService.getById,
+  create: baseSubmissionService.create,
+  update: baseSubmissionService.update,
+  delete: baseSubmissionService.delete,
 
-    if (!response.success) {
-      return response as ApiResponse<SubmissionListResponse>
-    }
-
-    return {
-      ...response,
-      data: normalizeSubmissionsResponse(response.data),
-    }
-  },
-
-  getSubmissions: async (
-    params?: SubmissionListQueryParams,
-  ): Promise<ApiResponse<SubmissionListResponse>> => {
-    const response = await apiClient.get<
-      Submission[] | SubmissionListResponse,
-      SubmissionListQueryParams
-    >("/submissions", { params })
-
-    if (!response.success) {
-      return response as ApiResponse<SubmissionListResponse>
-    }
-
-    return {
-      ...response,
-      data: normalizeSubmissionsResponse(response.data),
-    }
-  },
-
-  createSubmission: (
-    request: SubmissionCreateRequest,
-  ): Promise<ApiResponse<Submission>> =>
-    apiClient.post<Submission>("/submissions", request),
-
-  updateSubmission: (
-    id: string,
-    request: SubmissionCreateRequest,
-  ): Promise<ApiResponse<Submission>> =>
-    apiClient.put<Submission>(`/submissions/${id}`, request),
-  deleteSubmission: (id: string): Promise<ApiResponse<null>> =>
-    apiClient.delete(`/submissions/${id}`),
-
-  getSubmissionById: async (id: string): Promise<ApiResponse<Submission>> => {
-    const response = await apiClient.get<
-      Submission[] | SubmissionListResponse,
-      SubmissionListQueryParams
-    >("/submissions", { params: { fetchAll: true } })
-
-    if (!response.success) {
-      return {
-        success: false,
-        error: response.error,
-      }
-    }
-
-    const submissions = Array.isArray(response.data)
-      ? response.data
-      : (response.data?.submissions ?? [])
-    const submission = submissions.find((s) => s.id === id)
-
-    if (!submission) {
-      return {
-        success: false,
-        error: "Submission not found",
-      }
-    }
-
-    return {
-      success: true,
-      data: submission,
-    }
-  },
+  // Legacy aliases for backward compatibility
+  getActiveSubmissions: baseSubmissionService.getAll,
+  getSubmissions: baseSubmissionService.getAll,
+  createSubmission: baseSubmissionService.create,
+  updateSubmission: baseSubmissionService.update,
+  deleteSubmission: baseSubmissionService.delete,
 }

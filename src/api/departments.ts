@@ -1,6 +1,5 @@
-import { apiClient } from "./client"
+import { createCrudService } from "./crud-service-factory"
 import type {
-  ApiResponse,
   CreateDepartmentPayload,
   Department,
   DepartmentListQueryParams,
@@ -8,26 +7,25 @@ import type {
   UpdateDepartmentPayload,
 } from "@/types"
 
+const baseDepartmentService = createCrudService<
+  Department,
+  CreateDepartmentPayload,
+  UpdateDepartmentPayload,
+  DepartmentListResponse,
+  DepartmentListQueryParams
+>("/departments")
+
 export const departmentService = {
-  getDepartments: (
-    params?: DepartmentListQueryParams,
-  ): Promise<ApiResponse<DepartmentListResponse>> =>
-    apiClient.get<DepartmentListResponse, DepartmentListQueryParams>(
-      "/departments",
-      { params },
-    ),
+  // Main API methods
+  getAll: baseDepartmentService.getAll,
+  getById: baseDepartmentService.getById,
+  create: baseDepartmentService.create,
+  update: baseDepartmentService.update,
+  delete: baseDepartmentService.delete,
 
-  createDepartment: (
-    payload: CreateDepartmentPayload,
-  ): Promise<ApiResponse<Department>> =>
-    apiClient.post<Department>("/departments", payload),
-
-  updateDepartment: (
-    id: string,
-    payload: UpdateDepartmentPayload,
-  ): Promise<ApiResponse<Department>> =>
-    apiClient.put<Department>(`/departments/${id}`, payload),
-
-  deleteDepartment: (id: string): Promise<ApiResponse<void>> =>
-    apiClient.delete<void>(`/departments/${id}`),
+  // Legacy aliases for backward compatibility
+  getDepartments: baseDepartmentService.getAll,
+  createDepartment: baseDepartmentService.create,
+  updateDepartment: baseDepartmentService.update,
+  deleteDepartment: baseDepartmentService.delete,
 }

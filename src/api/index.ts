@@ -1,4 +1,5 @@
 export { apiClient } from "./client"
+export { createCrudService, createCrudServiceWithNormalizer } from "./crud-service-factory"
 export * from "./auth"
 export { authService } from "./auth"
 

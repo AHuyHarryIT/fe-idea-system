@@ -6,6 +6,14 @@ import type {
   JsonValue,
   LoginRequest,
 } from "@/types"
+import {
+  parseJwtPayload,
+  getFirstClaimString,
+  getRoleFromClaims,
+  getUserIdFromClaims,
+  getNameFromClaims,
+  getEmailFromClaims,
+} from "@/utils/jwt"
 
 function isRecord(
   value: object | JsonValue | null | undefined,
@@ -23,78 +31,6 @@ function getString(value: JsonValue | undefined) {
   }
 
   return ""
-}
-
-function getFirstString(value: JsonValue | undefined) {
-  if (Array.isArray(value)) {
-    const firstString = value.find((item) => typeof item === "string")
-
-    return typeof firstString === "string" ? firstString : ""
-  }
-
-  return getString(value)
-}
-
-function parseJwtPayload(token: string): JsonObject | null {
-  if (!token) {
-    return null
-  }
-
-  const segments = token.split(".")
-
-  if (segments.length < 2) {
-    return null
-  }
-
-  try {
-    const normalized = segments[1].replace(/-/g, "+").replace(/_/g, "/")
-    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=")
-    const decoded = atob(padded)
-    const parsed = JSON.parse(decoded)
-
-    return isRecord(parsed) ? parsed : null
-  } catch {
-    return null
-  }
-}
-
-function getRoleFromClaims(claims: JsonObject | null) {
-  if (!claims) {
-    return ""
-  }
-
-  return getFirstString(
-    claims.role ??
-      claims.roles ??
-      claims["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"],
-  )
-}
-
-function getUserIdFromClaims(claims: JsonObject | null) {
-  if (!claims) {
-    return ""
-  }
-
-  return getString(
-    claims.sub ??
-      claims.nameid ??
-      claims[
-        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
-      ],
-  )
-}
-
-function getNameFromClaims(claims: JsonObject | null) {
-  if (!claims) {
-    return ""
-  }
-
-  return getFirstString(
-    claims.name ??
-      claims.fullName ??
-      claims.unique_name ??
-      claims["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"],
-  )
 }
 
 function inferRoleFromIdentity(email: string, name: string) {
@@ -138,7 +74,7 @@ export function extractAuthResponse(
   )
   const userRecord = isRecord(record.user) ? record.user : null
   const claims = parseJwtPayload(token)
-  const email = getString(record.email ?? userRecord?.email)
+  const email = getString(record.email ?? userRecord?.email ?? getEmailFromClaims(claims))
   const name = getString(
     record.name ??
       record.fullName ??
@@ -147,7 +83,7 @@ export function extractAuthResponse(
       getNameFromClaims(claims),
   )
   const role =
-    getFirstString(
+    getFirstClaimString(
       record.role ??
         record.userRole ??
         record.roleName ??

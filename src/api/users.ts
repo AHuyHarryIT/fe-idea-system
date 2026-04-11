@@ -1,6 +1,5 @@
-import { apiClient } from "./client"
+import { createCrudService } from "./crud-service-factory"
 import type {
-  ApiResponse,
   CreateUserRequest,
   UpdateUserRequest,
   User,
@@ -8,28 +7,26 @@ import type {
   UserListResponse,
 } from "@/types"
 
+const baseUserService = createCrudService<
+  User,
+  CreateUserRequest,
+  UpdateUserRequest,
+  UserListResponse,
+  UserListQueryParams
+>("/users")
+
 export const userService = {
-  // Admin endpoints
-  getUsers: (
-    params?: UserListQueryParams,
-  ): Promise<ApiResponse<UserListResponse>> =>
-    apiClient.get<UserListResponse, UserListQueryParams>("/users", { params }),
+  // Main API methods
+  getAll: baseUserService.getAll,
+  getById: baseUserService.getById,
+  create: baseUserService.create,
+  update: baseUserService.update,
+  delete: baseUserService.delete,
 
-  createUser: (request: CreateUserRequest): Promise<ApiResponse<User>> =>
-    apiClient.post<User>("/users", request),
-
-  updateUser: (
-    userId: string,
-    request: UpdateUserRequest,
-  ): Promise<ApiResponse<User>> =>
-    apiClient.put<User>(`/users/${userId}`, request),
-
-  updateUserRole: (
-    userId: string,
-    request: UpdateUserRequest,
-  ): Promise<ApiResponse<User>> =>
-    apiClient.put<User>(`/users/${userId}`, request),
-
-  deleteUser: (userId: string): Promise<ApiResponse<void>> =>
-    apiClient.delete<void>(`/users/${userId}`),
+  // Legacy aliases for backward compatibility
+  getUsers: baseUserService.getAll,
+  createUser: baseUserService.create,
+  updateUser: baseUserService.update,
+  updateUserRole: baseUserService.update,
+  deleteUser: baseUserService.delete,
 }

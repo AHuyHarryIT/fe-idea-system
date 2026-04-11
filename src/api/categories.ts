@@ -1,32 +1,30 @@
-import { apiClient } from "./client"
+import { createCrudService } from "./crud-service-factory"
 import type {
-  ApiResponse,
   CreateIdeaCategoryRequest,
   IdeaCategory,
   IdeaCategoryListQueryParams,
   IdeaCategoryListResponse,
 } from "@/types"
 
+const baseCategoryService = createCrudService<
+  IdeaCategory,
+  CreateIdeaCategoryRequest,
+  CreateIdeaCategoryRequest,
+  IdeaCategoryListResponse,
+  IdeaCategoryListQueryParams
+>("/categories")
+
 export const categoryService = {
-  getIdeaCategories: (
-    params?: IdeaCategoryListQueryParams,
-  ): Promise<ApiResponse<IdeaCategoryListResponse>> =>
-    apiClient.get<IdeaCategoryListResponse, IdeaCategoryListQueryParams>(
-      "/categories",
-      { params },
-    ),
+  // Main API methods
+  getAll: baseCategoryService.getAll,
+  getById: baseCategoryService.getById,
+  create: baseCategoryService.create,
+  update: baseCategoryService.update,
+  delete: baseCategoryService.delete,
 
-  createIdeaCategory: (
-    request: CreateIdeaCategoryRequest,
-  ): Promise<ApiResponse<IdeaCategory>> =>
-    apiClient.post<IdeaCategory>("/categories", request),
-
-  updateIdeaCategory: (
-    id: string,
-    request: CreateIdeaCategoryRequest,
-  ): Promise<ApiResponse<IdeaCategory>> =>
-    apiClient.put<IdeaCategory>(`/categories/${id}`, request),
-
-  deleteIdeaCategory: (id: string): Promise<ApiResponse<void>> =>
-    apiClient.delete(`/categories/${id}`),
+  // Legacy aliases for backward compatibility
+  getIdeaCategories: baseCategoryService.getAll,
+  createIdeaCategory: baseCategoryService.create,
+  updateIdeaCategory: baseCategoryService.update,
+  deleteIdeaCategory: baseCategoryService.delete,
 }

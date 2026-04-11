@@ -1,5 +1,10 @@
 import type { Role } from "@/types/auth"
-import type { JsonObject, JsonValue } from "@/types"
+import {
+  parseJwtPayload,
+  getClaimString,
+  getNameFromClaims,
+  getEmailFromClaims,
+} from "@/utils/jwt"
 
 const TOKEN_KEY = "idea_system_access_token"
 const USER_ID_KEY = "idea_system_user_id"
@@ -7,45 +12,6 @@ const ROLE_KEY = "idea_system_role"
 const DISPLAY_NAME_KEY = "idea_system_display_name"
 const DEPARTMENT_NAME_KEY = "idea_system_department_name"
 const EMAIL_KEY = "idea_system_email"
-
-function parseJwtPayload(token: string): JsonObject | null {
-  if (!token) {
-    return null
-  }
-
-  const segments = token.split(".")
-
-  if (segments.length < 2) {
-    return null
-  }
-
-  try {
-    const normalized = segments[1].replace(/-/g, "+").replace(/_/g, "/")
-    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=")
-    const decoded = atob(padded)
-    const parsed = JSON.parse(decoded)
-
-    return typeof parsed === "object" &&
-      parsed !== null &&
-      !Array.isArray(parsed)
-      ? (parsed as JsonObject)
-      : null
-  } catch {
-    return null
-  }
-}
-
-function getClaimString(value: JsonValue | undefined) {
-  if (typeof value === "string") {
-    return value
-  }
-
-  if (typeof value === "number") {
-    return String(value)
-  }
-
-  return null
-}
 
 export function normalizeRole(role: string | null | undefined): Role | null {
   if (!role) {
@@ -105,25 +71,15 @@ export const auth = {
     }
 
     const claims = parseJwtPayload(localStorage.getItem(TOKEN_KEY) ?? "")
-    const claimedName = getClaimString(
-      claims?.name ??
-        claims?.fullName ??
-        claims?.unique_name ??
-        claims?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"],
-    )
+    const claimedName = getNameFromClaims(claims) || ""
 
-    if (claimedName?.trim()) {
+    if (claimedName.trim()) {
       return claimedName
     }
 
-    const claimedEmail = getClaimString(
-      claims?.email ??
-        claims?.[
-          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
-        ],
-    )
+    const claimedEmail = getEmailFromClaims(claims) || ""
 
-    if (claimedEmail?.trim()) {
+    if (claimedEmail.trim()) {
       return claimedEmail
     }
 
@@ -140,13 +96,7 @@ export const auth = {
     }
 
     const claims = parseJwtPayload(localStorage.getItem(TOKEN_KEY) ?? "")
-
-    return getClaimString(
-      claims?.email ??
-        claims?.[
-          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
-        ],
-    )
+    return getEmailFromClaims(claims) || null
   },
   setEmail: (email: string) => localStorage.setItem(EMAIL_KEY, email),
   clearEmail: () => localStorage.removeItem(EMAIL_KEY),
