@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { MessageSquare } from "lucide-react"
@@ -35,8 +35,6 @@ import { IdeaDetailHero } from "@/features/ideas/components/IdeaDetailHero"
 import { IdeaProposalSection } from "@/features/ideas/components/IdeaProposalSection"
 import { IdeaCommentsSection } from "@/features/ideas/components/IdeaCommentsSection"
 import { IdeaDetailSidebar } from "@/features/ideas/components/IdeaDetailSidebar"
-import { EditIdeaModal } from "@/features/ideas/components/EditIdeaModal"
-import type { EditIdeaFormState } from "@/features/ideas/components/EditIdeaModal"
 import {
   getAttachmentUrl,
   getIdeaStatusLabel,
@@ -76,15 +74,6 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
   const [isAnonymous, setIsAnonymous] = useState(false)
   const [postedComments, setPostedComments] = useState<IdeaComment[]>([])
   const [reviewReason, setReviewReason] = useState("")
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [fileValidationMessage, setFileValidationMessage] = useState("")
-  const [editForm, setEditForm] = useState<EditIdeaFormState>({
-    title: "",
-    description: "",
-    categoryId: "",
-    isAnonymous: false,
-    uploadFiles: [],
-  })
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
   const [selectedAttachmentId, setSelectedAttachmentId] = useState<
     string | null
@@ -230,31 +219,6 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
     setPostedComments([])
     setSelectedAttachmentId(null)
   }, [ideaId])
-
-  useEffect(() => {
-    if (!idea || !isEditModalOpen) {
-      return
-    }
-
-    setEditForm((previousForm) => {
-      if (previousForm.categoryId) {
-        return previousForm
-      }
-
-      const matchingCategory = categories.find(
-        (category) => category.name === idea.categoryName,
-      )
-
-      if (!matchingCategory) {
-        return previousForm
-      }
-
-      return {
-        ...previousForm,
-        categoryId: matchingCategory.id,
-      }
-    })
-  }, [categories, idea, isEditModalOpen])
 
   useEffect(() => {
     setCurrentThumbStatus(getResolvedIdeaVoteStatus(ideaId, idea?.thumbStatus))
@@ -471,106 +435,6 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
     )
   }
 
-  const openEditIdeaModal = () => {
-    if (!idea) {
-      return
-    }
-
-    const matchingCategory = categories.find(
-      (category) => category.name === idea.categoryName,
-    )
-
-    setEditForm({
-      title: ideaTitle,
-      description: idea.description?.trim() ?? "",
-      categoryId: idea.categoryId ?? matchingCategory?.id ?? "",
-      isAnonymous: idea.isAnonymous,
-      uploadFiles: [],
-    })
-    setFileValidationMessage("")
-    setIsEditModalOpen(true)
-  }
-
-  const closeEditIdeaModal = () => {
-    setIsEditModalOpen(false)
-    setFileValidationMessage("")
-    setEditForm({
-      title: "",
-      description: "",
-      categoryId: "",
-      isAnonymous: false,
-      uploadFiles: [],
-    })
-  }
-
-  const handleEditFileChange = (files: FileList | null) => {
-    const selectedFiles = Array.from(files ?? [])
-
-    if (!selectedFiles.length) {
-      setEditForm((previousForm) => ({ ...previousForm, uploadFiles: [] }))
-      setFileValidationMessage("")
-      return
-    }
-
-    const invalidFile = selectedFiles.find((file) => !isPdfFile(file))
-
-    if (invalidFile) {
-      setEditForm((previousForm) => ({ ...previousForm, uploadFiles: [] }))
-      setFileValidationMessage(
-        `File '${invalidFile.name}' is invalid. Only PDF files are allowed.`,
-      )
-      return
-    }
-
-    setEditForm((previousForm) => ({
-      ...previousForm,
-      uploadFiles: selectedFiles,
-    }))
-    setFileValidationMessage("")
-  }
-
-  const handleUpdateIdea = async () => {
-    if (!idea) {
-      return
-    }
-
-    if (
-      !editForm.title.trim() ||
-      !editForm.description.trim() ||
-      !editForm.categoryId
-    ) {
-      appNotification.warning(
-        "Please complete all required fields before saving.",
-      )
-      return
-    }
-
-    if (fileValidationMessage) {
-      appNotification.warning(fileValidationMessage)
-      return
-    }
-
-    const formData = new FormData()
-    formData.append("Title", editForm.title.trim())
-    formData.append("Description", editForm.description.trim())
-    formData.append("CategoryId", editForm.categoryId)
-    formData.append("IsAnonymous", String(editForm.isAnonymous))
-    editForm.uploadFiles.forEach((file) => {
-      formData.append("UploadedFiles", file)
-    })
-
-    const response = await updateIdea({ ideaId: idea.id, formData })
-
-    if (!response.success) {
-      appNotification.error(response.error ?? "Unable to update this idea.")
-      return
-    }
-
-    await refreshIdeaQueries()
-    closeEditIdeaModal()
-    appNotification.success("Idea updated successfully.")
-  }
-
   const handleDeleteIdea = async () => {
     const response = await deleteIdea(ideaId)
 
@@ -630,7 +494,7 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
         thumbsDownCount={thumbsDownCount}
         onLike={() => void handleLike()}
         onDislike={() => void handleDislike()}
-        onOpenEditIdea={openEditIdeaModal}
+
         onOpenDeleteConfirm={() => setIsDeleteConfirmOpen(true)}
       />
 
@@ -685,19 +549,6 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
         isLoading={isDeletingIdea}
         onConfirm={() => void handleDeleteIdea()}
         onCancel={() => setIsDeleteConfirmOpen(false)}
-      />
-
-      <EditIdeaModal
-        isOpen={isEditModalOpen}
-        isUpdatingIdea={isUpdatingIdea}
-        categoriesLoading={categoriesLoading}
-        categories={categories}
-        editForm={editForm}
-        fileValidationMessage={fileValidationMessage}
-        onClose={closeEditIdeaModal}
-        onSave={() => void handleUpdateIdea()}
-        onFormChange={setEditForm}
-        onEditFileChange={handleEditFileChange}
       />
     </div>
   )

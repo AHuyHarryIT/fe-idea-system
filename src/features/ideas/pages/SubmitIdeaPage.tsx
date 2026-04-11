@@ -12,8 +12,8 @@ import { appNotification } from "@/utils/notifications"
 import type { IdeaSubmitPayload } from "@/types/idea"
 import {
   DEFAULT_SUBMISSION_PAGE_SIZE,
-  isPdfFile,
   isSubmissionClosed,
+  validateFileWithDetails,
 } from "@/features/ideas/helpers/submit-idea"
 import { IDEA_OPTION_SCROLL_THRESHOLD } from "@/features/ideas/helpers/idea-catalogue"
 import { IdeaSubmissionFormSection } from "@/features/ideas/components/IdeaSubmissionFormSection"
@@ -68,10 +68,6 @@ export default function SubmitIdeaPage() {
   >(null)
   const [showSubmitForm, setShowSubmitForm] = useState(false)
 
-  const fileNames = useMemo(
-    () => form.uploadFiles?.map((file) => file.name).join(", ") ?? "",
-    [form.uploadFiles],
-  )
   const categories = useMemo(() => categoryOptions, [categoryOptions])
   const submissions = useMemo(
     () => submissionData?.submissions ?? [],
@@ -184,19 +180,22 @@ export default function SubmitIdeaPage() {
       return
     }
 
-    const invalidFile = selectedFiles.find((file) => !isPdfFile(file))
+    // Validate each file with detailed error reporting
+    for (const file of selectedFiles) {
+      const validation = validateFileWithDetails(file)
+      if (!validation.valid && validation.error) {
+        setForm((prev) => ({ ...prev, uploadFiles: [] }))
+        const errorMsg = validation.error.details
+          ? `${validation.error.message} ${validation.error.details}`
+          : validation.error.message
+        setFileValidationMessage(errorMsg)
 
-    if (invalidFile) {
-      setForm((prev) => ({ ...prev, uploadFiles: [] }))
-      setFileValidationMessage(
-        `File '${invalidFile.name}' is invalid. Only PDF files are allowed.`,
-      )
+        if (fileInputRef.current) {
+          fileInputRef.current.value = ""
+        }
 
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ""
+        return
       }
-
-      return
     }
 
     setForm((prev) => ({ ...prev, uploadFiles: selectedFiles }))
@@ -386,7 +385,6 @@ export default function SubmitIdeaPage() {
           categories={categories}
           categoriesLoading={categoriesLoading || categoriesFetching}
           fileInputRef={fileInputRef}
-          fileNames={fileNames}
           fileValidationMessage={fileValidationMessage}
           agreedToTerms={agreedToTerms}
           isPending={isPending}

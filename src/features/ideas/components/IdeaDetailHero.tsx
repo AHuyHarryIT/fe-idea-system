@@ -35,7 +35,6 @@ interface IdeaDetailHeroProps {
   thumbsDownCount: number
   onLike: () => void
   onDislike: () => void
-  onOpenEditIdea: () => void
   onOpenDeleteConfirm: () => void
 }
 
@@ -61,7 +60,6 @@ export function IdeaDetailHero({
   thumbsDownCount,
   onLike,
   onDislike,
-  onOpenEditIdea,
   onOpenDeleteConfirm,
 }: IdeaDetailHeroProps) {
   return (
@@ -177,13 +175,13 @@ export function IdeaDetailHero({
                 </AppButton>
               )}
               {canEditIdea && (
-                <AppButton
-                  variant="ghost"
-                  onClick={onOpenEditIdea}
-                  disabled={isUpdatingIdea}
+                <Link
+                  to={`/ideas/$ideaId/edit`}
+                  params={{ ideaId: idea?.id }}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-950 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 active:bg-slate-100"
                 >
-                  {isUpdatingIdea ? "Saving..." : "Edit idea"}
-                </AppButton>
+                  Edit idea
+                </Link>
               )}
               {canDeleteIdea && (
                 <AppButton
