@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { MessageSquare } from "lucide-react"
@@ -39,7 +39,6 @@ import {
   getAttachmentUrl,
   getIdeaStatusLabel,
   isPdfAttachment,
-  isPdfFile,
   mergeIdeaComments,
   normalizeIdeaStatus,
 } from "@/features/ideas/helpers/idea-detail"
@@ -53,11 +52,10 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
   const queryClient = useQueryClient()
   const role = auth.getRole()
   const { data: idea, isLoading, error } = useIdeaById(ideaId)
-  const { data: categoryData, isLoading: categoriesLoading } =
-    useIdeaCategories({
-      pageNumber: 1,
-      pageSize: CATEGORY_SELECT_PAGE_SIZE,
-    })
+  useIdeaCategories({
+    pageNumber: 1,
+    pageSize: CATEGORY_SELECT_PAGE_SIZE,
+  })
   const { data: myIdeasData } = useMyIdeas(undefined, {
     fetchAll: true,
   })
@@ -67,7 +65,7 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
   })
   const { mutateAsync: addComment, isPending: isCommenting } = useAddComment()
   const { mutateAsync: voteOnIdea, isPending: isVoting } = useVoteOnIdea()
-  const { mutateAsync: updateIdea, isPending: isUpdatingIdea } = useUpdateIdea()
+  const { isPending: isUpdatingIdea } = useUpdateIdea()
   const { mutateAsync: deleteIdea, isPending: isDeletingIdea } = useDeleteIdea()
   const { mutateAsync: reviewIdea, isPending: isReviewing } = useReviewIdea()
   const [commentText, setCommentText] = useState("")
@@ -129,13 +127,6 @@ export default function IdeaDetailPage({ ideaId }: IdeaDetailPageProps) {
   const isOwnIdea = useMemo(
     () => myIdeas.some((myIdea) => myIdea.id === ideaId),
     [ideaId, myIdeas],
-  )
-  const categories = useMemo(
-    () =>
-      Array.isArray(categoryData?.categories)
-        ? categoryData.categories.filter((category) => category.id)
-        : [],
-    [categoryData],
   )
   const linkedSubmission = useMemo(() => {
     if (!idea) {

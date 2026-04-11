@@ -1,12 +1,10 @@
-import { useState } from "react"
-import { useNavigate } from "@tanstack/react-router"
-import { PageHeader } from "@/components/shared/PageHeader"
+import { FileText } from "lucide-react"
 import { useMyIdeas } from "@/hooks/useIdeas"
 import { EmptyState } from "@/components/shared/EmptyState"
 import { AppButton } from "@/components/app/AppButton"
 import { SectionCard } from "@/components/shared/SectionCard"
-import type { Idea } from "@/types/idea"
 import { formatAppDateTime } from "@/utils/date"
+import type { Idea } from "@/types/idea"
 
 interface IdeaBrowserProps {
   onSelectIdea: (ideaId: string) => void
@@ -20,7 +18,7 @@ export function IdeaBrowserForEdit({
   error,
 }: IdeaBrowserProps) {
   const { data: myIdeas } = useMyIdeas()
-  const ideas = myIdeas ?? []
+  const ideas: Idea[] = Array.isArray(myIdeas) ? myIdeas : []
 
   if (error) {
     return (
@@ -40,6 +38,7 @@ export function IdeaBrowserForEdit({
   if (!ideas.length) {
     return (
       <EmptyState
+        icon={FileText}
         title="No ideas yet"
         description="Create an idea first to edit it later."
       />
@@ -48,7 +47,7 @@ export function IdeaBrowserForEdit({
 
   return (
     <div className="space-y-3">
-      {ideas.map((idea) => (
+      {ideas.map((idea: Idea) => (
         <SectionCard key={idea.id}>
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div className="flex-1">

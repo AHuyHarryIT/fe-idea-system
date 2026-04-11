@@ -1,4 +1,5 @@
-import { useMutation, useQuery, type UseQueryOptions, type UseMutationOptions } from "@tanstack/react-query"
+import { useMutation, useQuery   } from "@tanstack/react-query"
+import type {UseQueryOptions, UseMutationOptions} from "@tanstack/react-query";
 import type { ApiResponse } from "@/types"
 
 /**
@@ -36,7 +37,7 @@ export function createQueryHook<TData, TParams extends object = object>(
       queryKey: [...queryKey, params],
       queryFn: async () => {
         const response = await queryFn(params)
-        if (response.success) return response.data
+        if (response.success && response.data !== undefined) return response.data
         throw new Error(
           response.error ?? options?.errorMessage ?? "Query failed",
         )
@@ -73,7 +74,7 @@ export function createMutationHook<
     return useMutation({
       mutationFn: async (variables: TVariables) => {
         const response = await mutationFn(variables)
-        if (response.success) return response.data
+        if (response.success && response.data !== undefined) return response.data
         throw new Error(
           response.error ?? options?.errorMessage ?? "Mutation failed",
         )
@@ -114,7 +115,7 @@ export function createIdMutationHook<
     return useMutation({
       mutationFn: async (payload: { id: string; data: TPayload }) => {
         const response = await mutationFn(payload)
-        if (response.success) return response.data
+        if (response.success && response.data !== undefined) return response.data
         throw new Error(
           response.error ?? options?.errorMessage ?? "Mutation failed",
         )

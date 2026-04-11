@@ -31,10 +31,10 @@ export interface ListQueryParams {
 /**
  * Generic list response structure
  * @template T - The type of items in the list
- * @template K - The key name for items (e.g., "data", "items", "categories")
+ * @template TKey - The key name for items (e.g., "data", "items", "categories")
  */
-export interface ListResponse<T, K extends string = "data"> {
-  [P in K]: T[]
+export type ListResponse<T, TKey extends string = "data"> = {
+  [P in TKey]: T[]
 } & {
   pagination?: Pagination
 }

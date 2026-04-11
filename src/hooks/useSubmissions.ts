@@ -24,7 +24,7 @@ export const useSubmission = (submissionId: string) => {
   return useQuery({
     queryKey: ["submission", submissionId],
     queryFn: async () => {
-      const response = await submissionService.getSubmissionById(submissionId)
+      const response = await submissionService.getById(submissionId)
       if (response.success) return response.data
       throw new Error(response.error ?? "Unable to load submission.")
     },

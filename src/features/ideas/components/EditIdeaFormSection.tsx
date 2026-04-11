@@ -63,7 +63,7 @@ export function EditIdeaFormSection({
         categoriesLoading={categoriesLoading}
         fileInputRef={fileInputRef}
         fileValidationMessage={fileValidationMessage}
-        onFormChange={onFormChange}
+        onFormChange={(formData) => onFormChange({ ...formData, uploadFiles: formData.uploadFiles ?? [] } as EditIdeaFormState)}
         onFileChange={onFileChange}
         onCategoryPopupScroll={onCategoryPopupScroll}
         mode="edit"

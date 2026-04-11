@@ -11,18 +11,19 @@ export interface IdeaFormData {
   title: string
   description: string
   categoryId: string
+  categoryName?: string
   isAnonymous: boolean
   uploadFiles?: File[]
 }
 
-interface IdeaFormFieldsProps<T extends Record<string, any> = IdeaFormData> {
+interface IdeaFormFieldsProps {
   form?: FormInstance
-  editForm?: T
+  editForm?: IdeaFormData
   categories: IdeaCategory[]
   categoriesLoading: boolean
   fileInputRef: React.RefObject<HTMLInputElement | null>
   fileValidationMessage: string
-  onFormChange: (form: T) => void
+  onFormChange: (form: IdeaFormData) => void
   onFileChange: (files: FileList | null) => void
   onCategoryPopupScroll?: (event: UIEvent<HTMLDivElement>) => void
   mode?: "submit" | "edit"
@@ -37,7 +38,7 @@ const formatFileSize = (bytes: number): string => {
   return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i]
 }
 
-export function IdeaFormFields<T extends Record<string, any> = IdeaFormData>({
+export function IdeaFormFields({
   form: antdForm,
   editForm,
   categories,
@@ -49,10 +50,10 @@ export function IdeaFormFields<T extends Record<string, any> = IdeaFormData>({
   onCategoryPopupScroll,
   mode = "submit",
   submissionName,
-}: IdeaFormFieldsProps<T>) {
+}: IdeaFormFieldsProps) {
   const isSubmitMode = mode === "submit"
   const isEditMode = mode === "edit"
-  const formData = (editForm ?? {}) as T
+  const formData = (editForm ?? {}) as IdeaFormData
 
   return (
     <div className="space-y-5">
@@ -322,7 +323,7 @@ export function IdeaFormFields<T extends Record<string, any> = IdeaFormData>({
                 {formData.uploadFiles.length}):
               </p>
               <div className="space-y-2">
-                {Array.from((formData.uploadFiles ?? []) as File[]).map((file, index) => (
+                {Array.from(formData.uploadFiles ?? []).map((file: File, index) => (
                   <div
                     key={`${file.name}-${index}`}
                     className="flex items-center justify-between rounded bg-white p-3 text-sm"

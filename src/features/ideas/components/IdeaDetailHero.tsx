@@ -51,7 +51,6 @@ export function IdeaDetailHero({
   canEditIdea,
   canDeleteIdea,
   isVoting,
-  isUpdatingIdea,
   isDeletingIdea,
   isPastSubmissionClosure,
   isPastFinalSubmissionClosure,
@@ -177,7 +176,7 @@ export function IdeaDetailHero({
               {canEditIdea && (
                 <Link
                   to={`/ideas/$ideaId/edit`}
-                  params={{ ideaId: idea?.id }}
+                  params={{ ideaId: idea?.id ?? "" }}
                   className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-950 shadow-sm transition hover:border-slate-400 hover:bg-slate-50 active:bg-slate-100"
                 >
                   Edit idea

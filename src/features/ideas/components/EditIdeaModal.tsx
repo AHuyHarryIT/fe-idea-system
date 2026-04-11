@@ -1,7 +1,8 @@
 import { AppButton } from "@/components/app/AppButton"
 import { Modal } from "@/components/shared/Modal"
 import type { IdeaCategory } from "@/types"
-import { IdeaFormFields, type IdeaFormData } from "@/features/ideas/components/IdeaFormFields"
+import { IdeaFormFields  } from "@/features/ideas/components/IdeaFormFields"
+import type {IdeaFormData} from "@/features/ideas/components/IdeaFormFields";
 
 export interface EditIdeaFormState extends IdeaFormData {}
 
@@ -61,7 +62,7 @@ export function EditIdeaModal({
       }
     >
       <IdeaFormFields
-        form={editForm}
+        editForm={editForm}
         categories={categories}
         categoriesLoading={categoriesLoading}
         fileInputRef={fileInputRef}

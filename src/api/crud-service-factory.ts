@@ -14,7 +14,7 @@ export function createCrudService<
   TResource,
   TCreatePayload,
   TUpdatePayload = TCreatePayload,
-  TListResponse extends ListResponse<TResource, string> = ListResponse<TResource, "data">,
+  TListResponse = ListResponse<TResource, "data">,
   TQueryParams extends ListQueryParams = ListQueryParams,
 >(
   endpoint: string,
@@ -69,9 +69,9 @@ export function createCrudServiceWithNormalizer<
   TResource,
   TCreatePayload,
   TUpdatePayload = TCreatePayload,
-  TListResponse extends ListResponse<TResource, string> = ListResponse<TResource, "data">,
+  TListResponse = ListResponse<TResource, "data">,
   TQueryParams extends ListQueryParams = ListQueryParams,
-  TRawResponse extends JsonValue = JsonValue,
+  TRawResponse extends object = Record<string, string | number | boolean | null>,
 >(
   endpoint: string,
   normalizer: (data?: TRawResponse) => TListResponse,

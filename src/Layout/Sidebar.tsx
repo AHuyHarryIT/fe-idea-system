@@ -20,7 +20,7 @@ export default function Sidebar({ userRole, isOpen, onClose }: SidebarProps) {
 
   return (
     <aside
-      className={`fixed top-[73px] bottom-0 left-0 z-40 w-72 border-r border-slate-200/70 bg-white/90 backdrop-blur-xl transition-transform duration-200 ${
+      className={`fixed top-18.25 bottom-0 left-0 z-40 w-72 border-r border-slate-200/70 bg-white/90 backdrop-blur-xl transition-transform duration-200 ${
         isOpen ? "translate-x-0" : "-translate-x-full"
       }`}
       aria-hidden={!isOpen}

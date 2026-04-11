@@ -5,6 +5,7 @@ import { SectionCard } from "@/components/shared/SectionCard"
 import { formatAppDateTime } from "@/utils/date"
 import type { IdeaCategory, IdeaSubmitPayload, Submission } from "@/types"
 import { IdeaFormFields } from "@/features/ideas/components/IdeaFormFields"
+import type { IdeaFormData } from "./IdeaFormFields"
 
 interface IdeaSubmissionFormSectionProps {
   selectedSubmission: Submission
@@ -39,6 +40,17 @@ export function IdeaSubmissionFormSection({
   onFileChange,
   onSubmit,
 }: IdeaSubmissionFormSectionProps) {
+  const handleFormChange = (formData: IdeaFormData) => {
+    onFormChange({
+      ...form,
+      title: formData.title,
+      description: formData.description,
+      categoryId: formData.categoryId,
+      isAnonymous: formData.isAnonymous,
+      uploadFiles: formData.uploadFiles,
+    })
+  }
+
   return (
     <div className="space-y-6">
       <AppButton type="button" variant="ghost" onClick={onBackToDetails}>
@@ -47,12 +59,18 @@ export function IdeaSubmissionFormSection({
       </AppButton>
 
       <IdeaFormFields
-        form={form}
+        editForm={{
+          title: form.title,
+          description: form.description,
+          categoryId: form.categoryId,
+          isAnonymous: form.isAnonymous,
+          uploadFiles: form.uploadFiles,
+        }}
         categories={categories}
         categoriesLoading={categoriesLoading}
         fileInputRef={fileInputRef}
         fileValidationMessage={fileValidationMessage}
-        onFormChange={onFormChange}
+        onFormChange={handleFormChange}
         onFileChange={onFileChange}
         onCategoryPopupScroll={onCategoryPopupScroll}
         mode="submit"
