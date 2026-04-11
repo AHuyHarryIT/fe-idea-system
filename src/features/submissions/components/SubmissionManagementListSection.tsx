@@ -16,6 +16,7 @@ import {
 } from "@/features/submissions/helpers/submission-management"
 import type { Submission } from "@/types"
 import { formatAppDateTime, parseDateTimeInputValue } from "@/utils/date"
+import { auth } from "@/utils/auth"
 import { exportService } from "@/api/export"
 import { appNotification } from "@/utils/notifications"
 import { DatePicker, Input } from "antd"
@@ -80,6 +81,8 @@ export function SubmissionManagementListSection({
   onViewDetail,
   onCloseDetailModal,
 }: SubmissionManagementListSectionProps) {
+  const userRole = auth.getRole()
+  const canExport = userRole === "qa_manager"
   const detailSubmission = submissions.find((s) => s.id === detailSubmissionId)
   const [isExportingAllCSV, setIsExportingAllCSV] = useState(false)
   const [isExportingAllZip, setIsExportingAllZip] = useState(false)
@@ -163,24 +166,28 @@ export function SubmissionManagementListSection({
           </div>
 
           <div className="flex flex-wrap items-center gap-2 lg:shrink-0 lg:flex-nowrap lg:justify-end">
-            <AppButton
-              type="button"
-              variant="ghost"
-              onClick={handleExportAllCSV}
-              disabled={isExportingAllCSV || isExportingAllZip}
-            >
-              <Download className="mr-2 h-4 w-4" />
-              {isExportingAllCSV ? "Exporting..." : "Export all CSV"}
-            </AppButton>
-            <AppButton
-              type="button"
-              variant="ghost"
-              onClick={handleExportAllZip}
-              disabled={isExportingAllZip || isExportingAllCSV}
-            >
-              <Archive className="mr-2 h-4 w-4" />
-              {isExportingAllZip ? "Exporting..." : "Export all ZIP"}
-            </AppButton>
+            {canExport && (
+              <>
+                <AppButton
+                  type="button"
+                  variant="ghost"
+                  onClick={handleExportAllCSV}
+                  disabled={isExportingAllCSV || isExportingAllZip}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  {isExportingAllCSV ? "Exporting..." : "Export all CSV"}
+                </AppButton>
+                <AppButton
+                  type="button"
+                  variant="ghost"
+                  onClick={handleExportAllZip}
+                  disabled={isExportingAllZip || isExportingAllCSV}
+                >
+                  <Archive className="mr-2 h-4 w-4" />
+                  {isExportingAllZip ? "Exporting..." : "Export all ZIP"}
+                </AppButton>
+              </>
+            )}
             <ActionButton
               type="button"
               action="add"

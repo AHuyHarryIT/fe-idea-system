@@ -6,6 +6,7 @@ import { AppButton } from "@/components/app/AppButton"
 import { SectionCard } from "@/components/shared/SectionCard"
 import { Link } from "@tanstack/react-router"
 import { formatAppDateTime } from "@/utils/date"
+import { auth } from "@/utils/auth"
 import { ActionButton } from "@/components/app/ActionButton"
 import { Modal } from "@/components/shared/Modal"
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
@@ -50,6 +51,8 @@ export function SubmissionDetailsSection({
   isUpdating = false,
   isDeleting = false,
 }: SubmissionDetailsSectionProps) {
+  const userRole = auth.getRole()
+  const canExport = userRole === "qa_manager"
   const closed = isSubmissionClosed(selectedSubmission.closureDate)
   const isSubmitMode = mode === "submit"
   const [isExportingCSV, setIsExportingCSV] = useState(false)
@@ -135,24 +138,28 @@ export function SubmissionDetailsSection({
               </span>
             </div>
             <div className="flex flex-wrap gap-2">
-              <AppButton
-                type="button"
-                variant="ghost"
-                onClick={handleExportCSV}
-                disabled={isExportingCSV || isExportingZip}
-              >
-                <Download className="mr-2 h-4 w-4" />
-                Export CSV
-              </AppButton>
-              <AppButton
-                type="button"
-                variant="ghost"
-                onClick={handleExportZip}
-                disabled={isExportingZip || isExportingCSV}
-              >
-                <Download className="mr-2 h-4 w-4" />
-                Export ZIP
-              </AppButton>
+              {canExport && (
+                <>
+                  <AppButton
+                    type="button"
+                    variant="ghost"
+                    onClick={handleExportCSV}
+                    disabled={isExportingCSV || isExportingZip}
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Export CSV
+                  </AppButton>
+                  <AppButton
+                    type="button"
+                    variant="ghost"
+                    onClick={handleExportZip}
+                    disabled={isExportingZip || isExportingCSV}
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Export ZIP
+                  </AppButton>
+                </>
+              )}
             </div>
           </div>
 
