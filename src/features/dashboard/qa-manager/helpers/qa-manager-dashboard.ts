@@ -1,8 +1,5 @@
-import type { Idea } from '@/types'
-import {
-  formatAppDateTime,
-  formatMonthLabel,
-} from '@/utils/date'
+import type { Idea } from "@/types"
+import { formatAppDateTime, formatMonthLabel } from "@/utils/date"
 
 export interface TrendPoint {
   label: string
@@ -18,26 +15,26 @@ export interface DepartmentSummary {
 }
 
 export const QA_MANAGER_TREND_SERIES = [
-  { key: 'Ideas', color: '#3b82f6' },
-  { key: 'Comments', color: '#10b981' },
-  { key: 'Contributors', color: '#8b5cf6' },
+  { key: "Ideas", color: "#3b82f6" },
+  { key: "Comments", color: "#10b981" },
+  { key: "Contributors", color: "#8b5cf6" },
 ] as const
 
 export const QA_MANAGER_DEPARTMENT_SERIES = [
-  { key: 'Ideas', color: '#3b82f6' },
-  { key: 'Comments', color: '#10b981' },
+  { key: "Ideas", color: "#3b82f6" },
+  { key: "Comments", color: "#10b981" },
 ] as const
 
 export function isReviewableIdea(status?: string) {
   if (!status) return true
 
   return [
-    'submitted',
-    'under_review',
-    'pending',
-    'pending_review',
-    'awaiting_review',
-  ].includes(status.toLowerCase().replace(/\s+/g, '_'))
+    "submitted",
+    "under_review",
+    "pending",
+    "pending_review",
+    "awaiting_review",
+  ].includes(status.toLowerCase().replace(/\s+/g, "_"))
 }
 
 export function getCommentCount(idea: Idea) {
@@ -49,11 +46,11 @@ export function getIdeaDateValue(idea: Idea) {
 }
 
 export function formatDateLabel(value?: string) {
-  return formatAppDateTime(value, 'Unknown date')
+  return formatAppDateTime(value, "Unknown date")
 }
 
 export function getIdeaTitle(idea: Idea) {
-  return idea.text?.trim() || idea.title?.trim() || 'Untitled idea'
+  return idea.text?.trim() || idea.title?.trim() || "Untitled idea"
 }
 
 export function buildTrendPoints(ideas: Idea[]): TrendPoint[] {
@@ -102,7 +99,7 @@ export function buildTrendPoints(ideas: Idea[]): TrendPoint[] {
 export function buildDepartmentSummaries(ideas: Idea[]): DepartmentSummary[] {
   return Array.from(
     ideas.reduce((counts, idea) => {
-      const key = idea.departmentName?.trim() || 'Unknown'
+      const key = idea.departmentName?.trim() || "Unknown"
       const current = counts.get(key) ?? { ideas: 0, comments: 0 }
       current.ideas += 1
       current.comments += getCommentCount(idea)
@@ -110,7 +107,10 @@ export function buildDepartmentSummaries(ideas: Idea[]): DepartmentSummary[] {
       return counts
     }, new Map<string, { ideas: number; comments: number }>()),
   )
-    .map(([name, values]) => ({ name, ideas: values.ideas, comments: values.comments }))
+    .map(([name, values]) => ({
+      name,
+      ideas: values.ideas,
+      comments: values.comments,
+    }))
     .sort((left, right) => right.ideas - left.ideas)
 }
-

@@ -1,19 +1,19 @@
-import { useLogin } from "@/hooks/useAuth";
-import type { LoginFormValues } from "@/types/auth";
-import { auth, getHomeRouteForRole } from "@/utils/auth";
-import { useNavigate } from "@tanstack/react-router";
-import { Form, Input } from "antd";
+import { useLogin } from "@/hooks/useAuth"
+import type { LoginFormValues } from "@/types/auth"
+import { auth, getHomeRouteForRole } from "@/utils/auth"
+import { useNavigate } from "@tanstack/react-router"
+import { Form, Input } from "antd"
 import {
   ArrowRight,
   GraduationCap,
   KeyRound,
   ShieldCheck,
   Sparkles,
-} from "lucide-react";
-import { useState } from "react";
+} from "lucide-react"
+import { useState } from "react"
 
 function getLoginErrorMessage(error?: string) {
-  const normalizedError = error?.trim().toLowerCase() ?? "";
+  const normalizedError = error?.trim().toLowerCase() ?? ""
 
   if (
     normalizedError === "unauthorized" ||
@@ -22,38 +22,38 @@ function getLoginErrorMessage(error?: string) {
     normalizedError.includes("invalid credentials") ||
     normalizedError.includes("email or password")
   ) {
-    return "Incorrect email or password.";
+    return "Incorrect email or password."
   }
 
-  return error ?? "Unable to sign in.";
+  return error ?? "Unable to sign in."
 }
 
 export default function LoginPage() {
-  const navigate = useNavigate();
-  const { mutateAsync: login, isPending } = useLogin();
-  const [form] = Form.useForm();
-  const [errorMessage, setErrorMessage] = useState("");
+  const navigate = useNavigate()
+  const { mutateAsync: login, isPending } = useLogin()
+  const [form] = Form.useForm()
+  const [errorMessage, setErrorMessage] = useState("")
 
   const handleFinish = async (values: LoginFormValues) => {
-    setErrorMessage("");
+    setErrorMessage("")
 
-    const response = await login(values);
+    const response = await login(values)
 
     if (!response.success) {
-      setErrorMessage(getLoginErrorMessage(response.error));
-      return;
+      setErrorMessage(getLoginErrorMessage(response.error))
+      return
     }
 
-    const role = auth.getRole();
+    const role = auth.getRole()
 
     if (!role) {
-      auth.logout();
-      setErrorMessage("Login succeeded but no valid role was returned.");
-      return;
+      auth.logout()
+      setErrorMessage("Login succeeded but no valid role was returned.")
+      return
     }
 
-    navigate({ to: getHomeRouteForRole(role) });
-  };
+    navigate({ to: getHomeRouteForRole(role) })
+  }
 
   return (
     <div className="mx-auto grid min-h-[calc(100dvh-7rem)] max-w-6xl items-center gap-8 py-6 lg:grid-cols-[1.08fr_0.92fr] lg:py-10">
@@ -66,7 +66,7 @@ export default function LoginPage() {
               University Idea Collection System
             </div>
 
-            <h1 className="mt-8 max-w-xl text-4xl leading-tight font-semibold tracking-[-0.04em] text-(--app-text)ext-5xl">
+            <h1 className="text-(--app-text)ext-5xl mt-8 max-w-xl text-4xl leading-tight font-semibold tracking-[-0.04em]">
               Sign in to your university workspace.
             </h1>
 
@@ -97,7 +97,7 @@ export default function LoginPage() {
                 icon: Sparkles,
               },
             ].map((item) => {
-              const Icon = item.icon;
+              const Icon = item.icon
 
               return (
                 <div
@@ -114,7 +114,7 @@ export default function LoginPage() {
                     {item.description}
                   </p>
                 </div>
-              );
+              )
             })}
           </div>
         </div>
@@ -185,7 +185,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isPending}
-                className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-control bg-(--app-primary) px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-(--app-primary-hover) disabled:cursor-not-allowed disabled:opacity-70"
+                className="rounded-control inline-flex w-full cursor-pointer items-center justify-center gap-2 bg-(--app-primary) px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-(--app-primary-hover) disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {isPending ? "Signing in..." : "Sign in"}
                 {!isPending && <ArrowRight className="h-4 w-4" />}
@@ -195,5 +195,5 @@ export default function LoginPage() {
         </div>
       </section>
     </div>
-  );
+  )
 }

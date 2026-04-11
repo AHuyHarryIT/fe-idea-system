@@ -1,6 +1,6 @@
-import { Link, useLocation } from '@tanstack/react-router'
-import { navigationByRole } from '@/constants/navigation'
-import type { Role } from '@/types/auth'
+import { Link, useLocation } from "@tanstack/react-router"
+import { navigationByRole } from "@/constants/navigation"
+import type { Role } from "@/types/auth"
 
 interface SidebarProps {
   userRole: Role
@@ -13,15 +13,15 @@ export default function Sidebar({ userRole, isOpen, onClose }: SidebarProps) {
   const navItems = navigationByRole[userRole]
 
   const handleNavItemClick = () => {
-    if (typeof window !== 'undefined' && window.innerWidth < 1280) {
+    if (typeof window !== "undefined" && window.innerWidth < 1280) {
       onClose()
     }
   }
 
   return (
     <aside
-      className={`fixed bottom-0 left-0 top-[73px] z-40 w-72 border-r border-slate-200/70 bg-white/90 backdrop-blur-xl transition-transform duration-200 ${
-        isOpen ? 'translate-x-0' : '-translate-x-full'
+      className={`fixed top-[73px] bottom-0 left-0 z-40 w-72 border-r border-slate-200/70 bg-white/90 backdrop-blur-xl transition-transform duration-200 ${
+        isOpen ? "translate-x-0" : "-translate-x-full"
       }`}
       aria-hidden={!isOpen}
     >
@@ -38,15 +38,15 @@ export default function Sidebar({ userRole, isOpen, onClose }: SidebarProps) {
                   onClick={handleNavItemClick}
                   className={`group flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm transition ${
                     isActive
-                      ? 'border-blue-200 bg-white font-medium text-slate-950 shadow-sm'
-                      : 'border-transparent text-slate-600 hover:border-slate-200 hover:bg-white hover:text-slate-950'
+                      ? "border-blue-200 bg-white font-medium text-slate-950 shadow-sm"
+                      : "border-transparent text-slate-600 hover:border-slate-200 hover:bg-white hover:text-slate-950"
                   }`}
                 >
                   <span
                     className={`flex h-9 w-9 items-center justify-center rounded-xl ${
                       isActive
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-slate-100 text-slate-500 group-hover:bg-slate-900 group-hover:text-white'
+                        ? "bg-blue-600 text-white"
+                        : "bg-slate-100 text-slate-500 group-hover:bg-slate-900 group-hover:text-white"
                     }`}
                   >
                     <Icon className="h-4 w-4" />

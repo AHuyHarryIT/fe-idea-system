@@ -1,19 +1,19 @@
-import { useMemo } from 'react'
-import { Link } from '@tanstack/react-router'
+import { useMemo } from "react"
+import { Link } from "@tanstack/react-router"
 
-import { AppButton } from '@/components/app/AppButton'
-import { PageHeader } from '@/components/shared/PageHeader'
-import { useQAManagerIdeas } from '@/hooks/useIdeas'
-import { normalizeIdeaResponse } from '@/utils/idea-response-mapper'
-import { QAManagerSummaryCards } from '@/features/dashboard/qa-manager/components/QAManagerSummaryCards'
-import { QAManagerChartsSection } from '@/features/dashboard/qa-manager/components/QAManagerChartsSection'
-import { QAManagerInsightListsSection } from '@/features/dashboard/qa-manager/components/QAManagerInsightListsSection'
+import { AppButton } from "@/components/app/AppButton"
+import { PageHeader } from "@/components/shared/PageHeader"
+import { useQAManagerIdeas } from "@/hooks/useIdeas"
+import { normalizeIdeaResponse } from "@/utils/idea-response-mapper"
+import { QAManagerSummaryCards } from "@/features/dashboard/qa-manager/components/QAManagerSummaryCards"
+import { QAManagerChartsSection } from "@/features/dashboard/qa-manager/components/QAManagerChartsSection"
+import { QAManagerInsightListsSection } from "@/features/dashboard/qa-manager/components/QAManagerInsightListsSection"
 import {
   buildDepartmentSummaries,
   buildTrendPoints,
   getCommentCount,
   isReviewableIdea,
-} from '@/features/dashboard/qa-manager/helpers/qa-manager-dashboard'
+} from "@/features/dashboard/qa-manager/helpers/qa-manager-dashboard"
 
 export default function QAManagerDashboardPage() {
   const { data: ideaData, isLoading, error } = useQAManagerIdeas()
@@ -57,22 +57,33 @@ export default function QAManagerDashboardPage() {
   const trendChartData = useMemo(
     () =>
       trendPoints.flatMap((point) => [
-        { month: point.label, series: 'Ideas', value: point.ideas },
-        { month: point.label, series: 'Comments', value: point.comments },
-        { month: point.label, series: 'Contributors', value: point.contributors },
+        { month: point.label, series: "Ideas", value: point.ideas },
+        { month: point.label, series: "Comments", value: point.comments },
+        {
+          month: point.label,
+          series: "Contributors",
+          value: point.contributors,
+        },
       ]),
     [trendPoints],
   )
 
   const departmentMax = Math.max(
     1,
-    ...departmentSummaries.flatMap((summary) => [summary.ideas, summary.comments]),
+    ...departmentSummaries.flatMap((summary) => [
+      summary.ideas,
+      summary.comments,
+    ]),
   )
   const departmentChartData = useMemo(
     () =>
       departmentSummaries.slice(0, 5).flatMap((summary) => [
-        { department: summary.name, series: 'Ideas', value: summary.ideas },
-        { department: summary.name, series: 'Comments', value: summary.comments },
+        { department: summary.name, series: "Ideas", value: summary.ideas },
+        {
+          department: summary.name,
+          series: "Comments",
+          value: summary.comments,
+        },
       ]),
     [departmentSummaries],
   )

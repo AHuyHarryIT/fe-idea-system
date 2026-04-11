@@ -1,12 +1,12 @@
-import type { UIEvent } from 'react'
-import { ArrowLeft, FileUp, Send } from 'lucide-react'
-import { AppButton } from '@/components/app/AppButton'
-import { FormField } from '@/components/forms/FormField'
-import { FormInput, FormTextarea } from '@/components/forms/FormInput'
-import { SectionCard } from '@/components/shared/SectionCard'
-import { formatAppDateTime } from '@/utils/date'
-import type { IdeaCategory, IdeaSubmitPayload, Submission } from '@/types'
-import { Select } from 'antd'
+import type { UIEvent } from "react"
+import { ArrowLeft, FileUp, Send } from "lucide-react"
+import { AppButton } from "@/components/app/AppButton"
+import { FormField } from "@/components/forms/FormField"
+import { FormInput, FormTextarea } from "@/components/forms/FormInput"
+import { SectionCard } from "@/components/shared/SectionCard"
+import { formatAppDateTime } from "@/utils/date"
+import type { IdeaCategory, IdeaSubmitPayload, Submission } from "@/types"
+import { Select } from "antd"
 
 interface IdeaSubmissionFormSectionProps {
   selectedSubmission: Submission
@@ -60,7 +60,9 @@ export function IdeaSubmissionFormSection({
               id="idea-title"
               name="title"
               value={form.title}
-              onChange={(event) => onFormChange({ ...form, title: event.target.value })}
+              onChange={(event) =>
+                onFormChange({ ...form, title: event.target.value })
+              }
               placeholder="Enter a concise title"
             />
           </FormField>
@@ -96,7 +98,7 @@ export function IdeaSubmissionFormSection({
               value={form.categoryId || undefined}
               size="large"
               onChange={(value) => onFormChange({ ...form, categoryId: value })}
-              onClear={() => onFormChange({ ...form, categoryId: '' })}
+              onClear={() => onFormChange({ ...form, categoryId: "" })}
               disabled={categoriesLoading}
               loading={categoriesLoading}
               allowClear
@@ -109,16 +111,19 @@ export function IdeaSubmissionFormSection({
               }))}
               className="w-full"
             />
-            {categoriesLoading &&  (
+            {categoriesLoading && (
               <p className="text-xs text-slate-500">Loading categories...</p>
             )}
           </FormField>
 
           <FormField label="Submission">
             <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
-              <p className="font-medium text-slate-900">{selectedSubmission.name}</p>
+              <p className="font-medium text-slate-900">
+                {selectedSubmission.name}
+              </p>
               <p className="mt-1 text-xs text-slate-500">
-                Closure: {formatAppDateTime(selectedSubmission.closureDate)} · Final closure:{' '}
+                Closure: {formatAppDateTime(selectedSubmission.closureDate)} ·
+                Final closure:{" "}
                 {formatAppDateTime(selectedSubmission.finalClosureDate)}
               </p>
             </div>
@@ -148,7 +153,9 @@ export function IdeaSubmissionFormSection({
               <FileUp className="h-6 w-6 text-slate-600" />
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-900">Choose supporting files</p>
+              <p className="text-sm font-medium text-slate-900">
+                Choose supporting files
+              </p>
               <p className="mt-1 text-xs text-slate-500">PDF files only.</p>
             </div>
             <input
@@ -162,8 +169,10 @@ export function IdeaSubmissionFormSection({
               onChange={(event) => onFileChange(event.target.files)}
             />
           </label>
-          <p className="mt-4 text-sm text-slate-600">{fileNames || 'No files selected yet.'}</p>
-          {fileValidationMessage &&  (
+          <p className="mt-4 text-sm text-slate-600">
+            {fileNames || "No files selected yet."}
+          </p>
+          {fileValidationMessage && (
             <p className="mt-3 text-sm text-red-600">{fileValidationMessage}</p>
           )}
         </div>
@@ -175,9 +184,18 @@ export function IdeaSubmissionFormSection({
       >
         <div className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
           <ul className="list-disc space-y-2 pl-5">
-            <li>You confirm that the submitted idea is relevant to university improvement.</li>
-            <li>You understand that uploaded files may be reviewed by authorised staff.</li>
-            <li>You accept that comments may remain open until the final closure date.</li>
+            <li>
+              You confirm that the submitted idea is relevant to university
+              improvement.
+            </li>
+            <li>
+              You understand that uploaded files may be reviewed by authorised
+              staff.
+            </li>
+            <li>
+              You accept that comments may remain open until the final closure
+              date.
+            </li>
           </ul>
           <label className="flex items-start gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
             <input
@@ -188,7 +206,8 @@ export function IdeaSubmissionFormSection({
               onChange={(event) => onAgreedToTermsChange(event.target.checked)}
               className="mt-1"
             />
-            I have read and agree to the Terms and Conditions for idea submission.
+            I have read and agree to the Terms and Conditions for idea
+            submission.
           </label>
         </div>
       </SectionCard>
@@ -197,9 +216,14 @@ export function IdeaSubmissionFormSection({
         <AppButton type="button" variant="ghost" onClick={onBackToDetails}>
           Cancel
         </AppButton>
-        <AppButton type="button" variant="secondary" onClick={onSubmit} disabled={isPending}>
+        <AppButton
+          type="button"
+          variant="secondary"
+          onClick={onSubmit}
+          disabled={isPending}
+        >
           <Send className="mr-2 h-4 w-4" />
-          {isPending ? 'Submitting...' : 'Submit idea'}
+          {isPending ? "Submitting..." : "Submit idea"}
         </AppButton>
       </div>
     </div>

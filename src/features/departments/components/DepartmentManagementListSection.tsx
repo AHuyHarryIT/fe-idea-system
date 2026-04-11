@@ -1,20 +1,17 @@
-import { Input } from 'antd'
-import { Building2, Search } from 'lucide-react'
-import type { Department } from '@/types'
-import { ActionButton } from '@/components/app/ActionButton'
-import { AppButton } from '@/components/app/AppButton'
-import { AppPagination } from '@/components/shared/AppPagination'
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
-import { EmptyState } from '@/components/shared/EmptyState'
-import { FormField } from '@/components/forms/FormField'
-import { FormInput, FormTextarea } from '@/components/forms/FormInput'
-import { Modal } from '@/components/shared/Modal'
-import { SectionCard } from '@/components/shared/SectionCard'
-import {
-  DEPARTMENT_PAGE_SIZE_OPTIONS
-  
-} from '@/features/departments/helpers/department-management'
-import type {DepartmentManagementFormState} from '@/features/departments/helpers/department-management';
+import { Input } from "antd"
+import { Building2, Search } from "lucide-react"
+import type { Department } from "@/types"
+import { ActionButton } from "@/components/app/ActionButton"
+import { AppButton } from "@/components/app/AppButton"
+import { AppPagination } from "@/components/shared/AppPagination"
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
+import { EmptyState } from "@/components/shared/EmptyState"
+import { FormField } from "@/components/forms/FormField"
+import { FormInput, FormTextarea } from "@/components/forms/FormInput"
+import { Modal } from "@/components/shared/Modal"
+import { SectionCard } from "@/components/shared/SectionCard"
+import { DEPARTMENT_PAGE_SIZE_OPTIONS } from "@/features/departments/helpers/department-management"
+import type { DepartmentManagementFormState } from "@/features/departments/helpers/department-management"
 
 interface DepartmentManagementListSectionProps {
   departments: Department[]
@@ -102,7 +99,9 @@ export function DepartmentManagementListSection({
           <EmptyState
             icon={Building2}
             title="Unable to load departments"
-            description={error instanceof Error ? error.message : 'Unknown error'}
+            description={
+              error instanceof Error ? error.message : "Unknown error"
+            }
           />
         ) : isLoading ? (
           <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-sm text-slate-600">
@@ -112,12 +111,14 @@ export function DepartmentManagementListSection({
           <EmptyState
             icon={Building2}
             title={
-              deferredSearch ? 'No departments match this search' : 'No departments found'
+              deferredSearch
+                ? "No departments match this search"
+                : "No departments found"
             }
             description={
               deferredSearch
-                ? 'Try another keyword or clear the search.'
-                : 'Create the first department to organise users and idea ownership.'
+                ? "Try another keyword or clear the search."
+                : "Create the first department to organise users and idea ownership."
             }
             action={
               <ActionButton
@@ -155,7 +156,7 @@ export function DepartmentManagementListSection({
                         {department.name}
                       </td>
                       <td className="px-6 py-3 text-slate-600">
-                        {department.description || '—'}
+                        {department.description || "—"}
                       </td>
                       <td className="px-6 py-3">
                         <div className="flex gap-2">
@@ -193,7 +194,7 @@ export function DepartmentManagementListSection({
 
       <Modal
         isOpen={isFormModalOpen}
-        title={editingId ? 'Edit department' : 'Create department'}
+        title={editingId ? "Edit department" : "Create department"}
         description="Keep department details in one focused dialog instead of an inline editor."
         onClose={onCloseFormModal}
         footer={
@@ -207,7 +208,11 @@ export function DepartmentManagementListSection({
               variant="secondary"
               disabled={isSaving}
             >
-              {isSaving ? 'Saving...' : editingId ? 'Save changes' : 'Create department'}
+              {isSaving
+                ? "Saving..."
+                : editingId
+                  ? "Save changes"
+                  : "Create department"}
             </AppButton>
           </>
         }
@@ -225,7 +230,9 @@ export function DepartmentManagementListSection({
               id="department-name"
               name="department-name"
               value={form.name}
-              onChange={(event) => onFormChange({ ...form, name: event.target.value })}
+              onChange={(event) =>
+                onFormChange({ ...form, name: event.target.value })
+              }
               placeholder="e.g., Engineering, Design, Marketing"
             />
           </FormField>

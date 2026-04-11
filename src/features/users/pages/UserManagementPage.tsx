@@ -1,51 +1,54 @@
-import { useDeferredValue, useEffect, useMemo, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { departmentService, userService } from '@/api'
-import type { User } from '@/types'
-import { ActionButton } from '@/components/app/ActionButton'
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
-import { PageHeader } from '@/components/shared/PageHeader'
-import { DEPARTMENT_SELECT_PAGE_SIZE } from '@/constants/department'
-import { auth } from '@/utils/auth'
-import { appNotification } from '@/utils/notifications'
-import { UserDirectorySummaryCards } from '@/features/users/components/UserDirectorySummaryCards'
-import { UserDirectoryListSection } from '@/features/users/components/UserDirectoryListSection'
-import { UserFormModal } from '@/features/users/components/UserFormModal'
+import { useDeferredValue, useEffect, useMemo, useState } from "react"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { departmentService, userService } from "@/api"
+import type { User } from "@/types"
+import { ActionButton } from "@/components/app/ActionButton"
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
+import { PageHeader } from "@/components/shared/PageHeader"
+import { DEPARTMENT_SELECT_PAGE_SIZE } from "@/constants/department"
+import { auth } from "@/utils/auth"
+import { appNotification } from "@/utils/notifications"
+import { UserDirectorySummaryCards } from "@/features/users/components/UserDirectorySummaryCards"
+import { UserDirectoryListSection } from "@/features/users/components/UserDirectoryListSection"
+import { UserFormModal } from "@/features/users/components/UserFormModal"
 import {
   buildUpdateUserPayload,
   DEFAULT_USER_PAGE_SIZE,
-  
-  
   getMatchingUserRole,
   getUserDepartmentValue,
   initialCreateUserForm,
   initialEditUserForm,
   isStrongUserPassword,
   isValidUserEmail,
-  normalizeUserRoleKey
-  
-} from '@/features/users/helpers/user-management'
-import type {CreateUserFormState, EditUserFormState, UserFormValidationErrors} from '@/features/users/helpers/user-management';
+  normalizeUserRoleKey,
+} from "@/features/users/helpers/user-management"
+import type {
+  CreateUserFormState,
+  EditUserFormState,
+  UserFormValidationErrors,
+} from "@/features/users/helpers/user-management"
 
 export default function UserManagementPage() {
   const queryClient = useQueryClient()
   const currentUserId = auth.getUserId()
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(DEFAULT_USER_PAGE_SIZE)
-  const [search, setSearch] = useState('')
-  const [roleFilter, setRoleFilter] = useState('all')
-  const [createForm, setCreateForm] =
-    useState<CreateUserFormState>(initialCreateUserForm)
+  const [search, setSearch] = useState("")
+  const [roleFilter, setRoleFilter] = useState("all")
+  const [createForm, setCreateForm] = useState<CreateUserFormState>(
+    initialCreateUserForm,
+  )
   const [createErrors, setCreateErrors] = useState<UserFormValidationErrors>({})
   const [editingUserId, setEditingUserId] = useState<string | null>(null)
-  const [editForm, setEditForm] = useState<EditUserFormState>(initialEditUserForm)
+  const [editForm, setEditForm] =
+    useState<EditUserFormState>(initialEditUserForm)
   const [editErrors, setEditErrors] = useState<UserFormValidationErrors>({})
   const [deleteConfirmUser, setDeleteConfirmUser] = useState<User | null>(null)
   const [isUserFormOpen, setIsUserFormOpen] = useState(false)
   const deferredSearch = useDeferredValue(search.trim())
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['adminUsers', currentPage, pageSize, deferredSearch],
+    queryKey: ["adminUsers", currentPage, pageSize, deferredSearch],
     queryFn: async () => {
       const response = await userService.getUsers({
         pageNumber: currentPage,
@@ -54,7 +57,7 @@ export default function UserManagementPage() {
       })
 
       if (!response.success) {
-        throw new Error(response.error ?? 'Failed to load users')
+        throw new Error(response.error ?? "Failed to load users")
       }
 
       return response.data
@@ -62,7 +65,7 @@ export default function UserManagementPage() {
   })
 
   const { data: departments = [] } = useQuery({
-    queryKey: ['departments'],
+    queryKey: ["departments"],
     queryFn: async () => {
       const response = await departmentService.getDepartments({
         pageNumber: 1,
@@ -70,7 +73,7 @@ export default function UserManagementPage() {
       })
 
       if (!response.success) {
-        throw new Error(response.error ?? 'Failed to load departments')
+        throw new Error(response.error ?? "Failed to load departments")
       }
 
       return response.data?.departments ?? []
@@ -92,31 +95,37 @@ export default function UserManagementPage() {
       })
 
       if (!response.success) {
-        throw new Error(response.error ?? 'Unable to create user.')
+        throw new Error(response.error ?? "Unable to create user.")
       }
 
       return response.data
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['adminUsers'] })
-      appNotification.success('User account created successfully.')
+      await queryClient.invalidateQueries({ queryKey: ["adminUsers"] })
+      appNotification.success("User account created successfully.")
       closeUserForm()
     },
   })
 
   const updateUserMutation = useMutation({
-    mutationFn: async ({ userId, payload }: { userId: string; payload: ReturnType<typeof buildUpdateUserPayload> }) => {
+    mutationFn: async ({
+      userId,
+      payload,
+    }: {
+      userId: string
+      payload: ReturnType<typeof buildUpdateUserPayload>
+    }) => {
       const response = await userService.updateUser(userId, payload)
 
       if (!response.success) {
-        throw new Error(response.error ?? 'Unable to update user.')
+        throw new Error(response.error ?? "Unable to update user.")
       }
 
       return response.data
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['adminUsers'] })
-      appNotification.success('User information updated successfully.')
+      await queryClient.invalidateQueries({ queryKey: ["adminUsers"] })
+      appNotification.success("User information updated successfully.")
       closeUserForm()
     },
   })
@@ -126,12 +135,12 @@ export default function UserManagementPage() {
       const response = await userService.deleteUser(userId)
 
       if (!response.success) {
-        throw new Error(response.error ?? 'Unable to delete user.')
+        throw new Error(response.error ?? "Unable to delete user.")
       }
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['adminUsers'] })
-      appNotification.success('User deleted successfully.')
+      await queryClient.invalidateQueries({ queryKey: ["adminUsers"] })
+      appNotification.success("User deleted successfully.")
       setDeleteConfirmUser(null)
     },
   })
@@ -139,11 +148,11 @@ export default function UserManagementPage() {
   const summary = useMemo(() => {
     const noDepartmentCount = users.filter((user) => !user.departmentId).length
     const adminCount = users.filter(
-      (user) => normalizeUserRoleKey(user.role) === 'administrator',
+      (user) => normalizeUserRoleKey(user.role) === "administrator",
     ).length
     const qaCount = users.filter((user) => {
       const normalized = normalizeUserRoleKey(user.role)
-      return normalized === 'qamanager' || normalized === 'qacoordinator'
+      return normalized === "qamanager" || normalized === "qacoordinator"
     }).length
 
     return {
@@ -157,7 +166,7 @@ export default function UserManagementPage() {
   const filteredUsers = useMemo(() => {
     return users.filter(
       (user) =>
-        roleFilter === 'all' ||
+        roleFilter === "all" ||
         normalizeUserRoleKey(user.role) === normalizeUserRoleKey(roleFilter),
     )
   }, [roleFilter, users])
@@ -181,23 +190,23 @@ export default function UserManagementPage() {
     const nextErrors: UserFormValidationErrors = {}
 
     if (!createForm.email.trim()) {
-      nextErrors.email = 'Email is required.'
+      nextErrors.email = "Email is required."
     } else if (!isValidUserEmail(createForm.email.trim())) {
-      nextErrors.email = 'Enter a valid email address.'
+      nextErrors.email = "Enter a valid email address."
     }
 
     if (!createForm.name.trim()) {
-      nextErrors.name = 'Name is required.'
+      nextErrors.name = "Name is required."
     }
 
     if (!createForm.password) {
-      nextErrors.password = 'Password is required.'
+      nextErrors.password = "Password is required."
     } else if (!isStrongUserPassword(createForm.password)) {
-      nextErrors.password = 'Password must match the backend password policy.'
+      nextErrors.password = "Password must match the backend password policy."
     }
 
     if (!createForm.role) {
-      nextErrors.role = 'Role is required.'
+      nextErrors.role = "Role is required."
     }
 
     setCreateErrors(nextErrors)
@@ -209,11 +218,11 @@ export default function UserManagementPage() {
     const nextErrors: UserFormValidationErrors = {}
 
     if (!editForm.name.trim()) {
-      nextErrors.name = 'Name is required.'
+      nextErrors.name = "Name is required."
     }
 
     if (!editForm.role) {
-      nextErrors.role = 'Role is required.'
+      nextErrors.role = "Role is required."
     }
 
     setEditErrors(nextErrors)
@@ -230,7 +239,9 @@ export default function UserManagementPage() {
       await createUserMutation.mutateAsync(createForm)
     } catch (mutationError) {
       appNotification.error(
-        mutationError instanceof Error ? mutationError.message : 'Unable to create user.',
+        mutationError instanceof Error
+          ? mutationError.message
+          : "Unable to create user.",
       )
     }
   }
@@ -258,14 +269,16 @@ export default function UserManagementPage() {
       })
     } catch (mutationError) {
       appNotification.error(
-        mutationError instanceof Error ? mutationError.message : 'Unable to update user.',
+        mutationError instanceof Error
+          ? mutationError.message
+          : "Unable to update user.",
       )
     }
   }
 
   const resetFilters = () => {
-    setSearch('')
-    setRoleFilter('all')
+    setSearch("")
+    setRoleFilter("all")
     setCurrentPage(1)
   }
 
@@ -362,7 +375,7 @@ export default function UserManagementPage() {
         message={
           deleteConfirmUser
             ? `Delete ${deleteConfirmUser.email}? This cannot be undone.`
-            : 'Delete this user?'
+            : "Delete this user?"
         }
         confirmText="Delete user"
         cancelText="Cancel"
@@ -375,7 +388,7 @@ export default function UserManagementPage() {
                 appNotification.error(
                   mutationError instanceof Error
                     ? mutationError.message
-                    : 'Unable to delete user.',
+                    : "Unable to delete user.",
                 )
               },
             })

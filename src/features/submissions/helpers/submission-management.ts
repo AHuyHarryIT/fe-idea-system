@@ -1,5 +1,5 @@
-import type { Submission } from '@/types'
-import { getDateTimestamp, getDateYear } from '@/utils/date'
+import type { Submission } from "@/types"
+import { getDateTimestamp, getDateYear } from "@/utils/date"
 
 export interface SubmissionManagementFormState {
   name: string
@@ -9,20 +9,20 @@ export interface SubmissionManagementFormState {
 }
 
 export const initialSubmissionManagementForm: SubmissionManagementFormState = {
-  name: '',
-  description: '',
-  closureDate: '',
-  finalClosureDate: '',
+  name: "",
+  description: "",
+  closureDate: "",
+  finalClosureDate: "",
 }
 
 export const DEFAULT_SUBMISSION_MANAGEMENT_PAGE_SIZE = 10
-export const SUBMISSION_MANAGEMENT_PAGE_SIZE_OPTIONS = ['10', '20', '50']
+export const SUBMISSION_MANAGEMENT_PAGE_SIZE_OPTIONS = ["10", "20", "50"]
 
 export function getSubmissionAcademicYearFallback(closureDate: string) {
   return getDateYear(closureDate)
 }
 
-export type SubmissionLifecycle = 'open' | 'closed' | 'archived'
+export type SubmissionLifecycle = "open" | "closed" | "archived"
 
 export function getSubmissionLifecycle(submission: {
   closureDate: string
@@ -33,33 +33,33 @@ export function getSubmissionLifecycle(submission: {
   const finalClosureDate = getDateTimestamp(submission.finalClosureDate)
 
   if (finalClosureDate && now > finalClosureDate) {
-    return 'archived'
+    return "archived"
   }
 
   if (closureDate && now > closureDate) {
-    return 'closed'
+    return "closed"
   }
 
-  return 'open'
+  return "open"
 }
 
 export function getSubmissionLifecycleMeta(lifecycle: SubmissionLifecycle) {
   switch (lifecycle) {
-    case 'archived':
+    case "archived":
       return {
-        label: 'Archived',
-        className: 'bg-slate-200 text-slate-700',
+        label: "Archived",
+        className: "bg-slate-200 text-slate-700",
       }
-    case 'closed':
+    case "closed":
       return {
-        label: 'Closed',
-        className: 'bg-amber-100 text-amber-800',
+        label: "Closed",
+        className: "bg-amber-100 text-amber-800",
       }
-    case 'open':
+    case "open":
     default:
       return {
-        label: 'Open',
-        className: 'bg-emerald-100 text-emerald-700',
+        label: "Open",
+        className: "bg-emerald-100 text-emerald-700",
       }
   }
 }
@@ -68,11 +68,11 @@ export function validateSubmissionManagementForm(
   form: SubmissionManagementFormState,
 ) {
   if (!form.name.trim() || !form.closureDate || !form.finalClosureDate) {
-    return 'Please complete all submission fields.'
+    return "Please complete all submission fields."
   }
 
   if (new Date(form.finalClosureDate) < new Date(form.closureDate)) {
-    return 'Final closure date must be later than or equal to closure date.'
+    return "Final closure date must be later than or equal to closure date."
   }
 
   return null
@@ -96,7 +96,7 @@ export function buildSubmissionEditForm(
 ): SubmissionManagementFormState {
   return {
     name: submission.name,
-    description: submission.description || '',
+    description: submission.description || "",
     closureDate: formatDateTimeInputValue(submission.closureDate),
     finalClosureDate: formatDateTimeInputValue(submission.finalClosureDate),
   }

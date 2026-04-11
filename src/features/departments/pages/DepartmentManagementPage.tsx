@@ -1,19 +1,18 @@
-import { useDeferredValue, useEffect, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { Department } from '@/types'
-import { departmentService } from '@/api/departments'
-import { ActionButton } from '@/components/app/ActionButton'
-import { PageHeader } from '@/components/shared/PageHeader'
-import { appNotification } from '@/utils/notifications'
-import { DepartmentManagementListSection } from '@/features/departments/components/DepartmentManagementListSection'
+import { useDeferredValue, useEffect, useState } from "react"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import type { Department } from "@/types"
+import { departmentService } from "@/api/departments"
+import { ActionButton } from "@/components/app/ActionButton"
+import { PageHeader } from "@/components/shared/PageHeader"
+import { appNotification } from "@/utils/notifications"
+import { DepartmentManagementListSection } from "@/features/departments/components/DepartmentManagementListSection"
 import {
   buildDepartmentManagementPayload,
   DEFAULT_DEPARTMENT_PAGE_SIZE,
   initialDepartmentManagementForm,
-  
-  validateDepartmentManagementForm
-} from '@/features/departments/helpers/department-management'
-import type {DepartmentManagementFormState} from '@/features/departments/helpers/department-management';
+  validateDepartmentManagementForm,
+} from "@/features/departments/helpers/department-management"
+import type { DepartmentManagementFormState } from "@/features/departments/helpers/department-management"
 
 export default function DepartmentManagementPage() {
   const queryClient = useQueryClient()
@@ -25,11 +24,11 @@ export default function DepartmentManagementPage() {
   )
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
-  const [searchValue, setSearchValue] = useState('')
+  const [searchValue, setSearchValue] = useState("")
   const deferredSearch = useDeferredValue(searchValue.trim())
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['departments', currentPage, pageSize, deferredSearch],
+    queryKey: ["departments", currentPage, pageSize, deferredSearch],
     queryFn: async () => {
       const response = await departmentService.getDepartments({
         pageNumber: currentPage,
@@ -38,7 +37,7 @@ export default function DepartmentManagementPage() {
       })
 
       if (!response.success) {
-        throw new Error(response.error ?? 'Failed to load departments')
+        throw new Error(response.error ?? "Failed to load departments")
       }
 
       return response.data
@@ -65,7 +64,7 @@ export default function DepartmentManagementPage() {
       )
 
       if (!response.success) {
-        throw new Error(response.error ?? 'Unable to create department.')
+        throw new Error(response.error ?? "Unable to create department.")
       }
 
       return response.data
@@ -74,7 +73,7 @@ export default function DepartmentManagementPage() {
 
   const updateMutation = useMutation({
     mutationFn: async (payload: DepartmentManagementFormState) => {
-      if (!editingId) throw new Error('No department selected')
+      if (!editingId) throw new Error("No department selected")
 
       const response = await departmentService.updateDepartment(
         editingId,
@@ -82,7 +81,7 @@ export default function DepartmentManagementPage() {
       )
 
       if (!response.success) {
-        throw new Error(response.error ?? 'Unable to update department.')
+        throw new Error(response.error ?? "Unable to update department.")
       }
 
       return response.data
@@ -94,13 +93,13 @@ export default function DepartmentManagementPage() {
       const response = await departmentService.deleteDepartment(id)
 
       if (!response.success) {
-        throw new Error(response.error ?? 'Unable to delete department.')
+        throw new Error(response.error ?? "Unable to delete department.")
       }
     },
   })
 
   const refreshDepartments = async () => {
-    await queryClient.invalidateQueries({ queryKey: ['departments'] })
+    await queryClient.invalidateQueries({ queryKey: ["departments"] })
   }
 
   const closeFormModal = () => {
@@ -125,10 +124,10 @@ export default function DepartmentManagementPage() {
     try {
       if (editingId) {
         await updateMutation.mutateAsync(form)
-        appNotification.success('Department updated successfully.')
+        appNotification.success("Department updated successfully.")
       } else {
         await createMutation.mutateAsync(form)
-        appNotification.success('Department created successfully.')
+        appNotification.success("Department created successfully.")
         setCurrentPage(1)
       }
 
@@ -139,8 +138,8 @@ export default function DepartmentManagementPage() {
         mutationError instanceof Error
           ? mutationError.message
           : editingId
-            ? 'Unable to update department.'
-            : 'Unable to create department.',
+            ? "Unable to update department."
+            : "Unable to create department.",
       )
     }
   }
@@ -149,7 +148,7 @@ export default function DepartmentManagementPage() {
     setEditingId(department.id)
     setForm({
       name: department.name,
-      description: department.description || '',
+      description: department.description || "",
     })
     setIsFormModalOpen(true)
   }
@@ -160,7 +159,7 @@ export default function DepartmentManagementPage() {
     try {
       await deleteMutation.mutateAsync(deleteConfirm)
       await refreshDepartments()
-      appNotification.success('Department deleted successfully.')
+      appNotification.success("Department deleted successfully.")
 
       if (editingId === deleteConfirm) {
         closeFormModal()
@@ -169,7 +168,7 @@ export default function DepartmentManagementPage() {
       appNotification.error(
         mutationError instanceof Error
           ? mutationError.message
-          : 'Unable to delete department.',
+          : "Unable to delete department.",
       )
     } finally {
       setDeleteConfirm(null)
@@ -207,7 +206,7 @@ export default function DepartmentManagementPage() {
         isSaving={createMutation.isPending || updateMutation.isPending}
         isDeleting={deleteMutation.isPending}
         onSearchChange={setSearchValue}
-        onResetSearch={() => setSearchValue('')}
+        onResetSearch={() => setSearchValue("")}
         onOpenCreateModal={openCreateModal}
         onEditDepartment={handleEdit}
         onDeleteRequest={setDeleteConfirm}

@@ -1,10 +1,7 @@
-import { CheckCircle2, Lightbulb, TrendingUp } from 'lucide-react'
-import type { Idea } from '@/types'
-import {
-  overviewMetricAccentClassNames
-  
-} from '@/features/dashboard/staff/helpers/staff-dashboard'
-import type {OverviewMetricAccent} from '@/features/dashboard/staff/helpers/staff-dashboard';
+import { CheckCircle2, Lightbulb, TrendingUp } from "lucide-react"
+import type { Idea } from "@/types"
+import { overviewMetricAccentClassNames } from "@/features/dashboard/staff/helpers/staff-dashboard"
+import type { OverviewMetricAccent } from "@/features/dashboard/staff/helpers/staff-dashboard"
 
 interface StaffOverviewMetricCardProps {
   title: string
@@ -67,21 +64,21 @@ export function StaffOverviewMetrics({
     <div className="grid gap-5 lg:grid-cols-3">
       <StaffOverviewMetricCard
         title="Total ideas"
-        value={isLoading ? '...' : `${allIdeas.length}`}
+        value={isLoading ? "..." : `${allIdeas.length}`}
         description="Across all categories"
         accent="blue"
         icon={Lightbulb}
       />
       <StaffOverviewMetricCard
         title="My ideas"
-        value={isLoading ? '...' : `${myIdeas.length}`}
+        value={isLoading ? "..." : `${myIdeas.length}`}
         description="Ideas you've submitted"
         accent="emerald"
         icon={CheckCircle2}
       />
       <StaffOverviewMetricCard
         title="Engagement"
-        value={isLoading ? '...' : `${totalLikesOnMyIdeas}`}
+        value={isLoading ? "..." : `${totalLikesOnMyIdeas}`}
         description="Total likes on your ideas"
         accent="violet"
         icon={TrendingUp}

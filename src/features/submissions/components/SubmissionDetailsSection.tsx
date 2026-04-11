@@ -1,37 +1,37 @@
-import { useState } from "react";
-import { ArrowLeft, Download } from "lucide-react";
-import { DatePicker } from "antd";
-import dayjs from "dayjs";
-import { AppButton } from "@/components/app/AppButton";
-import { SectionCard } from "@/components/shared/SectionCard";
-import { Link } from "@tanstack/react-router";
-import { formatAppDateTime } from "@/utils/date";
-import { ActionButton } from "@/components/app/ActionButton";
-import { Modal } from "@/components/shared/Modal";
-import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import { FormField } from "@/components/forms/FormField";
-import { FormInput, FormTextarea } from "@/components/forms/FormInput";
-import type { Submission } from "@/types";
-import { isSubmissionClosed } from "@/features/ideas/helpers/submit-idea";
-import { exportService } from "@/api/export";
-import { appNotification } from "@/utils/notifications";
-import type { SubmissionManagementFormState } from "@/features/submissions/helpers/submission-management";
+import { useState } from "react"
+import { ArrowLeft, Download } from "lucide-react"
+import { DatePicker } from "antd"
+import dayjs from "dayjs"
+import { AppButton } from "@/components/app/AppButton"
+import { SectionCard } from "@/components/shared/SectionCard"
+import { Link } from "@tanstack/react-router"
+import { formatAppDateTime } from "@/utils/date"
+import { ActionButton } from "@/components/app/ActionButton"
+import { Modal } from "@/components/shared/Modal"
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
+import { FormField } from "@/components/forms/FormField"
+import { FormInput, FormTextarea } from "@/components/forms/FormInput"
+import type { Submission } from "@/types"
+import { isSubmissionClosed } from "@/features/ideas/helpers/submit-idea"
+import { exportService } from "@/api/export"
+import { appNotification } from "@/utils/notifications"
+import type { SubmissionManagementFormState } from "@/features/submissions/helpers/submission-management"
 
 interface SubmissionDetailsSectionProps {
-  selectedSubmission: Submission;
-  mode?: "manage" | "submit";
-  onEditSubmission?: () => void;
-  onDeleteRequest?: () => void;
-  isFormModalOpen?: boolean;
-  isDeleteModalOpen?: boolean;
-  form?: SubmissionManagementFormState;
-  onFormChange?: (form: SubmissionManagementFormState) => void;
-  onSubmit?: () => void;
-  onDeleteConfirm?: () => void;
-  onDeleteCancel?: () => void;
-  onCloseFormModal?: () => void;
-  isUpdating?: boolean;
-  isDeleting?: boolean;
+  selectedSubmission: Submission
+  mode?: "manage" | "submit"
+  onEditSubmission?: () => void
+  onDeleteRequest?: () => void
+  isFormModalOpen?: boolean
+  isDeleteModalOpen?: boolean
+  form?: SubmissionManagementFormState
+  onFormChange?: (form: SubmissionManagementFormState) => void
+  onSubmit?: () => void
+  onDeleteConfirm?: () => void
+  onDeleteCancel?: () => void
+  onCloseFormModal?: () => void
+  isUpdating?: boolean
+  isDeleting?: boolean
 }
 
 export function SubmissionDetailsSection({
@@ -50,53 +50,56 @@ export function SubmissionDetailsSection({
   isUpdating = false,
   isDeleting = false,
 }: SubmissionDetailsSectionProps) {
-  const closed = isSubmissionClosed(selectedSubmission.closureDate);
-  const isSubmitMode = mode === "submit";
-  const [isExportingCSV, setIsExportingCSV] = useState(false);
-  const [isExportingZip, setIsExportingZip] = useState(false);
+  const closed = isSubmissionClosed(selectedSubmission.closureDate)
+  const isSubmitMode = mode === "submit"
+  const [isExportingCSV, setIsExportingCSV] = useState(false)
+  const [isExportingZip, setIsExportingZip] = useState(false)
 
-  const getExportErrorMessage = (error: Error | undefined, fileType: "CSV" | "ZIP") => {
+  const getExportErrorMessage = (
+    error: Error | undefined,
+    fileType: "CSV" | "ZIP",
+  ) => {
     const fallbackMessage =
-      "Please try again in a moment. If the issue persists, contact an administrator.";
+      "Please try again in a moment. If the issue persists, contact an administrator."
 
     if (error?.message.trim()) {
-      return `Failed to export ${fileType}. ${error.message}`;
+      return `Failed to export ${fileType}. ${error.message}`
     }
 
-    return `Failed to export ${fileType}. ${fallbackMessage}`;
-  };
+    return `Failed to export ${fileType}. ${fallbackMessage}`
+  }
 
   const handleExportCSV = async () => {
     try {
-      setIsExportingCSV(true);
+      setIsExportingCSV(true)
       await exportService.exportSubmissionAsCSV(
         selectedSubmission.id,
         selectedSubmission.name,
-      );
-      appNotification.success("CSV exported successfully.");
+      )
+      appNotification.success("CSV exported successfully.")
     } catch (error) {
-      const exportError = error instanceof Error ? error : undefined;
-      appNotification.error(getExportErrorMessage(exportError, "CSV"));
+      const exportError = error instanceof Error ? error : undefined
+      appNotification.error(getExportErrorMessage(exportError, "CSV"))
     } finally {
-      setIsExportingCSV(false);
+      setIsExportingCSV(false)
     }
-  };
+  }
 
   const handleExportZip = async () => {
     try {
-      setIsExportingZip(true);
+      setIsExportingZip(true)
       await exportService.exportSubmissionAsZip(
         selectedSubmission.id,
         selectedSubmission.name,
-      );
-      appNotification.success("ZIP exported successfully.");
+      )
+      appNotification.success("ZIP exported successfully.")
     } catch (error) {
-      const exportError = error instanceof Error ? error : undefined;
-      appNotification.error(getExportErrorMessage(exportError, "ZIP"));
+      const exportError = error instanceof Error ? error : undefined
+      appNotification.error(getExportErrorMessage(exportError, "ZIP"))
     } finally {
-      setIsExportingZip(false);
+      setIsExportingZip(false)
     }
-  };
+  }
 
   return (
     <div className="space-y-6">
@@ -205,7 +208,11 @@ export function SubmissionDetailsSection({
                     to={"/ideas/$ideaId"}
                     params={{ ideaId: selectedSubmission.id }}
                   >
-                    <AppButton type="button" variant="secondary" disabled={closed}>
+                    <AppButton
+                      type="button"
+                      variant="secondary"
+                      disabled={closed}
+                    >
                       Submit idea
                     </AppButton>
                   </Link>
@@ -317,5 +324,5 @@ export function SubmissionDetailsSection({
         isDangerous
       />
     </div>
-  );
+  )
 }

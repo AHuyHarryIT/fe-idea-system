@@ -1,13 +1,13 @@
-import { AlertCircle, UserRound } from 'lucide-react'
-import type { Idea } from '@/types'
-import { EmptyState } from '@/components/shared/EmptyState'
-import { SectionCard } from '@/components/shared/SectionCard'
+import { AlertCircle, UserRound } from "lucide-react"
+import type { Idea } from "@/types"
+import { EmptyState } from "@/components/shared/EmptyState"
+import { SectionCard } from "@/components/shared/SectionCard"
 import {
   formatDateLabel,
   getCommentCount,
   getIdeaDateValue,
   getIdeaTitle,
-} from '@/features/dashboard/qa-manager/helpers/qa-manager-dashboard'
+} from "@/features/dashboard/qa-manager/helpers/qa-manager-dashboard"
 
 interface QAManagerInsightListsSectionProps {
   error?: Error | null
@@ -45,7 +45,7 @@ export function QAManagerInsightListsSection({
                       {getIdeaTitle(idea)}
                     </p>
                     <p className="mt-1 text-xs text-slate-500">
-                      {idea.categoryName || 'Uncategorized'}
+                      {idea.categoryName || "Uncategorized"}
                     </p>
                   </div>
                   <p className="text-xs text-slate-500">
@@ -87,10 +87,12 @@ export function QAManagerInsightListsSection({
                       {getIdeaTitle(idea)}
                     </p>
                     <p className="mt-1 text-xs text-slate-500">
-                      {idea.categoryName || 'Uncategorized'}
+                      {idea.categoryName || "Uncategorized"}
                     </p>
                   </div>
-                  <p className="text-xs text-slate-500">{getCommentCount(idea)} comments</p>
+                  <p className="text-xs text-slate-500">
+                    {getCommentCount(idea)} comments
+                  </p>
                 </div>
               </div>
             ))}

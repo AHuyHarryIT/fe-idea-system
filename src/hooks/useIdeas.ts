@@ -1,11 +1,11 @@
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from "@tanstack/react-query"
 import type {
   CommentCreateRequest,
   IdeaListQueryParams,
   ReviewIdeaRequest,
   VoteRequest,
-} from '@/types'
-import { ideaService } from '@/api'
+} from "@/types"
+import { ideaService } from "@/api"
 
 interface UseMyIdeasOptions {
   fetchAll?: boolean
@@ -21,7 +21,7 @@ export const useMyIdeas = (
   options?: UseMyIdeasOptions,
 ) => {
   return useQuery({
-    queryKey: ['myIdeas', params, options?.fetchAll ?? false],
+    queryKey: ["myIdeas", params, options?.fetchAll ?? false],
     queryFn: async () => {
       const response = options?.fetchAll
         ? await ideaService.getMyIdeasMatching(params)
@@ -34,11 +34,9 @@ export const useMyIdeas = (
   })
 }
 
-export const useAllIdeas = (
-  params?: IdeaListQueryParams,
-) => {
+export const useAllIdeas = (params?: IdeaListQueryParams) => {
   return useQuery({
-    queryKey: ['allIdeas', params],
+    queryKey: ["allIdeas", params],
     queryFn: async () => {
       const response = await ideaService.getAllIdeas(params)
       if (response.success) return response.data
@@ -53,7 +51,7 @@ export const useAllIdeasMatching = (
   options?: UseIdeasQueryOptions,
 ) => {
   return useQuery({
-    queryKey: ['allIdeasMatching', params, options?.enabled ?? true],
+    queryKey: ["allIdeasMatching", params, options?.enabled ?? true],
     queryFn: async () => {
       const response = await ideaService.getAllIdeasMatching(params)
       if (response.success) return response.data
@@ -65,7 +63,7 @@ export const useAllIdeasMatching = (
 
 export const useIdeaById = (id: string) => {
   return useQuery({
-    queryKey: ['idea', id],
+    queryKey: ["idea", id],
     queryFn: async () => {
       const response = await ideaService.getIdeaById(id)
       if (response.success) return response.data
@@ -147,7 +145,7 @@ export const useReviewIdea = () => {
 // Unified methods (no role-specific variants needed)
 export const useQACoordinatorIdeas = () => {
   return useQuery({
-    queryKey: ['qaCoordinatorIdeas'],
+    queryKey: ["qaCoordinatorIdeas"],
     queryFn: async () => {
       const response = await ideaService.getAllIdeasMatching()
       if (response.success) return response.data
@@ -158,7 +156,7 @@ export const useQACoordinatorIdeas = () => {
 
 export const useAdminIdeas = () => {
   return useQuery({
-    queryKey: ['adminIdeas'],
+    queryKey: ["adminIdeas"],
     queryFn: async () => {
       const response = await ideaService.getAllIdeasMatching()
       if (response.success) return response.data
@@ -169,7 +167,7 @@ export const useAdminIdeas = () => {
 
 export const useQAManagerIdeas = () => {
   return useQuery({
-    queryKey: ['qaManagerIdeas'],
+    queryKey: ["qaManagerIdeas"],
     queryFn: async () => {
       const response = await ideaService.getAllIdeasMatching()
       if (response.success) return response.data

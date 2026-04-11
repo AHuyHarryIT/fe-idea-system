@@ -1,11 +1,9 @@
-import { Lightbulb } from 'lucide-react'
-import type { Idea } from '@/types'
-import { IdeaCard } from '@/features/ideas/components/IdeaCard'
-import { AppPagination } from '@/components/shared/AppPagination'
-import { EmptyState } from '@/components/shared/EmptyState'
-import {
-  IDEA_CATALOGUE_PAGE_SIZE_OPTIONS,
-} from '@/features/ideas/helpers/idea-catalogue'
+import { Lightbulb } from "lucide-react"
+import type { Idea } from "@/types"
+import { IdeaCard } from "@/features/ideas/components/IdeaCard"
+import { AppPagination } from "@/components/shared/AppPagination"
+import { EmptyState } from "@/components/shared/EmptyState"
+import { IDEA_CATALOGUE_PAGE_SIZE_OPTIONS } from "@/features/ideas/helpers/idea-catalogue"
 
 interface IdeaCatalogueResultsSectionProps {
   error: Error | null
@@ -73,14 +71,14 @@ export function IdeaCatalogueResultsSection({
             title="No ideas found"
             description={
               deferredSearch
-                ? 'Try another keyword or clear the search.'
+                ? "Try another keyword or clear the search."
                 : hasCategoryFilter || hasSubmissionFilter
-                ? 'Try another category, submission, or clear the filters.'
-                : 'No ideas have been created yet.'
+                  ? "Try another category, submission, or clear the filters."
+                  : "No ideas have been created yet."
             }
           />
 
-          {totalIdeas > 0 &&  (
+          {totalIdeas > 0 && (
             <AppPagination
               current={currentPage}
               total={totalIdeas}

@@ -1,1 +1,1 @@
-export type AppButtonVariant = 'primary' | 'secondary' | 'ghost' | 'red'
+export type AppButtonVariant = "primary" | "secondary" | "ghost" | "red"

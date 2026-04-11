@@ -1,10 +1,10 @@
-import { FormField } from '@/components/forms/FormField'
-import { FormTextarea } from '@/components/forms/FormInput'
-import { AppButton } from '@/components/app/AppButton'
-import { SectionCard } from '@/components/shared/SectionCard'
-import { formatAppDateTime } from '@/utils/date'
-import type { Comment as IdeaComment } from '@/types'
-import { getCommentText } from '@/features/ideas/helpers/idea-detail'
+import { FormField } from "@/components/forms/FormField"
+import { FormTextarea } from "@/components/forms/FormInput"
+import { AppButton } from "@/components/app/AppButton"
+import { SectionCard } from "@/components/shared/SectionCard"
+import { formatAppDateTime } from "@/utils/date"
+import type { Comment as IdeaComment } from "@/types"
+import { getCommentText } from "@/features/ideas/helpers/idea-detail"
 
 interface IdeaCommentsSectionProps {
   visibleCommentCount: number
@@ -54,13 +54,15 @@ export function IdeaCommentsSection({
                   name="comment-anonymous"
                   type="checkbox"
                   checked={isAnonymous}
-                  onChange={(event) => onCommentAnonymousChange(event.target.checked)}
+                  onChange={(event) =>
+                    onCommentAnonymousChange(event.target.checked)
+                  }
                 />
                 Post anonymously
               </label>
 
               <AppButton disabled={isCommenting} onClick={onSubmitComment}>
-                {isCommenting ? 'Posting...' : 'Post comment'}
+                {isCommenting ? "Posting..." : "Post comment"}
               </AppButton>
             </div>
           </div>
@@ -80,14 +82,20 @@ export function IdeaCommentsSection({
                 <div className="flex items-center justify-between gap-4 text-xs text-slate-500">
                   <span className="font-medium text-slate-700">
                     {comment.isAnonymous
-                      ? 'Anonymous'
-                      : comment.authorName || comment.createdBy || 'Unknown author'}
+                      ? "Anonymous"
+                      : comment.authorName ||
+                        comment.createdBy ||
+                        "Unknown author"}
                   </span>
                   <span>
-                    {formatAppDateTime(comment.createdAt || comment.createdDate)}
+                    {formatAppDateTime(
+                      comment.createdAt || comment.createdDate,
+                    )}
                   </span>
                 </div>
-                <p className="mt-3 whitespace-pre-wrap">{getCommentText(comment)}</p>
+                <p className="mt-3 whitespace-pre-wrap">
+                  {getCommentText(comment)}
+                </p>
               </div>
             ))}
           </div>

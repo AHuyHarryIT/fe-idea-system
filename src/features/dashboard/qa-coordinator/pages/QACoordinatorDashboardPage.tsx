@@ -1,21 +1,21 @@
-import { useMemo } from 'react'
-import { Link } from '@tanstack/react-router'
-import { AppButton } from '@/components/app/AppButton'
-import { PageHeader } from '@/components/shared/PageHeader'
-import { useQACoordinatorIdeas } from '@/hooks/useIdeas'
-import { auth } from '@/utils/auth'
-import { normalizeIdeaResponse } from '@/utils/idea-response-mapper'
-import { QACoordinatorSummaryCards } from '@/features/dashboard/qa-coordinator/components/QACoordinatorSummaryCards'
-import { QACoordinatorChartsSection } from '@/features/dashboard/qa-coordinator/components/QACoordinatorChartsSection'
-import { QACoordinatorRecentIdeasSection } from '@/features/dashboard/qa-coordinator/components/QACoordinatorRecentIdeasSection'
+import { useMemo } from "react"
+import { Link } from "@tanstack/react-router"
+import { AppButton } from "@/components/app/AppButton"
+import { PageHeader } from "@/components/shared/PageHeader"
+import { useQACoordinatorIdeas } from "@/hooks/useIdeas"
+import { auth } from "@/utils/auth"
+import { normalizeIdeaResponse } from "@/utils/idea-response-mapper"
+import { QACoordinatorSummaryCards } from "@/features/dashboard/qa-coordinator/components/QACoordinatorSummaryCards"
+import { QACoordinatorChartsSection } from "@/features/dashboard/qa-coordinator/components/QACoordinatorChartsSection"
+import { QACoordinatorRecentIdeasSection } from "@/features/dashboard/qa-coordinator/components/QACoordinatorRecentIdeasSection"
 import {
   buildCoordinatorCategoryDistribution,
   buildCoordinatorMonthlyTrend,
   getCoordinatorCommentCount,
   getCoordinatorIdeaDateValue,
   getCoordinatorTimestamp,
-} from '@/features/dashboard/qa-coordinator/helpers/qa-coordinator-dashboard'
-import type { CoordinatorChartPoint } from '@/features/dashboard/qa-coordinator/helpers/qa-coordinator-dashboard'
+} from "@/features/dashboard/qa-coordinator/helpers/qa-coordinator-dashboard"
+import type { CoordinatorChartPoint } from "@/features/dashboard/qa-coordinator/helpers/qa-coordinator-dashboard"
 
 export default function QACoordinatorDashboardPage() {
   const { data, isLoading, error } = useQACoordinatorIdeas()
@@ -38,23 +38,41 @@ export default function QACoordinatorDashboardPage() {
     [ideas],
   )
   const totalComments = useMemo(
-    () => ideas.reduce((total, idea) => total + getCoordinatorCommentCount(idea), 0),
+    () =>
+      ideas.reduce(
+        (total, idea) => total + getCoordinatorCommentCount(idea),
+        0,
+      ),
     [ideas],
   )
-  const avgEngagement = ideas.length > 0 ? (totalComments / ideas.length).toFixed(1) : '0.0'
+  const avgEngagement =
+    ideas.length > 0 ? (totalComments / ideas.length).toFixed(1) : "0.0"
   const latestIdea = ideas.at(0)
-  const departmentName = auth.getDepartmentName() || latestIdea?.departmentName || 'Your department'
-  const monthlyTrend = useMemo(() => buildCoordinatorMonthlyTrend(ideas), [ideas])
+  const departmentName =
+    auth.getDepartmentName() || latestIdea?.departmentName || "Your department"
+  const monthlyTrend = useMemo(
+    () => buildCoordinatorMonthlyTrend(ideas),
+    [ideas],
+  )
   const trendChartData = useMemo<CoordinatorChartPoint[]>(
-    () => monthlyTrend.flatMap((point) => [
-      { month: point.label, series: 'Ideas', value: point.ideas },
-      { month: point.label, series: 'Comments', value: point.comments },
-    ]),
+    () =>
+      monthlyTrend.flatMap((point) => [
+        { month: point.label, series: "Ideas", value: point.ideas },
+        { month: point.label, series: "Comments", value: point.comments },
+      ]),
     [monthlyTrend],
   )
-  const categoryDistribution = useMemo(() => buildCoordinatorCategoryDistribution(ideas), [ideas])
+  const categoryDistribution = useMemo(
+    () => buildCoordinatorCategoryDistribution(ideas),
+    [ideas],
+  )
   const categoryChartData = useMemo(
-    () => categoryDistribution.map((slice) => ({ type: slice.label, value: slice.value, color: slice.colorValue })),
+    () =>
+      categoryDistribution.map((slice) => ({
+        type: slice.label,
+        value: slice.value,
+        color: slice.colorValue,
+      })),
     [categoryDistribution],
   )
 
@@ -65,8 +83,12 @@ export default function QACoordinatorDashboardPage() {
         description={`${departmentName} department overview and analytics.`}
         actions={
           <>
-            <Link to="/ideas"><AppButton variant="ghost">Browse all ideas</AppButton></Link>
-            <Link to="/manage/review"><AppButton>Open review queue</AppButton></Link>
+            <Link to="/ideas">
+              <AppButton variant="ghost">Browse all ideas</AppButton>
+            </Link>
+            <Link to="/manage/review">
+              <AppButton>Open review queue</AppButton>
+            </Link>
           </>
         }
       />

@@ -1,31 +1,33 @@
-import type { Role } from '@/types/auth'
-import type { JsonObject, JsonValue } from '@/types'
+import type { Role } from "@/types/auth"
+import type { JsonObject, JsonValue } from "@/types"
 
-const TOKEN_KEY = 'idea_system_access_token'
-const USER_ID_KEY = 'idea_system_user_id'
-const ROLE_KEY = 'idea_system_role'
-const DISPLAY_NAME_KEY = 'idea_system_display_name'
-const DEPARTMENT_NAME_KEY = 'idea_system_department_name'
-const EMAIL_KEY = 'idea_system_email'
+const TOKEN_KEY = "idea_system_access_token"
+const USER_ID_KEY = "idea_system_user_id"
+const ROLE_KEY = "idea_system_role"
+const DISPLAY_NAME_KEY = "idea_system_display_name"
+const DEPARTMENT_NAME_KEY = "idea_system_department_name"
+const EMAIL_KEY = "idea_system_email"
 
 function parseJwtPayload(token: string): JsonObject | null {
   if (!token) {
     return null
   }
 
-  const segments = token.split('.')
+  const segments = token.split(".")
 
   if (segments.length < 2) {
     return null
   }
 
   try {
-    const normalized = segments[1].replace(/-/g, '+').replace(/_/g, '/')
-    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=')
+    const normalized = segments[1].replace(/-/g, "+").replace(/_/g, "/")
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=")
     const decoded = atob(padded)
     const parsed = JSON.parse(decoded)
 
-    return typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)
+    return typeof parsed === "object" &&
+      parsed !== null &&
+      !Array.isArray(parsed)
       ? (parsed as JsonObject)
       : null
   } catch {
@@ -34,11 +36,11 @@ function parseJwtPayload(token: string): JsonObject | null {
 }
 
 function getClaimString(value: JsonValue | undefined) {
-  if (typeof value === 'string') {
+  if (typeof value === "string") {
     return value
   }
 
-  if (typeof value === 'number') {
+  if (typeof value === "number") {
     return String(value)
   }
 
@@ -50,18 +52,18 @@ export function normalizeRole(role: string | null | undefined): Role | null {
     return null
   }
 
-  const normalized = role.toLowerCase().replace(/[^a-z]/g, '')
+  const normalized = role.toLowerCase().replace(/[^a-z]/g, "")
 
   switch (normalized) {
-    case 'staff':
-      return 'staff'
-    case 'qacoordinator':
-      return 'qa_coordinator'
-    case 'qamanager':
-      return 'qa_manager'
-    case 'admin':
-    case 'administrator':
-      return 'admin'
+    case "staff":
+      return "staff"
+    case "qacoordinator":
+      return "qa_coordinator"
+    case "qamanager":
+      return "qa_manager"
+    case "admin":
+    case "administrator":
+      return "admin"
     default:
       return null
   }
@@ -69,15 +71,15 @@ export function normalizeRole(role: string | null | undefined): Role | null {
 
 export function getHomeRouteForRole(role: Role) {
   switch (role) {
-    case 'admin':
-      return '/admin'
-    case 'qa_coordinator':
-      return '/qa-coordinator'
-    case 'qa_manager':
-      return '/qa-manager'
-    case 'staff':
+    case "admin":
+      return "/admin"
+    case "qa_coordinator":
+      return "/qa-coordinator"
+    case "qa_manager":
+      return "/qa-manager"
+    case "staff":
     default:
-      return '/dashboard'
+      return "/dashboard"
   }
 }
 
@@ -102,14 +104,12 @@ export const auth = {
       return storedDisplayName
     }
 
-    const claims = parseJwtPayload(localStorage.getItem(TOKEN_KEY) ?? '')
+    const claims = parseJwtPayload(localStorage.getItem(TOKEN_KEY) ?? "")
     const claimedName = getClaimString(
       claims?.name ??
         claims?.fullName ??
         claims?.unique_name ??
-        claims?.[
-          'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'
-        ],
+        claims?.["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"],
     )
 
     if (claimedName?.trim()) {
@@ -119,7 +119,7 @@ export const auth = {
     const claimedEmail = getClaimString(
       claims?.email ??
         claims?.[
-          'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'
+          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
         ],
     )
 
@@ -139,12 +139,12 @@ export const auth = {
       return storedEmail
     }
 
-    const claims = parseJwtPayload(localStorage.getItem(TOKEN_KEY) ?? '')
+    const claims = parseJwtPayload(localStorage.getItem(TOKEN_KEY) ?? "")
 
     return getClaimString(
       claims?.email ??
         claims?.[
-          'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'
+          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
         ],
     )
   },
@@ -157,13 +157,13 @@ export const auth = {
       return storedDepartmentName
     }
 
-    const claims = parseJwtPayload(localStorage.getItem(TOKEN_KEY) ?? '')
+    const claims = parseJwtPayload(localStorage.getItem(TOKEN_KEY) ?? "")
 
     return getClaimString(
       claims?.DepartmentName ??
         claims?.departmentName ??
         claims?.[
-          'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/department'
+          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/department"
         ],
     )
   },
@@ -171,13 +171,13 @@ export const auth = {
     localStorage.setItem(DEPARTMENT_NAME_KEY, departmentName),
   clearDepartmentName: () => localStorage.removeItem(DEPARTMENT_NAME_KEY),
   getDepartmentId: () => {
-    const claims = parseJwtPayload(localStorage.getItem(TOKEN_KEY) ?? '')
+    const claims = parseJwtPayload(localStorage.getItem(TOKEN_KEY) ?? "")
 
     return getClaimString(
       claims?.DepartmentId ??
         claims?.departmentId ??
         claims?.[
-          'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/groupsid'
+          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/groupsid"
         ],
     )
   },

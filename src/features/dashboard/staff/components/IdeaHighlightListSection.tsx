@@ -1,16 +1,16 @@
-import { Eye, Lightbulb, TrendingUp } from 'lucide-react'
-import { Link } from '@tanstack/react-router'
-import { AppButton } from '@/components/app/AppButton'
-import { EmptyState } from '@/components/shared/EmptyState'
-import { SectionCard } from '@/components/shared/SectionCard'
-import type { Idea } from '@/types'
-import { formatAppDateTime } from '@/utils/date'
+import { Eye, Lightbulb, TrendingUp } from "lucide-react"
+import { Link } from "@tanstack/react-router"
+import { AppButton } from "@/components/app/AppButton"
+import { EmptyState } from "@/components/shared/EmptyState"
+import { SectionCard } from "@/components/shared/SectionCard"
+import type { Idea } from "@/types"
+import { formatAppDateTime } from "@/utils/date"
 import {
   getIdeaDateValue,
   getIdeaStatusMeta,
   getIdeaStatusValue,
   getIdeaTitle,
-} from '@/features/dashboard/staff/helpers/staff-dashboard'
+} from "@/features/dashboard/staff/helpers/staff-dashboard"
 
 interface IdeaHighlightListSectionProps {
   title: string
@@ -51,14 +51,14 @@ export function IdeaHighlightListSection({
                         {statusMeta.label}
                       </span>
                       <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
-                        {idea.categoryName || 'Uncategorized'}
+                        {idea.categoryName || "Uncategorized"}
                       </span>
                     </div>
 
                     <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-slate-500">
-                      <span>{idea.authorName || 'Anonymous contributor'}</span>
+                      <span>{idea.authorName || "Anonymous contributor"}</span>
                       <span>{formatAppDateTime(getIdeaDateValue(idea))}</span>
-                      <span>{idea.departmentName || 'University wide'}</span>
+                      <span>{idea.departmentName || "University wide"}</span>
                     </div>
                   </div>
 

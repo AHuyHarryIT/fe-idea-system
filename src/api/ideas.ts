@@ -1,4 +1,4 @@
-import { apiClient } from './client'
+import { apiClient } from "./client"
 import type {
   ApiResponse,
   Comment,
@@ -10,7 +10,7 @@ import type {
   IdeaListResponse,
   ReviewIdeaRequest,
   VoteRequest,
-} from '@/types'
+} from "@/types"
 
 function getIdeasFromListResponse(data?: IdeaListResponse): Idea[] {
   if (!data) {
@@ -29,20 +29,20 @@ function getIdeasFromListResponse(data?: IdeaListResponse): Idea[] {
 }
 
 function mapReviewStatusToStatus(value: number | string | null | undefined) {
-  if (typeof value === 'number') {
+  if (typeof value === "number") {
     switch (value) {
       case 0:
-        return 'pending_review'
+        return "pending_review"
       case 1:
-        return 'approved'
+        return "approved"
       case 2:
-        return 'rejected'
+        return "rejected"
       default:
         return undefined
     }
   }
 
-  if (typeof value === 'string' && value.trim()) {
+  if (typeof value === "string" && value.trim()) {
     const numericValue = Number(value)
 
     if (Number.isFinite(numericValue)) {
@@ -84,12 +84,14 @@ function normalizeComment(comment: Comment): Comment {
   }
 }
 
-function isComment(value: Comment | { data?: Comment } | undefined): value is Comment {
+function isComment(
+  value: Comment | { data?: Comment } | undefined,
+): value is Comment {
   return Boolean(
     value &&
-      typeof value === 'object' &&
-      'id' in value &&
-      'isAnonymous' in value,
+    typeof value === "object" &&
+    "id" in value &&
+    "isAnonymous" in value,
   )
 }
 
@@ -128,16 +130,16 @@ async function getAllIdeasFromEndpoint(
   params: IdeaListQueryParams = {},
   pageSize: number = 100,
 ): Promise<ApiResponse<IdeaListResponse>> {
-  const firstPageResponse = await apiClient.get<IdeaListResponse, IdeaListQueryParams>(
-    endpoint,
-    {
-      params: {
-        ...params,
-        pageNumber: 1,
-        pageSize,
-      },
+  const firstPageResponse = await apiClient.get<
+    IdeaListResponse,
+    IdeaListQueryParams
+  >(endpoint, {
+    params: {
+      ...params,
+      pageNumber: 1,
+      pageSize,
     },
-  )
+  })
 
   if (!firstPageResponse.success) {
     return firstPageResponse
@@ -155,16 +157,16 @@ async function getAllIdeasFromEndpoint(
     )
 
   for (let pageNumber = 2; pageNumber <= totalPages; pageNumber += 1) {
-    const pageResponse = await apiClient.get<IdeaListResponse, IdeaListQueryParams>(
-      endpoint,
-      {
-        params: {
-          ...params,
-          pageNumber,
-          pageSize,
-        },
+    const pageResponse = await apiClient.get<
+      IdeaListResponse,
+      IdeaListQueryParams
+    >(endpoint, {
+      params: {
+        ...params,
+        pageNumber,
+        pageSize,
       },
-    )
+    })
 
     if (!pageResponse.success) {
       return { success: false, error: pageResponse.error }
@@ -236,7 +238,7 @@ async function findIdeaByIdFromPagedList(
 
   return {
     success: false,
-    error: 'Idea not found in the current idea list.',
+    error: "Idea not found in the current idea list.",
   } satisfies ApiResponse<Idea>
 }
 
@@ -246,7 +248,7 @@ export const ideaService = {
     params?: IdeaListQueryParams,
   ): Promise<ApiResponse<IdeaListResponse>> =>
     apiClient
-      .get<IdeaListResponse, IdeaListQueryParams>('/ideas/my-ideas', { params })
+      .get<IdeaListResponse, IdeaListQueryParams>("/ideas/my-ideas", { params })
       .then((response) =>
         response.success
           ? {
@@ -259,12 +261,12 @@ export const ideaService = {
   getMyIdeasMatching: async (
     params?: IdeaListQueryParams,
   ): Promise<ApiResponse<IdeaListResponse>> =>
-    getAllIdeasFromEndpoint('/ideas/my-ideas', params),
+    getAllIdeasFromEndpoint("/ideas/my-ideas", params),
 
   getAllIdeasMatching: async (
     params?: IdeaListQueryParams,
   ): Promise<ApiResponse<IdeaListResponse>> =>
-    getAllIdeasFromEndpoint('/ideas', params),
+    getAllIdeasFromEndpoint("/ideas", params),
 
   getAllIdeas: async (
     params?: IdeaListQueryParams,
@@ -293,7 +295,7 @@ export const ideaService = {
       }
     }
 
-    if (directResponse.error !== 'HTTP 404') {
+    if (directResponse.error !== "HTTP 404") {
       return directResponse
     }
 
@@ -301,12 +303,15 @@ export const ideaService = {
   },
 
   createIdea: (request: IdeaCreateRequest): Promise<ApiResponse<Idea>> =>
-    apiClient.post<Idea>('/ideas', request),
+    apiClient.post<Idea>("/ideas", request),
 
   submitIdea: (formData: FormData): Promise<ApiResponse<Idea>> =>
-    apiClient.uploadFiles<Idea>('/ideas', formData),
+    apiClient.uploadFiles<Idea>("/ideas", formData),
 
-  updateIdea: (ideaId: string, formData: FormData): Promise<ApiResponse<Idea>> =>
+  updateIdea: (
+    ideaId: string,
+    formData: FormData,
+  ): Promise<ApiResponse<Idea>> =>
     apiClient.updateFiles<Idea>(`/ideas/${ideaId}`, formData),
 
   deleteIdea: (ideaId: string): Promise<ApiResponse<void>> =>
@@ -331,8 +336,8 @@ export const ideaService = {
 
         const comment =
           response.data &&
-          typeof response.data === 'object' &&
-          'data' in response.data &&
+          typeof response.data === "object" &&
+          "data" in response.data &&
           response.data.data
             ? response.data.data
             : isComment(response.data)
@@ -356,5 +361,5 @@ export const ideaService = {
 
   // QA Manager endpoints
   getIdeasWithoutComments: (): Promise<ApiResponse<IdeaListResponse>> =>
-    apiClient.get<IdeaListResponse>('/Stats/ideas-without-comments'),
+    apiClient.get<IdeaListResponse>("/Stats/ideas-without-comments"),
 }

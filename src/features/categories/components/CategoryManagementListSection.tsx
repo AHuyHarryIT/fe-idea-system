@@ -1,21 +1,18 @@
-import { Input } from 'antd'
-import { Plus, Search, Tag } from 'lucide-react'
-import type { IdeaCategory } from '@/types'
-import { ActionButton } from '@/components/app/ActionButton'
-import { AppButton } from '@/components/app/AppButton'
-import { AppPagination } from '@/components/shared/AppPagination'
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
-import { EmptyState } from '@/components/shared/EmptyState'
-import { FormField } from '@/components/forms/FormField'
-import { FormInput } from '@/components/forms/FormInput'
-import { Modal } from '@/components/shared/Modal'
-import { SectionCard } from '@/components/shared/SectionCard'
-import {
-  CATEGORY_PAGE_SIZE_OPTIONS
-
-} from '@/features/categories/helpers/category-management'
-import type {CategoryManagementFormState} from '@/features/categories/helpers/category-management';
-import { CategoryCard } from './CategoryCard';
+import { Input } from "antd"
+import { Plus, Search, Tag } from "lucide-react"
+import type { IdeaCategory } from "@/types"
+import { ActionButton } from "@/components/app/ActionButton"
+import { AppButton } from "@/components/app/AppButton"
+import { AppPagination } from "@/components/shared/AppPagination"
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
+import { EmptyState } from "@/components/shared/EmptyState"
+import { FormField } from "@/components/forms/FormField"
+import { FormInput } from "@/components/forms/FormInput"
+import { Modal } from "@/components/shared/Modal"
+import { SectionCard } from "@/components/shared/SectionCard"
+import { CATEGORY_PAGE_SIZE_OPTIONS } from "@/features/categories/helpers/category-management"
+import type { CategoryManagementFormState } from "@/features/categories/helpers/category-management"
+import { CategoryCard } from "./CategoryCard"
 
 interface CategoryManagementListSectionProps {
   categories: IdeaCategory[]
@@ -137,12 +134,14 @@ export function CategoryManagementListSection({
           <EmptyState
             icon={Tag}
             title={
-              deferredSearch ? 'No categories match this search' : 'No categories available'
+              deferredSearch
+                ? "No categories match this search"
+                : "No categories available"
             }
             description={
               deferredSearch
-                ? 'Try another keyword or clear the search.'
-                : 'Create a category to start organising ideas by topic.'
+                ? "Try another keyword or clear the search."
+                : "Create a category to start organising ideas by topic."
             }
             action={
               <ActionButton
@@ -158,7 +157,7 @@ export function CategoryManagementListSection({
 
       <Modal
         isOpen={isFormModalOpen}
-        title={editingId ? 'Edit category' : 'Create category'}
+        title={editingId ? "Edit category" : "Create category"}
         description="Add a new thematic category for idea classification or rename an existing one."
         onClose={onCloseFormModal}
         footer={
@@ -168,7 +167,11 @@ export function CategoryManagementListSection({
             </AppButton>
             <AppButton type="submit" form="category-form" disabled={isSaving}>
               <Plus className="mr-2 h-4 w-4" />
-              {isSaving ? 'Saving...' : editingId ? 'Save changes' : 'Create category'}
+              {isSaving
+                ? "Saving..."
+                : editingId
+                  ? "Save changes"
+                  : "Create category"}
             </AppButton>
           </>
         }

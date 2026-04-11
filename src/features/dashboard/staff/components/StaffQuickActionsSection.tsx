@@ -1,7 +1,7 @@
-import { ArrowRight, PlusCircle, Sparkles } from 'lucide-react'
-import { Link } from '@tanstack/react-router'
-import { AppButton } from '@/components/app/AppButton'
-import { SectionCard } from '@/components/shared/SectionCard'
+import { ArrowRight, PlusCircle, Sparkles } from "lucide-react"
+import { Link } from "@tanstack/react-router"
+import { AppButton } from "@/components/app/AppButton"
+import { SectionCard } from "@/components/shared/SectionCard"
 
 export function StaffQuickActionsSection() {
   return (

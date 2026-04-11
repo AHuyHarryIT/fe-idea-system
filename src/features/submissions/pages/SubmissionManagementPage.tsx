@@ -1,33 +1,35 @@
-import { useDeferredValue, useEffect, useMemo, useState } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { submissionService } from '@/api/submissions'
-import { PageHeader } from '@/components/shared/PageHeader'
+import { useDeferredValue, useEffect, useMemo, useState } from "react"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { submissionService } from "@/api/submissions"
+import { PageHeader } from "@/components/shared/PageHeader"
 import {
   useCreateSubmission,
   useDeleteSubmission,
   useUpdateSubmission,
-} from '@/hooks/useSubmissions'
-import { formatDateTimeInputValue } from '@/utils/date'
-import { appNotification } from '@/utils/notifications'
-import type { Submission } from '@/types'
-import { SubmissionManagementListSection } from '@/features/submissions/components/SubmissionManagementListSection'
+} from "@/hooks/useSubmissions"
+import { formatDateTimeInputValue } from "@/utils/date"
+import { appNotification } from "@/utils/notifications"
+import type { Submission } from "@/types"
+import { SubmissionManagementListSection } from "@/features/submissions/components/SubmissionManagementListSection"
 import {
   buildSubmissionEditForm,
   buildSubmissionManagementPayload,
   DEFAULT_SUBMISSION_MANAGEMENT_PAGE_SIZE,
   initialSubmissionManagementForm,
-  validateSubmissionManagementForm
-} from '@/features/submissions/helpers/submission-management'
-import type { SubmissionManagementFormState } from '@/features/submissions/helpers/submission-management'
+  validateSubmissionManagementForm,
+} from "@/features/submissions/helpers/submission-management"
+import type { SubmissionManagementFormState } from "@/features/submissions/helpers/submission-management"
 
 export default function SubmissionManagementPage() {
   const queryClient = useQueryClient()
   const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState<number>(DEFAULT_SUBMISSION_MANAGEMENT_PAGE_SIZE)
-  const [searchValue, setSearchValue] = useState('')
+  const [pageSize, setPageSize] = useState<number>(
+    DEFAULT_SUBMISSION_MANAGEMENT_PAGE_SIZE,
+  )
+  const [searchValue, setSearchValue] = useState("")
   const deferredSearch = useDeferredValue(searchValue.trim())
   const { data, isLoading, error } = useQuery({
-    queryKey: ['submissions', currentPage, pageSize, deferredSearch],
+    queryKey: ["submissions", currentPage, pageSize, deferredSearch],
     queryFn: async () => {
       const response = await submissionService.getSubmissions({
         pageNumber: currentPage,
@@ -36,15 +38,18 @@ export default function SubmissionManagementPage() {
       })
 
       if (!response.success) {
-        throw new Error(response.error ?? 'Unable to load submissions.')
+        throw new Error(response.error ?? "Unable to load submissions.")
       }
 
       return response.data
     },
   })
-  const { mutateAsync: createSubmission, isPending: isCreating } = useCreateSubmission()
-  const { mutateAsync: updateSubmission, isPending: isUpdating } = useUpdateSubmission()
-  const { mutateAsync: deleteSubmission, isPending: isDeleting } = useDeleteSubmission()
+  const { mutateAsync: createSubmission, isPending: isCreating } =
+    useCreateSubmission()
+  const { mutateAsync: updateSubmission, isPending: isUpdating } =
+    useUpdateSubmission()
+  const { mutateAsync: deleteSubmission, isPending: isDeleting } =
+    useDeleteSubmission()
 
   const [form, setForm] = useState<SubmissionManagementFormState>(
     initialSubmissionManagementForm,
@@ -52,7 +57,9 @@ export default function SubmissionManagementPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
-  const [detailSubmissionId, setDetailSubmissionId] = useState<string | null>(null)
+  const [detailSubmissionId, setDetailSubmissionId] = useState<string | null>(
+    null,
+  )
 
   const submissions = useMemo(() => data?.submissions ?? [], [data])
   const totalSubmissions = data?.pagination?.totalCount ?? submissions.length
@@ -89,8 +96,8 @@ export default function SubmissionManagementPage() {
   }
 
   const refreshSubmissions = async () => {
-    await queryClient.invalidateQueries({ queryKey: ['submissions'] })
-    await queryClient.invalidateQueries({ queryKey: ['adminOverview'] })
+    await queryClient.invalidateQueries({ queryKey: ["submissions"] })
+    await queryClient.invalidateQueries({ queryKey: ["adminOverview"] })
   }
 
   const handleSubmit = async () => {
@@ -105,10 +112,10 @@ export default function SubmissionManagementPage() {
     try {
       if (editingId) {
         await updateSubmission({ id: editingId, request: payload })
-        appNotification.success('Submission updated successfully.')
+        appNotification.success("Submission updated successfully.")
       } else {
         await createSubmission(payload)
-        appNotification.success('Submission created successfully.')
+        appNotification.success("Submission created successfully.")
         setCurrentPage(1)
       }
 
@@ -116,7 +123,7 @@ export default function SubmissionManagementPage() {
       closeFormModal()
     } catch (err) {
       appNotification.error(
-        err instanceof Error ? err.message : 'Unable to save submission.',
+        err instanceof Error ? err.message : "Unable to save submission.",
       )
     }
   }
@@ -133,13 +140,13 @@ export default function SubmissionManagementPage() {
     try {
       await deleteSubmission(deleteConfirmId)
       await refreshSubmissions()
-      appNotification.success('Submission deleted successfully.')
+      appNotification.success("Submission deleted successfully.")
       if (editingId === deleteConfirmId) {
         closeFormModal()
       }
     } catch (err) {
       appNotification.error(
-        err instanceof Error ? err.message : 'Unable to delete submission.',
+        err instanceof Error ? err.message : "Unable to delete submission.",
       )
     } finally {
       setDeleteConfirmId(null)

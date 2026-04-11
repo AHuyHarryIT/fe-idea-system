@@ -1,7 +1,7 @@
-import { apiClient } from './client'
+import { apiClient } from "./client"
 
 function sanitizeFilename(value: string) {
-  return value.replace(/[^a-z0-9._-]+/gi, '-').replace(/-+/g, '-')
+  return value.replace(/[^a-z0-9._-]+/gi, "-").replace(/-+/g, "-")
 }
 
 function getFilenameFromDisposition(value: string | null) {
@@ -28,26 +28,26 @@ async function requestExport(
     const response = await apiClient.download(endpoint)
 
     if (!response.success || !response.data) {
-      throw new Error(response.error ?? 'Export failed')
+      throw new Error(response.error ?? "Export failed")
     }
     const headerFilename = getFilenameFromDisposition(
-      response.data.headers['content-disposition'] ?? null,
+      response.data.headers["content-disposition"] ?? null,
     )
 
     downloadBlob(response.data.blob, headerFilename ?? fallbackFilename)
   } catch (error) {
-    console.error('Export error:', error)
+    console.error("Export error:", error)
     throw error
   }
 }
 
 export const exportService = {
   exportAllSubmissionsAsCSV: async (): Promise<void> => {
-    return requestExport('/export/csv', 'all-submissions.csv')
+    return requestExport("/export/csv", "all-submissions.csv")
   },
 
   exportAllSubmissionsAsZip: async (): Promise<void> => {
-    return requestExport('/export/zip', 'all-submissions.zip')
+    return requestExport("/export/zip", "all-submissions.zip")
   },
 
   exportSubmissionAsCSV: async (
@@ -70,7 +70,7 @@ export const exportService = {
 // Helper function to download blob
 function downloadBlob(blob: Blob, filename: string): void {
   const url = window.URL.createObjectURL(blob)
-  const link = document.createElement('a')
+  const link = document.createElement("a")
   link.href = url
   link.download = filename
   document.body.appendChild(link)

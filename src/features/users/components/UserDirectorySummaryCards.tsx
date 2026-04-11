@@ -1,4 +1,4 @@
-import { BadgeCheck, Building2, ShieldCheck, Users } from 'lucide-react'
+import { BadgeCheck, Building2, ShieldCheck, Users } from "lucide-react"
 
 interface UserDirectorySummary {
   total: number
@@ -18,28 +18,28 @@ export function UserDirectorySummaryCards({
     <div className="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
       {[
         {
-          label: 'Total accounts',
+          label: "Total accounts",
           value: summary.total,
           icon: Users,
-          tone: 'bg-slate-900 text-white',
+          tone: "bg-slate-900 text-white",
         },
         {
-          label: 'Administrators on page',
+          label: "Administrators on page",
           value: summary.admins,
           icon: ShieldCheck,
-          tone: 'bg-blue-50 text-blue-700',
+          tone: "bg-blue-50 text-blue-700",
         },
         {
-          label: 'QA members on page',
+          label: "QA members on page",
           value: summary.qaMembers,
           icon: BadgeCheck,
-          tone: 'bg-amber-50 text-amber-700',
+          tone: "bg-amber-50 text-amber-700",
         },
         {
-          label: 'No department on page',
+          label: "No department on page",
           value: summary.noDepartment,
           icon: Building2,
-          tone: 'bg-emerald-50 text-emerald-700',
+          tone: "bg-emerald-50 text-emerald-700",
         },
       ].map((item) => {
         const Icon = item.icon
@@ -51,7 +51,9 @@ export function UserDirectorySummaryCards({
           >
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-sm font-medium text-slate-500">{item.label}</p>
+                <p className="text-sm font-medium text-slate-500">
+                  {item.label}
+                </p>
                 <p className="mt-3 text-3xl font-semibold text-slate-900">
                   {item.value}
                 </p>

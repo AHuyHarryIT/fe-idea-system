@@ -1,21 +1,23 @@
-import type { IdeaCategory, Submission, JsonObject, JsonValue  } from '@/types'
-import type { IdeaDetailModel, IdeaSummary } from '@/types/idea'
-import { formatAppDate } from '@/utils/date'
+import type { IdeaCategory, Submission, JsonObject, JsonValue } from "@/types"
+import type { IdeaDetailModel, IdeaSummary } from "@/types/idea"
+import { formatAppDate } from "@/utils/date"
 
 const defaultCollectionKeys = [
-  'data',
-  'items',
-  'results',
-  'ideas',
-  'users',
-  'categories',
-  'submissions',
-  'comments',
-  'attachments',
+  "data",
+  "items",
+  "results",
+  "ideas",
+  "users",
+  "categories",
+  "submissions",
+  "comments",
+  "attachments",
 ]
 
-function isRecord(value: object | JsonValue | null | undefined): value is JsonObject {
-  return typeof value === 'object' && value !== null
+function isRecord(
+  value: object | JsonValue | null | undefined,
+): value is JsonObject {
+  return typeof value === "object" && value !== null
 }
 
 function getNestedValue(record: JsonObject, keys: string[]) {
@@ -81,7 +83,7 @@ export function extractRecord(
   value: object | JsonValue | null | undefined,
 ): JsonObject | null {
   if (isRecord(value)) {
-    for (const key of ['data', 'result', 'item']) {
+    for (const key of ["data", "result", "item"]) {
       const nested = value[key]
 
       if (isRecord(nested)) {
@@ -95,12 +97,12 @@ export function extractRecord(
   return null
 }
 
-export function asString(value: JsonValue | undefined, fallback = '') {
-  if (typeof value === 'string') {
+export function asString(value: JsonValue | undefined, fallback = "") {
+  if (typeof value === "string") {
     return value
   }
 
-  if (typeof value === 'number' || typeof value === 'boolean') {
+  if (typeof value === "number" || typeof value === "boolean") {
     return String(value)
   }
 
@@ -108,11 +110,11 @@ export function asString(value: JsonValue | undefined, fallback = '') {
 }
 
 export function asNumber(value: JsonValue | undefined, fallback = 0) {
-  if (typeof value === 'number' && Number.isFinite(value)) {
+  if (typeof value === "number" && Number.isFinite(value)) {
     return value
   }
 
-  if (typeof value === 'string') {
+  if (typeof value === "string") {
     const parsed = Number(value)
 
     if (Number.isFinite(parsed)) {
@@ -124,7 +126,7 @@ export function asNumber(value: JsonValue | undefined, fallback = 0) {
 }
 
 function asOptionalString(value: JsonValue | undefined) {
-  if (typeof value === 'string') {
+  if (typeof value === "string") {
     return value
   }
 
@@ -132,11 +134,11 @@ function asOptionalString(value: JsonValue | undefined) {
 }
 
 function asOptionalNumber(value: JsonValue | undefined) {
-  if (typeof value === 'number' && Number.isFinite(value)) {
+  if (typeof value === "number" && Number.isFinite(value)) {
     return value
   }
 
-  if (typeof value === 'string') {
+  if (typeof value === "string") {
     const parsed = Number(value)
 
     if (Number.isFinite(parsed)) {
@@ -148,44 +150,46 @@ function asOptionalNumber(value: JsonValue | undefined) {
 }
 
 function asBoolean(value: JsonValue | undefined, fallback = false) {
-  if (typeof value === 'boolean') {
+  if (typeof value === "boolean") {
     return value
   }
 
-  if (typeof value === 'string') {
-    return value.toLowerCase() === 'true'
+  if (typeof value === "string") {
+    return value.toLowerCase() === "true"
   }
 
   return fallback
 }
 
-function normalizeIdeaStatus(value: JsonValue | undefined): IdeaSummary['status'] {
+function normalizeIdeaStatus(
+  value: JsonValue | undefined,
+): IdeaSummary["status"] {
   const status = asString(value)
     .toLowerCase()
-    .replace(/[^a-z]/g, '')
+    .replace(/[^a-z]/g, "")
 
   switch (status) {
-    case 'draft':
-      return 'draft'
-    case 'submitted':
-    case 'pending':
-      return 'submitted'
-    case 'underreview':
-    case 'review':
-    case 'moderation':
-      return 'under_review'
-    case 'published':
-    case 'approved':
-      return 'published'
-    case 'closed':
-    case 'archived':
-      return 'closed'
+    case "draft":
+      return "draft"
+    case "submitted":
+    case "pending":
+      return "submitted"
+    case "underreview":
+    case "review":
+    case "moderation":
+      return "under_review"
+    case "published":
+    case "approved":
+      return "published"
+    case "closed":
+    case "archived":
+      return "closed"
     default:
       return undefined
   }
 }
 
-export function formatDateLabel(value: string | undefined, emptyLabel = '—') {
+export function formatDateLabel(value: string | undefined, emptyLabel = "—") {
   return formatAppDate(value, emptyLabel)
 }
 
@@ -199,21 +203,21 @@ export function mapIdeaSummary(
     id: asString(record.id ?? record.ideaId),
     title: asString(
       record.title ?? record.text ?? record.name,
-      'Untitled idea',
+      "Untitled idea",
     ),
     categoryName: asString(
-      record.categoryName ?? getNestedValue(record, ['category', 'name']),
+      record.categoryName ?? getNestedValue(record, ["category", "name"]),
     ),
     departmentName: asString(
       record.departmentName ??
-        getNestedValue(record, ['department', 'name']) ??
-        getNestedValue(record, ['userDepartment', 'name']),
+        getNestedValue(record, ["department", "name"]) ??
+        getNestedValue(record, ["userDepartment", "name"]),
     ),
     authorName: asString(
       record.authorName ??
         record.createdBy ??
-        getNestedValue(record, ['author', 'name']) ??
-        getNestedValue(record, ['user', 'name']),
+        getNestedValue(record, ["author", "name"]) ??
+        getNestedValue(record, ["user", "name"]),
     ),
     isAnonymous: asBoolean(record.isAnonymous),
     totalLikes: asNumber(
@@ -254,11 +258,11 @@ export function mapIdeaDetail(
     ),
     closureDate: asString(
       record.closureDate ??
-        getNestedValue(record, ['submission', 'closureDate']),
+        getNestedValue(record, ["submission", "closureDate"]),
     ),
     finalClosureDate: asString(
       record.finalClosureDate ??
-        getNestedValue(record, ['submission', 'finalClosureDate']),
+        getNestedValue(record, ["submission", "finalClosureDate"]),
     ),
     canComment: asBoolean(record.canComment, true),
     canVote: asBoolean(record.canVote ?? record.canComment, true),
@@ -275,9 +279,7 @@ export function mapIdeaDetail(
           `Attachment ${index + 1}`,
         ),
         fileSize: asString(attachmentRecord.fileSize ?? attachmentRecord.size),
-        fileUrl: asString(
-          attachmentRecord.fileUrl ?? attachmentRecord.url,
-        ),
+        fileUrl: asString(attachmentRecord.fileUrl ?? attachmentRecord.url),
       }
     }),
     comments: comments.map((comment, index) => {
@@ -289,8 +291,8 @@ export function mapIdeaDetail(
           commentRecord.authorName ??
             commentRecord.createdBy ??
             commentRecord.userName ??
-            getNestedValue(commentRecord, ['author', 'name']) ??
-            getNestedValue(commentRecord, ['user', 'fullName']),
+            getNestedValue(commentRecord, ["author", "name"]) ??
+            getNestedValue(commentRecord, ["user", "fullName"]),
         ),
         content: asString(
           commentRecord.content ??
@@ -316,7 +318,7 @@ export function mapCategory(
 
   return {
     id: asString(record.id),
-    name: asString(record.name, 'Unnamed category'),
+    name: asString(record.name, "Unnamed category"),
   }
 }
 
@@ -327,7 +329,7 @@ export function mapSubmission(
 
   return {
     id: asString(record.id),
-    name: asString(record.name, 'Untitled submission'),
+    name: asString(record.name, "Untitled submission"),
     description: asOptionalString(record.description),
     academicYear: asOptionalNumber(record.academicYear),
     closureDate: asString(record.closureDate),

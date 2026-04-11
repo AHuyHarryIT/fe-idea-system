@@ -1,7 +1,7 @@
-import { Users } from 'lucide-react'
-import { EmptyState } from '@/components/shared/EmptyState'
-import { ManageButton } from '@/components/app/ManageButton'
-import { SectionCard } from '@/components/shared/SectionCard'
+import { Users } from "lucide-react"
+import { EmptyState } from "@/components/shared/EmptyState"
+import { ManageButton } from "@/components/app/ManageButton"
+import { SectionCard } from "@/components/shared/SectionCard"
 
 interface AdminManagementModulesSectionProps {
   error?: Error | null
@@ -34,7 +34,11 @@ export function AdminManagementModulesSection({
       description="Jump straight into the core admin screens with counts aligned to the live stats service."
     >
       {error ? (
-        <EmptyState icon={Users} title="Unable to load admin data" description={error.message} />
+        <EmptyState
+          icon={Users}
+          title="Unable to load admin data"
+          description={error.message}
+        />
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           <ManageButton

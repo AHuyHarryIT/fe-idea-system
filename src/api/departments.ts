@@ -1,4 +1,4 @@
-import { apiClient } from './client'
+import { apiClient } from "./client"
 import type {
   ApiResponse,
   CreateDepartmentPayload,
@@ -6,21 +6,21 @@ import type {
   DepartmentListQueryParams,
   DepartmentListResponse,
   UpdateDepartmentPayload,
-} from '@/types'
+} from "@/types"
 
 export const departmentService = {
   getDepartments: (
     params?: DepartmentListQueryParams,
   ): Promise<ApiResponse<DepartmentListResponse>> =>
     apiClient.get<DepartmentListResponse, DepartmentListQueryParams>(
-      '/departments',
+      "/departments",
       { params },
     ),
 
   createDepartment: (
     payload: CreateDepartmentPayload,
   ): Promise<ApiResponse<Department>> =>
-    apiClient.post<Department>('/departments', payload),
+    apiClient.post<Department>("/departments", payload),
 
   updateDepartment: (
     id: string,

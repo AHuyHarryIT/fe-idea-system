@@ -1,10 +1,10 @@
-import { CheckCircle2, ShieldCheck, XCircle } from 'lucide-react'
-import { AppButton } from '@/components/app/AppButton'
-import { FormField } from '@/components/forms/FormField'
-import { FormTextarea } from '@/components/forms/FormInput'
-import { SectionCard } from '@/components/shared/SectionCard'
-import { formatAppDateTime } from '@/utils/date'
-import type { Idea, Submission } from '@/types'
+import { CheckCircle2, ShieldCheck, XCircle } from "lucide-react"
+import { AppButton } from "@/components/app/AppButton"
+import { FormField } from "@/components/forms/FormField"
+import { FormTextarea } from "@/components/forms/FormInput"
+import { SectionCard } from "@/components/shared/SectionCard"
+import { formatAppDateTime } from "@/utils/date"
+import type { Idea, Submission } from "@/types"
 
 interface IdeaDetailSidebarProps {
   idea?: Idea
@@ -45,36 +45,48 @@ export function IdeaDetailSidebar({
       >
         <div className="space-y-3 text-sm text-slate-600">
           <div className="rounded-[22px] bg-slate-50 p-4">
-            Category: {idea?.categoryName || 'Uncategorized'}
+            Category: {idea?.categoryName || "Uncategorized"}
           </div>
-          <div className="rounded-[22px] bg-slate-50 p-4">Author: {authorLabel}</div>
-          <div className="rounded-[22px] bg-slate-50 p-4">Status: {statusLabel}</div>
+          <div className="rounded-[22px] bg-slate-50 p-4">
+            Author: {authorLabel}
+          </div>
+          <div className="rounded-[22px] bg-slate-50 p-4">
+            Status: {statusLabel}
+          </div>
           <div className="rounded-[22px] bg-slate-50 p-4">
             Created: {formatAppDateTime(idea?.createdAt || idea?.createdDate)}
           </div>
           <div className="rounded-[22px] bg-slate-50 p-4">
-            Submission: {idea?.submissionName || 'Not provided'}
+            Submission: {idea?.submissionName || "Not provided"}
           </div>
           <div className="rounded-[22px] bg-slate-50 p-4">
-            Closure:{' '}
+            Closure:{" "}
             {linkedSubmission?.closureDate
               ? formatAppDateTime(linkedSubmission.closureDate)
-              : 'Not provided'}
+              : "Not provided"}
           </div>
           <div className="rounded-[22px] bg-slate-50 p-4">
-            Final closure:{' '}
+            Final closure:{" "}
             {linkedSubmission?.finalClosureDate
               ? formatAppDateTime(linkedSubmission.finalClosureDate)
-              : 'Not provided'}
+              : "Not provided"}
           </div>
-          <div className="rounded-[22px] bg-slate-50 p-4">Views: {idea?.viewCount ?? 0}</div>
-          <div className="rounded-[22px] bg-slate-50 p-4">Likes: {thumbsUpCount}</div>
-          <div className="rounded-[22px] bg-slate-50 p-4">Dislikes: {thumbsDownCount}</div>
-          <div className="rounded-[22px] bg-slate-50 p-4">Comments: {visibleCommentCount}</div>
+          <div className="rounded-[22px] bg-slate-50 p-4">
+            Views: {idea?.viewCount ?? 0}
+          </div>
+          <div className="rounded-[22px] bg-slate-50 p-4">
+            Likes: {thumbsUpCount}
+          </div>
+          <div className="rounded-[22px] bg-slate-50 p-4">
+            Dislikes: {thumbsDownCount}
+          </div>
+          <div className="rounded-[22px] bg-slate-50 p-4">
+            Comments: {visibleCommentCount}
+          </div>
         </div>
       </SectionCard>
 
-      {canReview &&  (
+      {canReview && (
         <SectionCard
           title="Review decision"
           description="Approve the idea for publication or reject it with feedback."
@@ -86,7 +98,9 @@ export function IdeaDetailSidebar({
               </div>
               <div>
                 <p className="font-medium text-slate-900">Moderator controls</p>
-                <p className="mt-1 text-sm text-slate-600">Current status: {statusLabel}</p>
+                <p className="mt-1 text-sm text-slate-600">
+                  Current status: {statusLabel}
+                </p>
               </div>
             </div>
 
@@ -107,14 +121,14 @@ export function IdeaDetailSidebar({
             </div>
 
             <div className="mt-5 flex flex-wrap gap-3">
-              {!isApprovedStatus &&  (
+              {!isApprovedStatus && (
                 <AppButton
                   type="button"
                   onClick={() => onReview(true)}
                   disabled={isReviewing}
                 >
                   <CheckCircle2 className="mr-2 h-4 w-4" />
-                  {isReviewing ? 'Saving...' : 'Approve idea'}
+                  {isReviewing ? "Saving..." : "Approve idea"}
                 </AppButton>
               )}
               <AppButton
@@ -124,7 +138,7 @@ export function IdeaDetailSidebar({
                 disabled={isReviewing}
               >
                 <XCircle className="mr-2 h-4 w-4" />
-                {isReviewing ? 'Saving...' : 'Reject idea'}
+                {isReviewing ? "Saving..." : "Reject idea"}
               </AppButton>
             </div>
           </div>

@@ -1,18 +1,18 @@
-import { PageHeader } from '@/components/shared/PageHeader'
-import { ReviewQueueListSection } from '@/features/review/components/ReviewQueueListSection'
+import { PageHeader } from "@/components/shared/PageHeader"
+import { ReviewQueueListSection } from "@/features/review/components/ReviewQueueListSection"
 import {
   DEFAULT_REVIEW_PAGE_SIZE,
   isReviewableIdea,
-  sortReviewIdeasByNewest
-} from '@/features/review/helpers/review-queue'
-import { useAllIdeas } from '@/hooks/useIdeas'
-import { normalizeIdeaResponse } from '@/utils/idea-response-mapper'
-import { useDeferredValue, useEffect, useMemo, useState } from 'react'
+  sortReviewIdeasByNewest,
+} from "@/features/review/helpers/review-queue"
+import { useAllIdeas } from "@/hooks/useIdeas"
+import { normalizeIdeaResponse } from "@/utils/idea-response-mapper"
+import { useDeferredValue, useEffect, useMemo, useState } from "react"
 
 export default function ReviewQueuePage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(DEFAULT_REVIEW_PAGE_SIZE)
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState("")
   const deferredSearch = useDeferredValue(search.trim())
   const { data, isLoading, error } = useAllIdeas({
     pageNumber: currentPage,
@@ -44,7 +44,6 @@ export default function ReviewQueuePage() {
     }
   }, [currentPage, isLoading, totalPages])
 
-
   return (
     <div className="mx-auto w-full max-w-7xl">
       <PageHeader
@@ -54,7 +53,7 @@ export default function ReviewQueuePage() {
 
       <div className="mb-6 grid gap-4 md:grid-cols-2">
         <div className="rounded-[24px] border border-slate-200 bg-white px-5 py-4 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+          <p className="text-xs font-semibold tracking-[0.16em] text-slate-400 uppercase">
             Awaiting review
           </p>
           <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
@@ -65,16 +64,16 @@ export default function ReviewQueuePage() {
           </p>
         </div>
         <div className="rounded-[24px] border border-slate-200 bg-white px-5 py-4 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+          <p className="text-xs font-semibold tracking-[0.16em] text-slate-400 uppercase">
             Search scope
           </p>
           <p className="mt-3 text-lg font-semibold text-slate-950">
-            {deferredSearch ? 'Filtered queue' : 'All pending ideas'}
+            {deferredSearch ? "Filtered queue" : "All pending ideas"}
           </p>
           <p className="mt-2 text-sm text-slate-600">
             {deferredSearch
               ? `Showing results for “${deferredSearch}”.`
-              : 'Search by title, author, description, or category.'}
+              : "Search by title, author, description, or category."}
           </p>
         </div>
       </div>

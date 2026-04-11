@@ -111,14 +111,14 @@ export interface IdeaSummary {
   totalComments?: number
   createdAt?: string
   status?:
-    | 'draft'
-    | 'submitted'
-    | 'under_review'
-    | 'pending_review'
-    | 'approved'
-    | 'rejected'
-    | 'published'
-    | 'closed'
+    | "draft"
+    | "submitted"
+    | "under_review"
+    | "pending_review"
+    | "approved"
+    | "rejected"
+    | "published"
+    | "closed"
 }
 
 export interface IdeaDetailModel extends IdeaSummary {

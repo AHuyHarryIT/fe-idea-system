@@ -1,14 +1,14 @@
-import { Pagination } from 'antd'
-import type { PaginationProps } from 'antd'
+import { Pagination } from "antd"
+import type { PaginationProps } from "antd"
 
 interface AppPaginationProps extends PaginationProps {
   containerClassName?: string
 }
 
 export function AppPagination({
-  containerClassName = '',
-  className = '',
-  align = 'end',
+  containerClassName = "",
+  className = "",
+  align = "end",
   showSizeChanger = true,
   style,
   current = 1,
@@ -17,15 +17,15 @@ export function AppPagination({
   showTotal,
   ...props
 }: AppPaginationProps) {
-  const safeCurrent = typeof current === 'number' ? current : 1
-  const safePageSize = typeof pageSize === 'number' ? pageSize : 10
-  const safeTotal = typeof total === 'number' ? total : 0
+  const safeCurrent = typeof current === "number" ? current : 1
+  const safePageSize = typeof pageSize === "number" ? pageSize : 10
+  const safeTotal = typeof total === "number" ? total : 0
   const totalPages = Math.max(1, Math.ceil(safeTotal / safePageSize))
   const rangeStart = safeTotal === 0 ? 0 : (safeCurrent - 1) * safePageSize + 1
   const rangeEnd =
     safeTotal === 0 ? 0 : Math.min(safeCurrent * safePageSize, safeTotal)
   const summary =
-    typeof showTotal === 'function'
+    typeof showTotal === "function"
       ? showTotal(safeTotal, [rangeStart, rangeEnd])
       : `${safeTotal} total items`
   const hasMultiplePages = totalPages > 1

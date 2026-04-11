@@ -1,21 +1,21 @@
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
-import type { UIEvent } from 'react'
-import { useIdeaFilters } from '@/hooks/useIdeaFilters'
-import { useAllIdeas } from '@/hooks/useIdeas'
-import { useSubmissions } from '@/hooks/useSubmissions'
-import { useIdeaCategories } from '@/hooks/useCategories'
-import { normalizeIdeaResponse } from '@/utils/idea-response-mapper'
-import { CATEGORY_SELECT_PAGE_SIZE } from '@/constants/category'
-import { SUBMISSION_SELECT_PAGE_SIZE } from '@/constants/submission'
-import { IdeaCatalogueFiltersSection } from '@/features/ideas/components/IdeaCatalogueFiltersSection'
-import { IdeaCatalogueResultsSection } from '@/features/ideas/components/IdeaCatalogueResultsSection'
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react"
+import type { UIEvent } from "react"
+import { useIdeaFilters } from "@/hooks/useIdeaFilters"
+import { useAllIdeas } from "@/hooks/useIdeas"
+import { useSubmissions } from "@/hooks/useSubmissions"
+import { useIdeaCategories } from "@/hooks/useCategories"
+import { normalizeIdeaResponse } from "@/utils/idea-response-mapper"
+import { CATEGORY_SELECT_PAGE_SIZE } from "@/constants/category"
+import { SUBMISSION_SELECT_PAGE_SIZE } from "@/constants/submission"
+import { IdeaCatalogueFiltersSection } from "@/features/ideas/components/IdeaCatalogueFiltersSection"
+import { IdeaCatalogueResultsSection } from "@/features/ideas/components/IdeaCatalogueResultsSection"
 import {
   appendUniqueCategoryOptions,
   appendUniqueSubmissionOptions,
   DEFAULT_IDEA_CATALOGUE_PAGE_SIZE,
   IDEA_OPTION_SCROLL_THRESHOLD,
-} from '@/features/ideas/helpers/idea-catalogue'
-import type { SelectOptionItem } from '@/features/ideas/helpers/idea-catalogue'
+} from "@/features/ideas/helpers/idea-catalogue"
+import type { SelectOptionItem } from "@/features/ideas/helpers/idea-catalogue"
 
 export default function IdeaCataloguePage() {
   const {
@@ -216,9 +216,9 @@ export default function IdeaCataloguePage() {
         onSubmissionPopupScroll={handleSubmissionPopupScroll}
         onCategoryPopupScroll={handleCategoryPopupScroll}
         onSubmissionChange={setSubmissionId}
-        onSubmissionClear={() => setSubmissionId('')}
+        onSubmissionClear={() => setSubmissionId("")}
         onCategoryChange={setCategoryId}
-        onCategoryClear={() => setCategoryId('')}
+        onCategoryClear={() => setCategoryId("")}
       />
 
       <IdeaCatalogueResultsSection

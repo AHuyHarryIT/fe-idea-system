@@ -1,8 +1,8 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { ProtectedPage } from '@/components/app/ProtectedPage'
-import StaffDashboardPage from '@/features/dashboard/staff/pages/StaffDashboardPage'
+import { createFileRoute } from "@tanstack/react-router"
+import { ProtectedPage } from "@/components/app/ProtectedPage"
+import StaffDashboardPage from "@/features/dashboard/staff/pages/StaffDashboardPage"
 
-export const Route = createFileRoute('/my-ideas')({
+export const Route = createFileRoute("/my-ideas")({
   component: RouteComponent,
 })
 

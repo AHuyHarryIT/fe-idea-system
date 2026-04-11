@@ -1,17 +1,18 @@
-import type { Department, User } from '@/types'
-import { AppButton } from '@/components/app/AppButton'
-import { FormField } from '@/components/forms/FormField'
-import { FormInput } from '@/components/forms/FormInput'
-import { Modal } from '@/components/shared/Modal'
+import type { Department, User } from "@/types"
+import { AppButton } from "@/components/app/AppButton"
+import { FormField } from "@/components/forms/FormField"
+import { FormInput } from "@/components/forms/FormInput"
+import { Modal } from "@/components/shared/Modal"
 import {
   AVAILABLE_USER_ROLES,
-  
-  
-  
   USER_PASSWORD_RULES,
-  userRoleSelectClassName
-} from '@/features/users/helpers/user-management'
-import type {CreateUserFormState, EditUserFormState, UserFormValidationErrors} from '@/features/users/helpers/user-management';
+  userRoleSelectClassName,
+} from "@/features/users/helpers/user-management"
+import type {
+  CreateUserFormState,
+  EditUserFormState,
+  UserFormValidationErrors,
+} from "@/features/users/helpers/user-management"
 
 interface UserFormModalProps {
   isOpen: boolean
@@ -47,11 +48,11 @@ export function UserFormModal({
   return (
     <Modal
       isOpen={isOpen}
-      title={editingUser ? 'Edit user' : 'Create user'}
+      title={editingUser ? "Edit user" : "Create user"}
       description={
         editingUser
-          ? 'Send a complete update payload so the current backend accepts the change.'
-          : 'Create a new account with the same password policy enforced by the backend.'
+          ? "Send a complete update payload so the current backend accepts the change."
+          : "Create a new account with the same password policy enforced by the backend."
       }
       onClose={onClose}
       maxWidthClassName="max-w-3xl"
@@ -62,11 +63,15 @@ export function UserFormModal({
           </AppButton>
           <AppButton
             type="submit"
-            form={editingUser ? 'edit-user-form' : 'create-user-form'}
+            form={editingUser ? "edit-user-form" : "create-user-form"}
             variant="secondary"
             disabled={isSaving}
           >
-            {isSaving ? 'Saving...' : editingUser ? 'Save changes' : 'Create user'}
+            {isSaving
+              ? "Saving..."
+              : editingUser
+                ? "Save changes"
+                : "Create user"}
           </AppButton>
         </>
       }
@@ -124,7 +129,10 @@ export function UserFormModal({
               name="edit-user-department"
               value={editForm.departmentId}
               onChange={(event) =>
-                onEditFormChange({ ...editForm, departmentId: event.target.value })
+                onEditFormChange({
+                  ...editForm,
+                  departmentId: event.target.value,
+                })
               }
               className={userRoleSelectClassName}
             >
@@ -138,7 +146,8 @@ export function UserFormModal({
           </FormField>
 
           <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-            Email and password are not editable in this screen because the live backend only supports name, role, and department updates.
+            Email and password are not editable in this screen because the live
+            backend only supports name, role, and department updates.
           </div>
         </form>
       ) : (
@@ -185,14 +194,17 @@ export function UserFormModal({
               autoComplete="new-password"
               value={createForm.password}
               onChange={(event) =>
-                onCreateFormChange({ ...createForm, password: event.target.value })
+                onCreateFormChange({
+                  ...createForm,
+                  password: event.target.value,
+                })
               }
               placeholder="Create a secure password"
             />
           </FormField>
 
           <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+            <p className="text-xs font-medium tracking-wide text-slate-500 uppercase">
               Password rules
             </p>
             <ul className="mt-3 space-y-2 text-sm text-slate-600">
@@ -232,7 +244,10 @@ export function UserFormModal({
               name="create-user-department"
               value={createForm.departmentId}
               onChange={(event) =>
-                onCreateFormChange({ ...createForm, departmentId: event.target.value })
+                onCreateFormChange({
+                  ...createForm,
+                  departmentId: event.target.value,
+                })
               }
               className={userRoleSelectClassName}
             >

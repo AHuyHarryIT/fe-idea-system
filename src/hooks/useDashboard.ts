@@ -1,9 +1,9 @@
-import { useQuery } from '@tanstack/react-query'
-import { dashboardService } from '@/api'
+import { useQuery } from "@tanstack/react-query"
+import { dashboardService } from "@/api"
 
 export const useGeneralDashboard = () => {
   return useQuery({
-    queryKey: ['generalDashboard'],
+    queryKey: ["generalDashboard"],
     queryFn: async () => {
       const response = await dashboardService.getGeneralDashboard()
       if (response.success) return response.data
@@ -14,7 +14,7 @@ export const useGeneralDashboard = () => {
 
 export const useDepartmentStats = () => {
   return useQuery({
-    queryKey: ['departmentStats'],
+    queryKey: ["departmentStats"],
     queryFn: async () => {
       const response = await dashboardService.getDepartmentStats()
       if (response.success) return response.data
@@ -25,7 +25,7 @@ export const useDepartmentStats = () => {
 
 export const useIdeasWithoutComments = () => {
   return useQuery({
-    queryKey: ['ideasWithoutComments'],
+    queryKey: ["ideasWithoutComments"],
     queryFn: async () => {
       const response = await dashboardService.getIdeasWithoutComments()
       if (response.success) return response.data
@@ -36,7 +36,7 @@ export const useIdeasWithoutComments = () => {
 
 export const useAdminDashboard = () => {
   return useQuery({
-    queryKey: ['adminDashboard'],
+    queryKey: ["adminDashboard"],
     queryFn: async () => {
       const response = await dashboardService.getAdminDashboard()
       if (response.success) return response.data
@@ -47,7 +47,7 @@ export const useAdminDashboard = () => {
 
 export const useAdminStatistics = () => {
   return useQuery({
-    queryKey: ['adminStatistics'],
+    queryKey: ["adminStatistics"],
     queryFn: async () => {
       const response = await dashboardService.getAdminStatistics()
       if (response.success) return response.data
@@ -58,7 +58,7 @@ export const useAdminStatistics = () => {
 
 export const useQACoordinatorDashboard = () => {
   return useQuery({
-    queryKey: ['qaCoordinatorDashboard'],
+    queryKey: ["qaCoordinatorDashboard"],
     queryFn: async () => {
       const response = await dashboardService.getQACoordinatorDashboard()
       if (response.success) return response.data
@@ -69,7 +69,7 @@ export const useQACoordinatorDashboard = () => {
 
 export const useQACoordinatorStatistics = () => {
   return useQuery({
-    queryKey: ['qaCoordinatorStatistics'],
+    queryKey: ["qaCoordinatorStatistics"],
     queryFn: async () => {
       const response = await dashboardService.getQACoordinatorStatistics()
       if (response.success) return response.data
@@ -80,7 +80,7 @@ export const useQACoordinatorStatistics = () => {
 
 export const useQAManagerDashboard = () => {
   return useQuery({
-    queryKey: ['qaManagerDashboard'],
+    queryKey: ["qaManagerDashboard"],
     queryFn: async () => {
       const response = await dashboardService.getQAManagerDashboard()
       if (response.success) return response.data
@@ -91,7 +91,7 @@ export const useQAManagerDashboard = () => {
 
 export const useQAManagerStatistics = () => {
   return useQuery({
-    queryKey: ['qaManagerStatistics'],
+    queryKey: ["qaManagerStatistics"],
     queryFn: async () => {
       const response = await dashboardService.getQAManagerStatistics()
       if (response.success) return response.data

@@ -1,4 +1,4 @@
-import Layout from '@/Layout/LayoutPage'
+import Layout from "@/Layout/LayoutPage"
 
 interface PublicPageProps {
   children: React.ReactNode
@@ -6,10 +6,7 @@ interface PublicPageProps {
 
 export function PublicPage({ children }: PublicPageProps) {
   return (
-    <Layout
-      showSidebar={false}
-      contentClassName="px-4 sm:px-6 lg:px-8"
-    >
+    <Layout showSidebar={false} contentClassName="px-4 sm:px-6 lg:px-8">
       {children}
     </Layout>
   )

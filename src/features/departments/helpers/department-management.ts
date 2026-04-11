@@ -4,18 +4,18 @@ export interface DepartmentManagementFormState {
 }
 
 export const initialDepartmentManagementForm: DepartmentManagementFormState = {
-  name: '',
-  description: '',
+  name: "",
+  description: "",
 }
 
 export const DEFAULT_DEPARTMENT_PAGE_SIZE = 10
-export const DEPARTMENT_PAGE_SIZE_OPTIONS = ['10', '20', '50']
+export const DEPARTMENT_PAGE_SIZE_OPTIONS = ["10", "20", "50"]
 
 export function validateDepartmentManagementForm(
   form: DepartmentManagementFormState,
 ) {
   if (!form.name.trim()) {
-    return 'Department name is required.'
+    return "Department name is required."
   }
 
   return null

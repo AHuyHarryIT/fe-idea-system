@@ -1,9 +1,4 @@
-import {
-  AlertCircle,
-  FileText,
-  MessageSquare,
-  Users,
-} from 'lucide-react'
+import { AlertCircle, FileText, MessageSquare, Users } from "lucide-react"
 
 interface QAManagerSummaryCardsProps {
   isLoading: boolean
@@ -24,36 +19,36 @@ export function QAManagerSummaryCards({
     <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-4">
       {[
         {
-          title: 'Total ideas',
-          value: isLoading ? '...' : `${totalIdeas}`,
-          description: 'Across all departments',
+          title: "Total ideas",
+          value: isLoading ? "..." : `${totalIdeas}`,
+          description: "Across all departments",
           icon: FileText,
-          iconClassName: 'bg-blue-100 text-blue-700',
-          badgeClassName: 'bg-blue-50 text-blue-700',
+          iconClassName: "bg-blue-100 text-blue-700",
+          badgeClassName: "bg-blue-50 text-blue-700",
         },
         {
-          title: 'Total comments',
-          value: isLoading ? '...' : `${totalComments}`,
-          description: 'Community engagement',
+          title: "Total comments",
+          value: isLoading ? "..." : `${totalComments}`,
+          description: "Community engagement",
           icon: MessageSquare,
-          iconClassName: 'bg-emerald-100 text-emerald-700',
-          badgeClassName: 'bg-emerald-50 text-emerald-700',
+          iconClassName: "bg-emerald-100 text-emerald-700",
+          badgeClassName: "bg-emerald-50 text-emerald-700",
         },
         {
-          title: 'Active contributors',
-          value: isLoading ? '...' : `${contributorCount}`,
-          description: 'Staff participation',
+          title: "Active contributors",
+          value: isLoading ? "..." : `${contributorCount}`,
+          description: "Staff participation",
           icon: Users,
-          iconClassName: 'bg-violet-100 text-violet-700',
-          badgeClassName: 'bg-violet-50 text-violet-700',
+          iconClassName: "bg-violet-100 text-violet-700",
+          badgeClassName: "bg-violet-50 text-violet-700",
         },
         {
-          title: 'Pending review',
-          value: isLoading ? '...' : `${reviewQueueCount}`,
-          description: 'Needs attention',
+          title: "Pending review",
+          value: isLoading ? "..." : `${reviewQueueCount}`,
+          description: "Needs attention",
           icon: AlertCircle,
-          iconClassName: 'bg-amber-100 text-amber-700',
-          badgeClassName: 'bg-amber-50 text-amber-700',
+          iconClassName: "bg-amber-100 text-amber-700",
+          badgeClassName: "bg-amber-50 text-amber-700",
         },
       ].map((metric) => {
         const Icon = metric.icon
@@ -65,7 +60,9 @@ export function QAManagerSummaryCards({
           >
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-sm font-medium text-slate-500">{metric.title}</p>
+                <p className="text-sm font-medium text-slate-500">
+                  {metric.title}
+                </p>
                 <p className="mt-2 text-4xl font-semibold tracking-tight text-slate-950">
                   {metric.value}
                 </p>

@@ -1,25 +1,25 @@
-import { useState } from 'react'
-import { ActionButton } from '@/components/app/ActionButton'
-import { AppButton } from '@/components/app/AppButton'
-import { FormField } from '@/components/forms/FormField'
-import { FormInput, FormTextarea } from '@/components/forms/FormInput'
-import { AppPagination } from '@/components/shared/AppPagination'
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
-import { EmptyState } from '@/components/shared/EmptyState'
-import { Modal } from '@/components/shared/Modal'
-import { SectionCard } from '@/components/shared/SectionCard'
-import type { SubmissionManagementFormState } from '@/features/submissions/helpers/submission-management'
+import { useState } from "react"
+import { ActionButton } from "@/components/app/ActionButton"
+import { AppButton } from "@/components/app/AppButton"
+import { FormField } from "@/components/forms/FormField"
+import { FormInput, FormTextarea } from "@/components/forms/FormInput"
+import { AppPagination } from "@/components/shared/AppPagination"
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog"
+import { EmptyState } from "@/components/shared/EmptyState"
+import { Modal } from "@/components/shared/Modal"
+import { SectionCard } from "@/components/shared/SectionCard"
+import type { SubmissionManagementFormState } from "@/features/submissions/helpers/submission-management"
 import {
   SUBMISSION_MANAGEMENT_PAGE_SIZE_OPTIONS,
   getSubmissionLifecycle,
   getSubmissionLifecycleMeta,
-} from '@/features/submissions/helpers/submission-management'
-import type { Submission } from '@/types'
-import { formatAppDateTime, parseDateTimeInputValue } from '@/utils/date'
-import { exportService } from '@/api/export'
-import { appNotification } from '@/utils/notifications'
-import { DatePicker, Input } from 'antd'
-import { Archive, CalendarRange, Download, Eye, Search } from 'lucide-react'
+} from "@/features/submissions/helpers/submission-management"
+import type { Submission } from "@/types"
+import { formatAppDateTime, parseDateTimeInputValue } from "@/utils/date"
+import { exportService } from "@/api/export"
+import { appNotification } from "@/utils/notifications"
+import { DatePicker, Input } from "antd"
+import { Archive, CalendarRange, Download, Eye, Search } from "lucide-react"
 
 interface SubmissionManagementListSectionProps {
   error: Error | null
@@ -90,9 +90,9 @@ export function SubmissionManagementListSection({
     try {
       setIsExportingAllCSV(true)
       await exportService.exportAllSubmissionsAsCSV()
-      appNotification.success('All submissions CSV exported successfully.')
+      appNotification.success("All submissions CSV exported successfully.")
     } catch {
-      appNotification.error('Failed to export all submissions CSV.')
+      appNotification.error("Failed to export all submissions CSV.")
     } finally {
       setIsExportingAllCSV(false)
     }
@@ -102,9 +102,9 @@ export function SubmissionManagementListSection({
     try {
       setIsExportingAllZip(true)
       await exportService.exportAllSubmissionsAsZip()
-      appNotification.success('All submissions ZIP exported successfully.')
+      appNotification.success("All submissions ZIP exported successfully.")
     } catch {
-      appNotification.error('Failed to export all submissions ZIP.')
+      appNotification.error("Failed to export all submissions ZIP.")
     } finally {
       setIsExportingAllZip(false)
     }
@@ -118,9 +118,9 @@ export function SubmissionManagementListSection({
         detailSubmission.id,
         detailSubmission.name,
       )
-      appNotification.success('CSV exported successfully.')
+      appNotification.success("CSV exported successfully.")
     } catch {
-      appNotification.error('Failed to export CSV.')
+      appNotification.error("Failed to export CSV.")
     } finally {
       setIsExportingCSV(false)
     }
@@ -134,9 +134,9 @@ export function SubmissionManagementListSection({
         detailSubmission.id,
         detailSubmission.name,
       )
-      appNotification.success('ZIP exported successfully.')
+      appNotification.success("ZIP exported successfully.")
     } catch {
-      appNotification.error('Failed to export ZIP.')
+      appNotification.error("Failed to export ZIP.")
     } finally {
       setIsExportingZip(false)
     }
@@ -162,7 +162,7 @@ export function SubmissionManagementListSection({
             </label>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 lg:flex-nowrap lg:justify-end lg:shrink-0">
+          <div className="flex flex-wrap items-center gap-2 lg:shrink-0 lg:flex-nowrap lg:justify-end">
             <AppButton
               type="button"
               variant="ghost"
@@ -170,7 +170,7 @@ export function SubmissionManagementListSection({
               disabled={isExportingAllCSV || isExportingAllZip}
             >
               <Download className="mr-2 h-4 w-4" />
-              {isExportingAllCSV ? 'Exporting...' : 'Export all CSV'}
+              {isExportingAllCSV ? "Exporting..." : "Export all CSV"}
             </AppButton>
             <AppButton
               type="button"
@@ -179,7 +179,7 @@ export function SubmissionManagementListSection({
               disabled={isExportingAllZip || isExportingAllCSV}
             >
               <Archive className="mr-2 h-4 w-4" />
-              {isExportingAllZip ? 'Exporting...' : 'Export all ZIP'}
+              {isExportingAllZip ? "Exporting..." : "Export all ZIP"}
             </AppButton>
             <ActionButton
               type="button"
@@ -190,7 +190,8 @@ export function SubmissionManagementListSection({
           </div>
         </div>
         <p className="mb-5 text-sm text-slate-500">
-          {totalSubmissions} submissions available, sorted by most recent final closure date.
+          {totalSubmissions} submissions available, sorted by most recent final
+          closure date.
         </p>
 
         {error ? (
@@ -214,7 +215,7 @@ export function SubmissionManagementListSection({
               .map((submission) => {
                 const lifecycleMeta = getSubmissionLifecycleMeta(
                   getSubmissionLifecycle(submission),
-                );
+                )
 
                 return (
                   <div
@@ -222,12 +223,12 @@ export function SubmissionManagementListSection({
                     className="rounded-2xl border border-slate-200 bg-slate-50 p-5"
                   >
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                      <div className="space-y-2 flex-1">
+                      <div className="flex-1 space-y-2">
                         <div className="flex flex-wrap items-center gap-2">
                           <button
                             type="button"
                             onClick={() => onViewDetail(submission)}
-                            className="text-base font-semibold text-slate-900 hover:text-blue-600 cursor-pointer transition"
+                            className="cursor-pointer text-base font-semibold text-slate-900 transition hover:text-blue-600"
                           >
                             {submission.name}
                           </button>
@@ -239,15 +240,19 @@ export function SubmissionManagementListSection({
                         </div>
                         <p className="max-w-3xl text-sm text-slate-600">
                           {submission.description?.trim() ||
-                            'No description has been added for this submission yet.'}
+                            "No description has been added for this submission yet."}
                         </p>
                         <div className="grid gap-2 text-sm text-slate-600 md:grid-cols-2">
                           <p>
-                            <span className="font-medium text-slate-800">Closure date:</span>{' '}
+                            <span className="font-medium text-slate-800">
+                              Closure date:
+                            </span>{" "}
                             {formatAppDateTime(submission.closureDate)}
                           </p>
                           <p>
-                            <span className="font-medium text-slate-800">Final closure date:</span>{' '}
+                            <span className="font-medium text-slate-800">
+                              Final closure date:
+                            </span>{" "}
                             {formatAppDateTime(submission.finalClosureDate)}
                           </p>
                         </div>
@@ -281,7 +286,7 @@ export function SubmissionManagementListSection({
                       </div>
                     </div>
                   </div>
-                );
+                )
               })}
 
             <AppPagination
@@ -301,17 +306,17 @@ export function SubmissionManagementListSection({
               icon={CalendarRange}
               title={
                 deferredSearch
-                  ? 'No submissions match this search'
-                  : 'No submissions found'
+                  ? "No submissions match this search"
+                  : "No submissions found"
               }
               description={
                 deferredSearch
-                  ? 'Try another keyword or clear the search.'
-                  : 'Create the first submission to let staff submit ideas within a controlled campaign period.'
+                  ? "Try another keyword or clear the search."
+                  : "Create the first submission to let staff submit ideas within a controlled campaign period."
               }
             />
 
-            {totalSubmissions > 0 &&  (
+            {totalSubmissions > 0 && (
               <AppPagination
                 current={currentPage}
                 total={totalSubmissions}
@@ -327,7 +332,7 @@ export function SubmissionManagementListSection({
 
       <Modal
         isOpen={isFormModalOpen}
-        title={editingId ? 'Edit submission' : 'Add submission'}
+        title={editingId ? "Edit submission" : "Add submission"}
         description="Configure the submission campaign details and timeline."
         onClose={onCloseFormModal}
         footer={
@@ -341,7 +346,11 @@ export function SubmissionManagementListSection({
               variant="secondary"
               disabled={isUpdating}
             >
-              {isUpdating ? 'Saving...' : editingId ? 'Save changes' : 'Create submission'}
+              {isUpdating
+                ? "Saving..."
+                : editingId
+                  ? "Save changes"
+                  : "Create submission"}
             </AppButton>
           </>
         }
@@ -359,7 +368,9 @@ export function SubmissionManagementListSection({
               id="submission-name"
               name="submission-name"
               value={form.name}
-              onChange={(event) => onFormChange({ ...form, name: event.target.value })}
+              onChange={(event) =>
+                onFormChange({ ...form, name: event.target.value })
+              }
               placeholder="e.g., Spring Innovation Campaign"
             />
           </FormField>
@@ -391,11 +402,11 @@ export function SubmissionManagementListSection({
                 onChange={(value) =>
                   onFormChange({
                     ...form,
-                    closureDate: value ? value.format('YYYY-MM-DDTHH:mm') : '',
+                    closureDate: value ? value.format("YYYY-MM-DDTHH:mm") : "",
                   })
                 }
                 allowClear
-                showTime={{ format: 'HH:mm', minuteStep: 1 }}
+                showTime={{ format: "HH:mm", minuteStep: 1 }}
                 format="YYYY-MM-DD HH:mm"
                 size="large"
                 className="w-full"
@@ -413,11 +424,13 @@ export function SubmissionManagementListSection({
                 onChange={(value) =>
                   onFormChange({
                     ...form,
-                    finalClosureDate: value ? value.format('YYYY-MM-DDTHH:mm') : '',
+                    finalClosureDate: value
+                      ? value.format("YYYY-MM-DDTHH:mm")
+                      : "",
                   })
                 }
                 allowClear
-                showTime={{ format: 'HH:mm', minuteStep: 1 }}
+                showTime={{ format: "HH:mm", minuteStep: 1 }}
                 format="YYYY-MM-DD HH:mm"
                 size="large"
                 className="w-full"
@@ -447,7 +460,11 @@ export function SubmissionManagementListSection({
           onClose={onCloseDetailModal}
           footer={
             <div className="flex justify-end">
-              <AppButton type="button" variant="ghost" onClick={onCloseDetailModal}>
+              <AppButton
+                type="button"
+                variant="ghost"
+                onClick={onCloseDetailModal}
+              >
                 Close
               </AppButton>
             </div>
@@ -479,19 +496,23 @@ export function SubmissionManagementListSection({
               <p className="text-sm font-medium text-slate-800">Description</p>
               <p className="mt-2 text-sm leading-6 text-slate-600">
                 {detailSubmission.description?.trim() ||
-                  'No description has been added for this submission.'}
+                  "No description has been added for this submission."}
               </p>
             </div>
 
             <div className="grid gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 md:grid-cols-2">
               <div>
-                <p className="text-sm font-medium text-slate-800">Closure date</p>
+                <p className="text-sm font-medium text-slate-800">
+                  Closure date
+                </p>
                 <p className="mt-1 text-sm text-slate-600">
                   {formatAppDateTime(detailSubmission.closureDate)}
                 </p>
               </div>
               <div>
-                <p className="text-sm font-medium text-slate-800">Final closure date</p>
+                <p className="text-sm font-medium text-slate-800">
+                  Final closure date
+                </p>
                 <p className="mt-1 text-sm text-slate-600">
                   {formatAppDateTime(detailSubmission.finalClosureDate)}
                 </p>
@@ -499,7 +520,9 @@ export function SubmissionManagementListSection({
             </div>
 
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-              <p className="text-sm font-medium text-slate-800">Academic year</p>
+              <p className="text-sm font-medium text-slate-800">
+                Academic year
+              </p>
               <p className="mt-1 text-sm text-slate-600">
                 {new Date(detailSubmission.finalClosureDate).getFullYear()}
               </p>

@@ -3,17 +3,17 @@ export interface CategoryManagementFormState {
 }
 
 export const initialCategoryManagementForm: CategoryManagementFormState = {
-  name: '',
+  name: "",
 }
 
 export const DEFAULT_CATEGORY_PAGE_SIZE = 10
-export const CATEGORY_PAGE_SIZE_OPTIONS = ['10', '20', '50']
+export const CATEGORY_PAGE_SIZE_OPTIONS = ["10", "20", "50"]
 
 export function validateCategoryManagementForm(
   form: CategoryManagementFormState,
 ) {
   if (!form.name.trim()) {
-    return 'Category name is required.'
+    return "Category name is required."
   }
 
   return null

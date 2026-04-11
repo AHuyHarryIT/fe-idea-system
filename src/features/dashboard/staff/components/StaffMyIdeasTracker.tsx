@@ -1,22 +1,21 @@
-import { useNavigate, Link } from '@tanstack/react-router'
-import { Input } from 'antd'
-import { Lightbulb, Search } from 'lucide-react'
-import type { Idea } from '@/types'
-import { AppButton } from '@/components/app/AppButton'
-import { AppPagination } from '@/components/shared/AppPagination'
-import { EmptyState } from '@/components/shared/EmptyState'
-import { PageHeader } from '@/components/shared/PageHeader'
-import { SectionCard } from '@/components/shared/SectionCard'
-import { formatAppDateTime } from '@/utils/date'
+import { useNavigate, Link } from "@tanstack/react-router"
+import { Input } from "antd"
+import { Lightbulb, Search } from "lucide-react"
+import type { Idea } from "@/types"
+import { AppButton } from "@/components/app/AppButton"
+import { AppPagination } from "@/components/shared/AppPagination"
+import { EmptyState } from "@/components/shared/EmptyState"
+import { PageHeader } from "@/components/shared/PageHeader"
+import { SectionCard } from "@/components/shared/SectionCard"
+import { formatAppDateTime } from "@/utils/date"
 import {
   getIdeaDateValue,
   getIdeaStatusMeta,
   getIdeaStatusValue,
   getIdeaTitle,
-  MY_IDEA_PAGE_SIZE_OPTIONS
-  
-} from '@/features/dashboard/staff/helpers/staff-dashboard'
-import type {IdeaStatusFilter} from '@/features/dashboard/staff/helpers/staff-dashboard';
+  MY_IDEA_PAGE_SIZE_OPTIONS,
+} from "@/features/dashboard/staff/helpers/staff-dashboard"
+import type { IdeaStatusFilter } from "@/features/dashboard/staff/helpers/staff-dashboard"
 
 interface StaffMyIdeasTrackerProps {
   title: string
@@ -108,16 +107,16 @@ export function StaffMyIdeasTracker({
           <div className="flex flex-wrap gap-2">
             {(
               [
-                ['all', 'All ideas'],
-                ['pending', 'Pending'],
-                ['approved', 'Approved'],
-                ['rejected', 'Rejected'],
+                ["all", "All ideas"],
+                ["pending", "Pending"],
+                ["approved", "Approved"],
+                ["rejected", "Rejected"],
               ] as [IdeaStatusFilter, string][]
             ).map(([value, label]) => (
               <AppButton
                 key={value}
                 type="button"
-                variant={statusFilter === value ? 'secondary' : 'ghost'}
+                variant={statusFilter === value ? "secondary" : "ghost"}
                 onClick={() => setStatusFilter(value)}
               >
                 {label}
@@ -153,15 +152,21 @@ export function StaffMyIdeasTracker({
                     role="link"
                     tabIndex={0}
                     onClick={() =>
-                      void navigate({ to: '/ideas/$ideaId', params: { ideaId: idea.id } })
+                      void navigate({
+                        to: "/ideas/$ideaId",
+                        params: { ideaId: idea.id },
+                      })
                     }
                     onKeyDown={(event) => {
-                      if (event.key === 'Enter' || event.key === ' ') {
+                      if (event.key === "Enter" || event.key === " ") {
                         event.preventDefault()
-                        void navigate({ to: '/ideas/$ideaId', params: { ideaId: idea.id } })
+                        void navigate({
+                          to: "/ideas/$ideaId",
+                          params: { ideaId: idea.id },
+                        })
                       }
                     }}
-                    className="cursor-pointer rounded-[24px] border border-slate-200 bg-[linear-gradient(180deg,rgba(248,250,252,0.96)_0%,rgba(255,255,255,1)_100%)] p-5 shadow-sm transition hover:border-slate-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    className="cursor-pointer rounded-[24px] border border-slate-200 bg-[linear-gradient(180deg,rgba(248,250,252,0.96)_0%,rgba(255,255,255,1)_100%)] p-5 shadow-sm transition hover:border-slate-300 hover:shadow-md focus:ring-2 focus:ring-blue-200 focus:outline-none"
                   >
                     <div className="space-y-4">
                       <div className="space-y-3">
@@ -179,16 +184,25 @@ export function StaffMyIdeasTracker({
                           </span>
                         </div>
                         <p className="text-sm text-slate-600">
-                          {idea.description?.trim() || 'No description provided.'}
+                          {idea.description?.trim() ||
+                            "No description provided."}
                         </p>
                         <div className="flex flex-wrap gap-4 text-xs text-slate-500">
-                          <span>Submitted: {formatAppDateTime(getIdeaDateValue(idea))}</span>
-                          <span>Department: {idea.departmentName || 'Unassigned'}</span>
-                          <span>Submission: {idea.submissionName || 'Not provided'}</span>
+                          <span>
+                            Submitted:{" "}
+                            {formatAppDateTime(getIdeaDateValue(idea))}
+                          </span>
+                          <span>
+                            Department: {idea.departmentName || "Unassigned"}
+                          </span>
+                          <span>
+                            Submission: {idea.submissionName || "Not provided"}
+                          </span>
                         </div>
-                        {status === 'rejected' &&  (
+                        {status === "rejected" && (
                           <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-                            Rejected idea. Open details to review the rejection note.
+                            Rejected idea. Open details to review the rejection
+                            note.
                           </div>
                         )}
                       </div>

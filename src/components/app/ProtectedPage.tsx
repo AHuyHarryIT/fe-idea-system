@@ -1,8 +1,8 @@
-import { useMemo } from 'react'
-import { Navigate } from '@tanstack/react-router'
-import type { Role } from '@/types/auth'
-import Layout from '@/Layout/LayoutPage'
-import { auth, getHomeRouteForRole } from '@/utils/auth'
+import { useMemo } from "react"
+import { Navigate } from "@tanstack/react-router"
+import type { Role } from "@/types/auth"
+import Layout from "@/Layout/LayoutPage"
+import { auth, getHomeRouteForRole } from "@/utils/auth"
 
 interface ProtectedPageProps {
   children: React.ReactNode
@@ -25,7 +25,7 @@ export function ProtectedPage({ children, allowedRoles }: ProtectedPageProps) {
       userRole={role}
       onLogout={() => {
         auth.logout()
-        window.location.href = '/login'
+        window.location.href = "/login"
       }}
     >
       {children}

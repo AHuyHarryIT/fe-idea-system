@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
-import type { Role } from '@/types/auth'
-import Sidebar from './Sidebar'
-import TopNav from './TopNavLayout'
+import { useEffect, useState } from "react"
+import type { Role } from "@/types/auth"
+import Sidebar from "./Sidebar"
+import TopNav from "./TopNavLayout"
 
 interface LayoutProps {
   children: React.ReactNode
@@ -20,7 +20,7 @@ export default function Layout({
 }: LayoutProps) {
   const shouldRenderSidebar = showSidebar && Boolean(userRole)
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
-    if (typeof window === 'undefined') {
+    if (typeof window === "undefined") {
       return shouldRenderSidebar
     }
 
@@ -38,7 +38,7 @@ export default function Layout({
         return previousState
       }
 
-      if (typeof window !== 'undefined' && window.innerWidth >= 1280) {
+      if (typeof window !== "undefined" && window.innerWidth >= 1280) {
         return true
       }
 
@@ -53,7 +53,9 @@ export default function Layout({
         userRole={userRole}
         showSidebarToggle={shouldRenderSidebar}
         isSidebarOpen={isSidebarOpen}
-        onToggleSidebar={() => setIsSidebarOpen((previousState) => !previousState)}
+        onToggleSidebar={() =>
+          setIsSidebarOpen((previousState) => !previousState)
+        }
       />
       <div className="flex">
         {shouldRenderSidebar && userRole && (
@@ -85,9 +87,9 @@ export default function Layout({
           </>
         )}
         <main
-          className={`min-h-screen flex-1 px-5 pb-10 pt-26 lg:px-8 ${
-            shouldRenderSidebar && isSidebarOpen ? 'xl:ml-72' : ''
-          } ${contentClassName ?? ''}`.trim()}
+          className={`min-h-screen flex-1 px-5 pt-26 pb-10 lg:px-8 ${
+            shouldRenderSidebar && isSidebarOpen ? "xl:ml-72" : ""
+          } ${contentClassName ?? ""}`.trim()}
         >
           {children}
         </main>

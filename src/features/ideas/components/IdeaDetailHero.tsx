@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router'
+import { Link } from "@tanstack/react-router"
 import {
   ArrowLeft,
   Building2,
@@ -8,10 +8,10 @@ import {
   ShieldCheck,
   ThumbsDown,
   ThumbsUp,
-} from 'lucide-react'
-import { AppButton } from '@/components/app/AppButton'
-import { formatAppDateTime } from '@/utils/date'
-import type { Idea, Submission } from '@/types'
+} from "lucide-react"
+import { AppButton } from "@/components/app/AppButton"
+import { formatAppDateTime } from "@/utils/date"
+import type { Idea, Submission } from "@/types"
 
 interface IdeaDetailHeroProps {
   idea?: Idea
@@ -79,12 +79,12 @@ export function IdeaDetailHero({
           <div className="min-w-0 flex-1 space-y-5">
             <div className="flex flex-wrap items-center gap-2">
               <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-medium text-white">
-                {idea?.categoryName || 'Uncategorized'}
+                {idea?.categoryName || "Uncategorized"}
               </span>
               <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700">
                 {statusLabel}
               </span>
-              {idea?.departmentName &&  (
+              {idea?.departmentName && (
                 <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
                   {idea.departmentName}
                 </span>
@@ -92,8 +92,8 @@ export function IdeaDetailHero({
             </div>
 
             <div className="space-y-4">
-              <h1 className="text-3xl font-semibold leading-tight tracking-tight text-slate-950 lg:text-4xl">
-                {isLoading ? 'Loading idea...' : ideaTitle}
+              <h1 className="text-3xl leading-tight font-semibold tracking-tight text-slate-950 lg:text-4xl">
+                {isLoading ? "Loading idea..." : ideaTitle}
               </h1>
             </div>
 
@@ -121,16 +121,17 @@ export function IdeaDetailHero({
                   No submission linked
                 </span>
               )}
-              {linkedSubmission?.closureDate &&  (
+              {linkedSubmission?.closureDate && (
                 <span className="inline-flex items-center gap-2">
                   <CalendarDays className="h-4 w-4 text-slate-400" />
                   Closure: {formatAppDateTime(linkedSubmission.closureDate)}
                 </span>
               )}
-              {linkedSubmission?.finalClosureDate &&  (
+              {linkedSubmission?.finalClosureDate && (
                 <span className="inline-flex items-center gap-2">
                   <CalendarDays className="h-4 w-4 text-slate-400" />
-                  Final closure: {formatAppDateTime(linkedSubmission.finalClosureDate)}
+                  Final closure:{" "}
+                  {formatAppDateTime(linkedSubmission.finalClosureDate)}
                 </span>
               )}
             </div>
@@ -144,61 +145,62 @@ export function IdeaDetailHero({
               </Link>
 
               <AppButton
-                variant={isLiked ? 'primary' : 'ghost'}
+                variant={isLiked ? "primary" : "ghost"}
                 onClick={onLike}
                 disabled={isLoading || isVoting}
                 aria-pressed={isLiked}
-                className={isLiked ? 'ring-2 ring-blue-200 shadow-sm' : ''}
+                className={isLiked ? "shadow-sm ring-2 ring-blue-200" : ""}
               >
                 <ThumbsUp className="mr-2 h-4 w-4" />
-                {isLiked ? 'Liked' : 'Like'}
+                {isLiked ? "Liked" : "Like"}
               </AppButton>
               <AppButton
-                variant={isDisliked ? 'red' : 'ghost'}
+                variant={isDisliked ? "red" : "ghost"}
                 onClick={onDislike}
                 disabled={isLoading || isVoting}
                 aria-pressed={isDisliked}
-                className={isDisliked ? 'ring-2 ring-red-200 shadow-sm' : ''}
+                className={isDisliked ? "shadow-sm ring-2 ring-red-200" : ""}
               >
                 <ThumbsDown className="mr-2 h-4 w-4" />
-                {isDisliked ? 'Disliked' : 'Dislike'}
+                {isDisliked ? "Disliked" : "Dislike"}
               </AppButton>
-              {canComment &&  (
+              {canComment && (
                 <AppButton
                   onClick={() => {
                     document
-                      .getElementById('comment-form')
-                      ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                      .getElementById("comment-form")
+                      ?.scrollIntoView({ behavior: "smooth", block: "center" })
                   }}
                 >
                   <MessageSquare className="mr-2 h-4 w-4" />
                   Add comment
                 </AppButton>
               )}
-              {canEditIdea &&  (
+              {canEditIdea && (
                 <AppButton
                   variant="ghost"
                   onClick={onOpenEditIdea}
                   disabled={isUpdatingIdea}
                 >
-                  {isUpdatingIdea ? 'Saving...' : 'Edit idea'}
+                  {isUpdatingIdea ? "Saving..." : "Edit idea"}
                 </AppButton>
               )}
-              {canDeleteIdea &&  (
+              {canDeleteIdea && (
                 <AppButton
                   variant="red"
                   onClick={onOpenDeleteConfirm}
                   disabled={isDeletingIdea}
                 >
-                  {isDeletingIdea ? 'Deleting...' : 'Delete idea'}
+                  {isDeletingIdea ? "Deleting..." : "Delete idea"}
                 </AppButton>
               )}
-              {isPastSubmissionClosure &&  (
+              {isPastSubmissionClosure && (
                 <div className="w-full rounded-[22px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                  Editing and deleting are unavailable after the submission closure date.
+                  Editing and deleting are unavailable after the submission
+                  closure date.
                 </div>
               )}
-              {isPastFinalSubmissionClosure &&  (
+              {isPastFinalSubmissionClosure && (
                 <div className="w-full rounded-[22px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                   Commenting is unavailable after the final closure date.
                 </div>
@@ -208,7 +210,7 @@ export function IdeaDetailHero({
 
           <div className="grid shrink-0 grid-cols-2 gap-3 xl:w-[320px]">
             <div className="rounded-[24px] border border-slate-200 bg-slate-50/80 px-4 py-4">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+              <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
                 Views
               </p>
               <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
@@ -216,7 +218,7 @@ export function IdeaDetailHero({
               </p>
             </div>
             <div className="rounded-[24px] border border-slate-200 bg-slate-50/80 px-4 py-4">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+              <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
                 Comments
               </p>
               <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
@@ -224,7 +226,7 @@ export function IdeaDetailHero({
               </p>
             </div>
             <div className="rounded-[24px] border border-slate-200 bg-slate-50/80 px-4 py-4">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+              <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
                 Likes
               </p>
               <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
@@ -232,7 +234,7 @@ export function IdeaDetailHero({
               </p>
             </div>
             <div className="rounded-[24px] border border-slate-200 bg-slate-50/80 px-4 py-4">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+              <p className="text-[11px] font-semibold tracking-[0.18em] text-slate-400 uppercase">
                 Dislikes
               </p>
               <p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">

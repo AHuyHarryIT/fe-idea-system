@@ -1,9 +1,9 @@
-import { AppPagination } from '@/components/shared/AppPagination'
-import { SectionCard } from '@/components/shared/SectionCard'
-import type { Idea } from '@/types'
-import { Empty, Input } from 'antd'
-import { Search } from 'lucide-react'
-import { ReviewCard } from './ReviewCard'
+import { AppPagination } from "@/components/shared/AppPagination"
+import { SectionCard } from "@/components/shared/SectionCard"
+import type { Idea } from "@/types"
+import { Empty, Input } from "antd"
+import { Search } from "lucide-react"
+import { ReviewCard } from "./ReviewCard"
 
 interface ReviewQueueListSectionProps {
   search: string

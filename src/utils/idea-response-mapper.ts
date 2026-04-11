@@ -1,4 +1,4 @@
-import type { Idea } from '@/types'
+import type { Idea } from "@/types"
 
 type IdeaResponseData =
   | Idea[]
@@ -9,21 +9,23 @@ type IdeaResponseData =
   | null
   | undefined
 
-function mapReviewStatusToStatus(value: number | string | null | undefined): Idea['status'] {
-  if (typeof value === 'number') {
+function mapReviewStatusToStatus(
+  value: number | string | null | undefined,
+): Idea["status"] {
+  if (typeof value === "number") {
     switch (value) {
       case 0:
-        return 'pending_review'
+        return "pending_review"
       case 1:
-        return 'approved'
+        return "approved"
       case 2:
-        return 'rejected'
+        return "rejected"
       default:
         return undefined
     }
   }
 
-  if (typeof value === 'string' && value.trim()) {
+  if (typeof value === "string" && value.trim()) {
     const numericValue = Number(value)
 
     if (Number.isFinite(numericValue)) {

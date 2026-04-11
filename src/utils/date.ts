@@ -1,12 +1,12 @@
-import dayjs from 'dayjs'
-import type { Dayjs } from 'dayjs'
+import dayjs from "dayjs"
+import type { Dayjs } from "dayjs"
 
-export const APP_DATE_FORMAT = 'DD/MM/YYYY'
-export const APP_DATE_TIME_FORMAT = 'HH:mm:ss DD/MM/YYYY'
-export const APP_MONTH_LABEL_FORMAT = 'MMM'
-export const HTML_DATETIME_FORMAT = 'YYYY-MM-DDTHH:mm'
+export const APP_DATE_FORMAT = "DD/MM/YYYY"
+export const APP_DATE_TIME_FORMAT = "HH:mm:ss DD/MM/YYYY"
+export const APP_MONTH_LABEL_FORMAT = "MMM"
+export const HTML_DATETIME_FORMAT = "YYYY-MM-DDTHH:mm"
 
-export function formatAppDate(value?: string, emptyLabel = '—') {
+export function formatAppDate(value?: string, emptyLabel = "—") {
   if (!value) {
     return emptyLabel
   }
@@ -16,7 +16,7 @@ export function formatAppDate(value?: string, emptyLabel = '—') {
   return parsed.isValid() ? parsed.format(APP_DATE_FORMAT) : value
 }
 
-export function formatAppDateTime(value?: string, emptyLabel = '—') {
+export function formatAppDateTime(value?: string, emptyLabel = "—") {
   if (!value) {
     return emptyLabel
   }
@@ -29,7 +29,9 @@ export function formatAppDateTime(value?: string, emptyLabel = '—') {
 export function formatMonthLabel(value: string | Date) {
   const parsed = dayjs(value)
 
-  return parsed.isValid() ? parsed.format(APP_MONTH_LABEL_FORMAT) : String(value)
+  return parsed.isValid()
+    ? parsed.format(APP_MONTH_LABEL_FORMAT)
+    : String(value)
 }
 
 export function getDateTimestamp(value?: string) {
@@ -44,7 +46,7 @@ export function getDateTimestamp(value?: string) {
 
 export function formatDateTimeInputValue(value: string) {
   if (!value) {
-    return ''
+    return ""
   }
 
   const parsed = dayjs(value)

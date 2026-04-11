@@ -1,11 +1,11 @@
-import { apiClient } from './client'
+import { apiClient } from "./client"
 import type {
   ApiResponse,
   Submission,
   SubmissionCreateRequest,
   SubmissionListQueryParams,
   SubmissionListResponse,
-} from '@/types'
+} from "@/types"
 
 function normalizeSubmissionsResponse(
   data?: Submission[] | SubmissionListResponse,
@@ -31,7 +31,7 @@ export const submissionService = {
     const response = await apiClient.get<
       Submission[] | SubmissionListResponse,
       SubmissionListQueryParams
-    >('/submissions', { params })
+    >("/submissions", { params })
 
     if (!response.success) {
       return response as ApiResponse<SubmissionListResponse>
@@ -49,7 +49,7 @@ export const submissionService = {
     const response = await apiClient.get<
       Submission[] | SubmissionListResponse,
       SubmissionListQueryParams
-    >('/submissions', { params })
+    >("/submissions", { params })
 
     if (!response.success) {
       return response as ApiResponse<SubmissionListResponse>
@@ -64,7 +64,7 @@ export const submissionService = {
   createSubmission: (
     request: SubmissionCreateRequest,
   ): Promise<ApiResponse<Submission>> =>
-    apiClient.post<Submission>('/submissions', request),
+    apiClient.post<Submission>("/submissions", request),
 
   updateSubmission: (
     id: string,
@@ -74,13 +74,11 @@ export const submissionService = {
   deleteSubmission: (id: string): Promise<ApiResponse<null>> =>
     apiClient.delete(`/submissions/${id}`),
 
-  getSubmissionById: async (
-    id: string,
-  ): Promise<ApiResponse<Submission>> => {
+  getSubmissionById: async (id: string): Promise<ApiResponse<Submission>> => {
     const response = await apiClient.get<
       Submission[] | SubmissionListResponse,
       SubmissionListQueryParams
-    >('/submissions', { params: { fetchAll: true } })
+    >("/submissions", { params: { fetchAll: true } })
 
     if (!response.success) {
       return {
@@ -91,13 +89,13 @@ export const submissionService = {
 
     const submissions = Array.isArray(response.data)
       ? response.data
-      : response.data?.submissions ?? []
+      : (response.data?.submissions ?? [])
     const submission = submissions.find((s) => s.id === id)
 
     if (!submission) {
       return {
         success: false,
-        error: 'Submission not found',
+        error: "Submission not found",
       }
     }
 

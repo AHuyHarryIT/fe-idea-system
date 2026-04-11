@@ -1,12 +1,17 @@
-import axios, { isAxiosError } from 'axios'
-import type { AxiosInstance, Method } from 'axios'
-import { auth } from '@/utils/auth'
-import type { ApiRequestBody, ApiResponse, JsonObject, JsonValue } from '@/types'
+import axios, { isAxiosError } from "axios"
+import type { AxiosInstance, Method } from "axios"
+import { auth } from "@/utils/auth"
+import type {
+  ApiRequestBody,
+  ApiResponse,
+  JsonObject,
+  JsonValue,
+} from "@/types"
 
 const API_BASE_URL = import.meta.env.VITE_API_URL
 
 if (!API_BASE_URL) {
-  throw new Error('Missing VITE_API_URL in .env')
+  throw new Error("Missing VITE_API_URL in .env")
 }
 
 type ApiQueryValue = string | number | boolean | null | undefined
@@ -54,7 +59,7 @@ class ApiClient {
 
     Object.entries(params as Record<string, ApiQueryValue>).forEach(
       ([key, value]) => {
-        if (value === undefined || value === null || value === '') {
+        if (value === undefined || value === null || value === "") {
           return
         }
 
@@ -66,7 +71,7 @@ class ApiClient {
   }
 
   private isLoginEndpoint(endpoint: string) {
-    return endpoint === '/Auth/login'
+    return endpoint === "/Auth/login"
   }
 
   private buildHeaders(
@@ -83,7 +88,7 @@ class ApiClient {
     }
 
     if (!(body instanceof FormData) && body !== undefined) {
-      headers['Content-Type'] = headers['Content-Type'] ?? 'application/json'
+      headers["Content-Type"] = headers["Content-Type"] ?? "application/json"
     }
 
     return headers
@@ -92,14 +97,20 @@ class ApiClient {
   private isJsonObject(
     value: object | JsonValue | FormData | Blob | undefined,
   ): value is JsonObject {
-    return typeof value === 'object' && value !== null && !(value instanceof FormData) && !(value instanceof Blob) && !Array.isArray(value)
+    return (
+      typeof value === "object" &&
+      value !== null &&
+      !(value instanceof FormData) &&
+      !(value instanceof Blob) &&
+      !Array.isArray(value)
+    )
   }
 
   private getErrorMessage(
     payload: object | JsonValue | FormData | Blob | undefined,
     status: number,
   ) {
-    if (typeof payload === 'string' && payload.trim()) {
+    if (typeof payload === "string" && payload.trim()) {
       return payload
     }
 
@@ -109,7 +120,7 @@ class ApiClient {
 
       if (
         validationErrors &&
-        typeof validationErrors === 'object' &&
+        typeof validationErrors === "object" &&
         !Array.isArray(validationErrors)
       ) {
         const messages = Object.values(validationErrors)
@@ -117,11 +128,11 @@ class ApiClient {
             if (Array.isArray(value)) {
               return value.filter(
                 (item): item is string =>
-                  typeof item === 'string' && item.trim().length > 0,
+                  typeof item === "string" && item.trim().length > 0,
               )
             }
 
-            if (typeof value === 'string' && value.trim()) {
+            if (typeof value === "string" && value.trim()) {
               return [value]
             }
 
@@ -130,14 +141,14 @@ class ApiClient {
           .filter((message, index, list) => list.indexOf(message) === index)
 
         if (messages.length) {
-          return messages.join(' ')
+          return messages.join(" ")
         }
       }
 
       const message =
         record.message ?? record.error ?? record.title ?? record.detail
 
-      if (typeof message === 'string' && message.trim()) {
+      if (typeof message === "string" && message.trim()) {
         return message
       }
     }
@@ -177,7 +188,7 @@ class ApiClient {
     try {
       const response = await this.http.request<T>({
         url: endpoint,
-        method: options.method ?? 'GET',
+        method: options.method ?? "GET",
         params: options.params as ApiQueryParams | undefined,
         data: options.body,
         headers: this.buildHeaders(options.headers, options.body),
@@ -193,7 +204,7 @@ class ApiClient {
         if (status === 401) {
           if (!this.isLoginEndpoint(endpoint)) {
             auth.logout()
-            window.location.href = '/login'
+            window.location.href = "/login"
           }
 
           return {
@@ -208,37 +219,43 @@ class ApiClient {
         }
       }
 
-      console.error('API request failed:', error)
+      console.error("API request failed:", error)
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'An error occurred',
+        error: error instanceof Error ? error.message : "An error occurred",
       }
     }
   }
 
   async get<T, TParams extends object = ApiQueryParams>(
     endpoint: string,
-    options: Omit<RequestOptions<TParams>, 'body' | 'method'> = {},
+    options: Omit<RequestOptions<TParams>, "body" | "method"> = {},
   ): Promise<ApiResponse<T>> {
-    return this.request<T, TParams>(endpoint, { ...options, method: 'GET' })
+    return this.request<T, TParams>(endpoint, { ...options, method: "GET" })
   }
 
-  async post<T>(endpoint: string, body?: ApiRequestBody): Promise<ApiResponse<T>> {
+  async post<T>(
+    endpoint: string,
+    body?: ApiRequestBody,
+  ): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
-      method: 'POST',
+      method: "POST",
       body,
     })
   }
 
-  async put<T>(endpoint: string, body?: ApiRequestBody): Promise<ApiResponse<T>> {
+  async put<T>(
+    endpoint: string,
+    body?: ApiRequestBody,
+  ): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
-      method: 'PUT',
+      method: "PUT",
       body,
     })
   }
 
   async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, { method: 'DELETE' })
+    return this.request<T>(endpoint, { method: "DELETE" })
   }
 
   async uploadFiles<T>(
@@ -246,7 +263,7 @@ class ApiClient {
     formData: FormData,
   ): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
-      method: 'POST',
+      method: "POST",
       body: formData,
     })
   }
@@ -256,7 +273,7 @@ class ApiClient {
     formData: FormData,
   ): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
-      method: 'PUT',
+      method: "PUT",
       body: formData,
     })
   }
@@ -265,8 +282,8 @@ class ApiClient {
     try {
       const response = await this.http.request<Blob>({
         url: endpoint,
-        method: 'GET',
-        responseType: 'blob',
+        method: "GET",
+        responseType: "blob",
         headers: this.buildHeaders(),
       })
 
@@ -275,8 +292,8 @@ class ApiClient {
         data: {
           blob: response.data,
           headers: {
-            'content-disposition': response.headers['content-disposition'],
-            'content-type': response.headers['content-type'],
+            "content-disposition": response.headers["content-disposition"],
+            "content-type": response.headers["content-type"],
           },
         },
       }
@@ -287,8 +304,8 @@ class ApiClient {
 
         if (status === 401) {
           auth.logout()
-          window.location.href = '/login'
-          return { success: false, error: 'Unauthorized' }
+          window.location.href = "/login"
+          return { success: false, error: "Unauthorized" }
         }
 
         return {
@@ -297,10 +314,10 @@ class ApiClient {
         }
       }
 
-      console.error('File download failed:', error)
+      console.error("File download failed:", error)
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'An error occurred',
+        error: error instanceof Error ? error.message : "An error occurred",
       }
     }
   }

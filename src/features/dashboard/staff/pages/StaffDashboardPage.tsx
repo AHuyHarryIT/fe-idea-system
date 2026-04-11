@@ -1,16 +1,15 @@
-import { useDeferredValue, useEffect, useMemo, useState } from 'react'
-import { PageHeader } from '@/components/shared/PageHeader'
-import { useAllIdeasMatching, useMyIdeas } from '@/hooks/useIdeas'
-import { getDateTimestamp } from '@/utils/date'
-import { normalizeIdeaResponse } from '@/utils/idea-response-mapper'
+import { useDeferredValue, useEffect, useMemo, useState } from "react"
+import { PageHeader } from "@/components/shared/PageHeader"
+import { useAllIdeasMatching, useMyIdeas } from "@/hooks/useIdeas"
+import { getDateTimestamp } from "@/utils/date"
+import { normalizeIdeaResponse } from "@/utils/idea-response-mapper"
 import {
   DEFAULT_MY_IDEA_PAGE_SIZE,
-  getIdeaDateValue
-  
-} from '@/features/dashboard/staff/helpers/staff-dashboard'
-import type {IdeaStatusFilter} from '@/features/dashboard/staff/helpers/staff-dashboard';
-import { StaffDashboardOverview } from '@/features/dashboard/staff/components/StaffDashboardOverview'
-import { StaffMyIdeasTracker } from '@/features/dashboard/staff/components/StaffMyIdeasTracker'
+  getIdeaDateValue,
+} from "@/features/dashboard/staff/helpers/staff-dashboard"
+import type { IdeaStatusFilter } from "@/features/dashboard/staff/helpers/staff-dashboard"
+import { StaffDashboardOverview } from "@/features/dashboard/staff/components/StaffDashboardOverview"
+import { StaffMyIdeasTracker } from "@/features/dashboard/staff/components/StaffMyIdeasTracker"
 
 interface StaffDashboardPageProps {
   title?: string
@@ -20,24 +19,24 @@ interface StaffDashboardPageProps {
 }
 
 export default function StaffDashboardPage({
-  title = 'Dashboard',
+  title = "Dashboard",
   description = "Welcome back! Here's an overview of your contributions and recent activities.",
   enablePagination = false,
   showSummaryCards = true,
 }: StaffDashboardPageProps) {
   const isOverviewMode = showSummaryCards && !enablePagination
-  const [statusFilter, setStatusFilter] = useState<IdeaStatusFilter>('all')
-  const [searchValue, setSearchValue] = useState('')
+  const [statusFilter, setStatusFilter] = useState<IdeaStatusFilter>("all")
+  const [searchValue, setSearchValue] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(DEFAULT_MY_IDEA_PAGE_SIZE)
   const deferredSearch = useDeferredValue(searchValue.trim())
 
   const reviewStatus =
-    statusFilter === 'all'
+    statusFilter === "all"
       ? undefined
-      : statusFilter === 'approved'
+      : statusFilter === "approved"
         ? 1
-        : statusFilter === 'rejected'
+        : statusFilter === "rejected"
           ? 2
           : 0
 
@@ -113,7 +112,10 @@ export default function StaffDashboardPage({
     [trackerIdeas],
   )
 
-  const filteredTrackerIdeas = useMemo(() => sortedTrackerIdeas, [sortedTrackerIdeas])
+  const filteredTrackerIdeas = useMemo(
+    () => sortedTrackerIdeas,
+    [sortedTrackerIdeas],
+  )
 
   useEffect(() => {
     if (isOverviewMode) {
@@ -129,7 +131,8 @@ export default function StaffDashboardPage({
       ((trackerData?.pagination?.totalCount ??
         trackerData?.totalCount ??
         trackerData?.total ??
-        filteredTrackerIdeas.length) || 0) / pageSize,
+        filteredTrackerIdeas.length) ||
+        0) / pageSize,
     ),
   )
 

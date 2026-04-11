@@ -1,20 +1,20 @@
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery } from "@tanstack/react-query"
 import type {
   CreateIdeaCategoryRequest,
   IdeaCategoryListQueryParams,
-} from '@/types'
-import { categoryService } from '@/api/categories'
+} from "@/types"
+import { categoryService } from "@/api/categories"
 
 export const useIdeaCategories = (
   params?: IdeaCategoryListQueryParams,
   options?: { enabled?: boolean },
 ) => {
   return useQuery({
-    queryKey: ['ideaCategories', params],
+    queryKey: ["ideaCategories", params],
     queryFn: async () => {
       const response = await categoryService.getIdeaCategories(params)
       if (response.success) return response.data
-      throw new Error(response.error ?? 'Unable to load idea categories.')
+      throw new Error(response.error ?? "Unable to load idea categories.")
     },
     enabled: options?.enabled ?? true,
   })
@@ -25,7 +25,7 @@ export const useCreateIdeaCategory = () => {
     mutationFn: async (request: CreateIdeaCategoryRequest) => {
       const response = await categoryService.createIdeaCategory(request)
       if (response.success) return response.data
-      throw new Error(response.error ?? 'Unable to create idea category.')
+      throw new Error(response.error ?? "Unable to create idea category.")
     },
   })
 }
@@ -41,7 +41,7 @@ export const useUpdateIdeaCategory = () => {
     }) => {
       const response = await categoryService.updateIdeaCategory(id, request)
       if (response.success) return response.data
-      throw new Error(response.error ?? 'Unable to update idea category.')
+      throw new Error(response.error ?? "Unable to update idea category.")
     },
   })
 }
@@ -51,7 +51,7 @@ export const useDeleteIdeaCategory = () => {
     mutationFn: async (id: string) => {
       const response = await categoryService.deleteIdeaCategory(id)
       if (response.success) return response.data
-      throw new Error(response.error ?? 'Unable to delete idea category.')
+      throw new Error(response.error ?? "Unable to delete idea category.")
     },
   })
 }

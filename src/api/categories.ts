@@ -1,25 +1,25 @@
-import { apiClient } from './client'
+import { apiClient } from "./client"
 import type {
   ApiResponse,
   CreateIdeaCategoryRequest,
   IdeaCategory,
   IdeaCategoryListQueryParams,
   IdeaCategoryListResponse,
-} from '@/types'
+} from "@/types"
 
 export const categoryService = {
   getIdeaCategories: (
     params?: IdeaCategoryListQueryParams,
   ): Promise<ApiResponse<IdeaCategoryListResponse>> =>
     apiClient.get<IdeaCategoryListResponse, IdeaCategoryListQueryParams>(
-      '/categories',
+      "/categories",
       { params },
     ),
 
   createIdeaCategory: (
     request: CreateIdeaCategoryRequest,
   ): Promise<ApiResponse<IdeaCategory>> =>
-    apiClient.post<IdeaCategory>('/categories', request),
+    apiClient.post<IdeaCategory>("/categories", request),
 
   updateIdeaCategory: (
     id: string,

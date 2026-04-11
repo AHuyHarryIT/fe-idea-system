@@ -1,12 +1,12 @@
-import type { UIEvent } from 'react'
-import { Input, Select } from 'antd'
-import { Link } from '@tanstack/react-router'
-import { Search, X } from 'lucide-react'
-import { AppButton } from '@/components/app/AppButton'
-import { PageHeader } from '@/components/shared/PageHeader'
-import { SectionCard } from '@/components/shared/SectionCard'
-import type { IdeaCategory, Submission } from '@/types'
-import type { SelectOptionItem } from '@/features/ideas/helpers/idea-catalogue'
+import type { UIEvent } from "react"
+import { Input, Select } from "antd"
+import { Link } from "@tanstack/react-router"
+import { Search, X } from "lucide-react"
+import { AppButton } from "@/components/app/AppButton"
+import { PageHeader } from "@/components/shared/PageHeader"
+import { SectionCard } from "@/components/shared/SectionCard"
+import type { IdeaCategory, Submission } from "@/types"
+import type { SelectOptionItem } from "@/features/ideas/helpers/idea-catalogue"
 
 interface IdeaCatalogueFiltersSectionProps {
   listDescription: string
@@ -120,7 +120,7 @@ export function IdeaCatalogueFiltersSection({
           <span className="rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-700">
             {totalIdeas} total ideas
           </span>
-          {selectedCategory &&  (
+          {selectedCategory && (
             <button
               type="button"
               onClick={onCategoryClear}
@@ -130,7 +130,7 @@ export function IdeaCatalogueFiltersSection({
               <X className="h-3.5 w-3.5" />
             </button>
           )}
-          {selectedSubmission &&  (
+          {selectedSubmission && (
             <button
               type="button"
               onClick={onSubmissionClear}

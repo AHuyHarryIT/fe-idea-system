@@ -1,32 +1,32 @@
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
-import type { UIEvent } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from '@tanstack/react-router'
-import { PageHeader } from '@/components/shared/PageHeader'
-import { useIdeaCategories } from '@/hooks/useCategories'
-import { useSubmitIdea } from '@/hooks/useIdeas'
-import { useSubmissions } from '@/hooks/useSubmissions'
-import { CATEGORY_SELECT_PAGE_SIZE } from '@/constants/category'
-import { auth } from '@/utils/auth'
-import { appNotification } from '@/utils/notifications'
-import type { IdeaSubmitPayload } from '@/types/idea'
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react"
+import type { UIEvent } from "react"
+import { useQueryClient } from "@tanstack/react-query"
+import { useNavigate } from "@tanstack/react-router"
+import { PageHeader } from "@/components/shared/PageHeader"
+import { useIdeaCategories } from "@/hooks/useCategories"
+import { useSubmitIdea } from "@/hooks/useIdeas"
+import { useSubmissions } from "@/hooks/useSubmissions"
+import { CATEGORY_SELECT_PAGE_SIZE } from "@/constants/category"
+import { auth } from "@/utils/auth"
+import { appNotification } from "@/utils/notifications"
+import type { IdeaSubmitPayload } from "@/types/idea"
 import {
   DEFAULT_SUBMISSION_PAGE_SIZE,
   isPdfFile,
   isSubmissionClosed,
-} from '@/features/ideas/helpers/submit-idea'
-import { IDEA_OPTION_SCROLL_THRESHOLD } from '@/features/ideas/helpers/idea-catalogue'
-import { IdeaSubmissionFormSection } from '@/features/ideas/components/IdeaSubmissionFormSection'
-import { SubmissionDetailsSection } from '@/features/submissions/components/SubmissionDetailsSection'
-import { SubmissionListSection } from '@/features/submissions/components/SubmissionListSection'
-import type { IdeaCategory } from '@/types'
+} from "@/features/ideas/helpers/submit-idea"
+import { IDEA_OPTION_SCROLL_THRESHOLD } from "@/features/ideas/helpers/idea-catalogue"
+import { IdeaSubmissionFormSection } from "@/features/ideas/components/IdeaSubmissionFormSection"
+import { SubmissionDetailsSection } from "@/features/submissions/components/SubmissionDetailsSection"
+import { SubmissionListSection } from "@/features/submissions/components/SubmissionListSection"
+import type { IdeaCategory } from "@/types"
 
 const initialForm: IdeaSubmitPayload = {
-  title: '',
-  description: '',
+  title: "",
+  description: "",
   hasAcceptedTerms: false,
-  categoryId: '',
-  submissionId: '',
+  categoryId: "",
+  submissionId: "",
   isAnonymous: false,
   uploadFiles: [],
 }
@@ -40,7 +40,7 @@ export default function SubmitIdeaPage() {
   const [pageSize, setPageSize] = useState(DEFAULT_SUBMISSION_PAGE_SIZE)
   const [categoryOptionPage, setCategoryOptionPage] = useState(1)
   const [categoryOptions, setCategoryOptions] = useState<IdeaCategory[]>([])
-  const [searchValue, setSearchValue] = useState('')
+  const [searchValue, setSearchValue] = useState("")
   const deferredSearch = useDeferredValue(searchValue.trim())
   const {
     data: categoryData,
@@ -61,7 +61,7 @@ export default function SubmitIdeaPage() {
   })
   const { mutateAsync: submitIdea, isPending } = useSubmitIdea()
   const [form, setForm] = useState<IdeaSubmitPayload>(initialForm)
-  const [fileValidationMessage, setFileValidationMessage] = useState('')
+  const [fileValidationMessage, setFileValidationMessage] = useState("")
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [selectedSubmissionId, setSelectedSubmissionId] = useState<
     string | null
@@ -69,7 +69,7 @@ export default function SubmitIdeaPage() {
   const [showSubmitForm, setShowSubmitForm] = useState(false)
 
   const fileNames = useMemo(
-    () => form.uploadFiles?.map((file) => file.name).join(', ') ?? '',
+    () => form.uploadFiles?.map((file) => file.name).join(", ") ?? "",
     [form.uploadFiles],
   )
   const categories = useMemo(() => categoryOptions, [categoryOptions])
@@ -115,7 +115,9 @@ export default function SubmitIdeaPage() {
 
     setCategoryOptions((currentCategories) => {
       const seenIds = new Set(currentCategories.map((category) => category.id))
-      const appended = nextCategories.filter((category) => !seenIds.has(category.id))
+      const appended = nextCategories.filter(
+        (category) => !seenIds.has(category.id),
+      )
 
       if (!appended.length) {
         return currentCategories
@@ -145,10 +147,10 @@ export default function SubmitIdeaPage() {
   const handleReset = () => {
     setForm(initialForm)
     setAgreedToTerms(false)
-    setFileValidationMessage('')
+    setFileValidationMessage("")
 
     if (fileInputRef.current) {
-      fileInputRef.current.value = ''
+      fileInputRef.current.value = ""
     }
   }
 
@@ -173,14 +175,12 @@ export default function SubmitIdeaPage() {
     setShowSubmitForm(true)
   }
 
-
-
   const handleFileChange = (files: FileList | null) => {
     const selectedFiles = Array.from(files ?? [])
 
     if (!selectedFiles.length) {
       setForm((prev) => ({ ...prev, uploadFiles: [] }))
-      setFileValidationMessage('')
+      setFileValidationMessage("")
       return
     }
 
@@ -193,14 +193,14 @@ export default function SubmitIdeaPage() {
       )
 
       if (fileInputRef.current) {
-        fileInputRef.current.value = ''
+        fileInputRef.current.value = ""
       }
 
       return
     }
 
     setForm((prev) => ({ ...prev, uploadFiles: selectedFiles }))
-    setFileValidationMessage('')
+    setFileValidationMessage("")
   }
 
   const handleSubmit = async () => {
@@ -211,20 +211,20 @@ export default function SubmitIdeaPage() {
       !selectedSubmission
     ) {
       appNotification.warning(
-        'Please complete all required fields before submitting.',
+        "Please complete all required fields before submitting.",
       )
       return
     }
 
     if (isSubmissionClosed(selectedSubmission.closureDate)) {
       appNotification.warning(
-        'This submission is already closed. Please choose another available submission.',
+        "This submission is already closed. Please choose another available submission.",
       )
       return
     }
 
     if (!agreedToTerms) {
-      appNotification.warning('You must agree to the Terms and Conditions.')
+      appNotification.warning("You must agree to the Terms and Conditions.")
       return
     }
 
@@ -234,38 +234,38 @@ export default function SubmitIdeaPage() {
     }
 
     const formData = new FormData()
-    formData.append('Title', form.title.trim())
-    formData.append('Description', form.description.trim())
-    formData.append('HasAcceptedTerms', String(agreedToTerms))
-    formData.append('CategoryId', form.categoryId)
-    formData.append('SubmissionId', selectedSubmission.id)
-    formData.append('IsAnonymous', String(form.isAnonymous))
+    formData.append("Title", form.title.trim())
+    formData.append("Description", form.description.trim())
+    formData.append("HasAcceptedTerms", String(agreedToTerms))
+    formData.append("CategoryId", form.categoryId)
+    formData.append("SubmissionId", selectedSubmission.id)
+    formData.append("IsAnonymous", String(form.isAnonymous))
     const departmentId = auth.getDepartmentId()
 
     if (departmentId) {
-      formData.append('DepartmentId', departmentId)
+      formData.append("DepartmentId", departmentId)
     }
 
     form.uploadFiles?.forEach((file) => {
-      formData.append('UploadedFiles', file)
+      formData.append("UploadedFiles", file)
     })
 
     const response = await submitIdea(formData)
 
     if (!response.success) {
-      appNotification.error(response.error ?? 'Unable to submit your idea.')
+      appNotification.error(response.error ?? "Unable to submit your idea.")
       return
     }
 
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ['myIdeas'] }),
-      queryClient.invalidateQueries({ queryKey: ['allIdeas'] }),
-      queryClient.invalidateQueries({ queryKey: ['pagedIdeas'] }),
+      queryClient.invalidateQueries({ queryKey: ["myIdeas"] }),
+      queryClient.invalidateQueries({ queryKey: ["allIdeas"] }),
+      queryClient.invalidateQueries({ queryKey: ["pagedIdeas"] }),
     ])
 
     handleReset()
-    appNotification.success('Idea submitted successfully.')
-    navigate({ to: '/my-ideas' })
+    appNotification.success("Idea submitted successfully.")
+    navigate({ to: "/my-ideas" })
   }
 
   return (
@@ -278,7 +278,7 @@ export default function SubmitIdeaPage() {
       <div className="mb-6 rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+            <p className="text-xs font-semibold tracking-[0.16em] text-slate-400 uppercase">
               Submission flow
             </p>
             <h2 className="mt-2 text-lg font-semibold text-slate-950">
@@ -286,10 +286,10 @@ export default function SubmitIdeaPage() {
             </h2>
             <p className="mt-1 text-sm text-slate-600">
               {currentStep === 1
-                ? 'Choose an active submission campaign that fits your idea.'
+                ? "Choose an active submission campaign that fits your idea."
                 : currentStep === 2
-                  ? 'Review the campaign timeline before starting the form.'
-                  : 'Complete the form and confirm the submission terms.'}
+                  ? "Review the campaign timeline before starting the form."
+                  : "Complete the form and confirm the submission terms."}
             </p>
           </div>
 
@@ -297,18 +297,18 @@ export default function SubmitIdeaPage() {
             {[
               {
                 step: 1,
-                title: 'Choose submission',
-                description: 'Select a campaign',
+                title: "Choose submission",
+                description: "Select a campaign",
               },
               {
                 step: 2,
-                title: 'Review details',
-                description: 'Check dates and scope',
+                title: "Review details",
+                description: "Check dates and scope",
               },
               {
                 step: 3,
-                title: 'Submit idea',
-                description: 'Complete the form',
+                title: "Submit idea",
+                description: "Complete the form",
               },
             ].map((item) => {
               const isActive = currentStep === item.step
@@ -319,25 +319,29 @@ export default function SubmitIdeaPage() {
                   key={item.step}
                   className={`rounded-[22px] border px-4 py-4 ${
                     isActive
-                      ? 'border-blue-200 bg-blue-50'
+                      ? "border-blue-200 bg-blue-50"
                       : isCompleted
-                        ? 'border-emerald-200 bg-emerald-50'
-                        : 'border-slate-200 bg-slate-50'
+                        ? "border-emerald-200 bg-emerald-50"
+                        : "border-slate-200 bg-slate-50"
                   }`}
                 >
                   <p
-                    className={`text-xs font-semibold uppercase tracking-[0.16em] ${
+                    className={`text-xs font-semibold tracking-[0.16em] uppercase ${
                       isActive
-                        ? 'text-blue-700'
+                        ? "text-blue-700"
                         : isCompleted
-                          ? 'text-emerald-700'
-                          : 'text-slate-400'
+                          ? "text-emerald-700"
+                          : "text-slate-400"
                     }`}
                   >
                     Step {item.step}
                   </p>
-                  <p className="mt-2 text-sm font-semibold text-slate-950">{item.title}</p>
-                  <p className="mt-1 text-sm text-slate-600">{item.description}</p>
+                  <p className="mt-2 text-sm font-semibold text-slate-950">
+                    {item.title}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-600">
+                    {item.description}
+                  </p>
                 </div>
               )
             })}
@@ -356,7 +360,7 @@ export default function SubmitIdeaPage() {
           totalSubmissions={totalSubmissions}
           pageSize={pageSize}
           onSearchChange={setSearchValue}
-          onResetSearch={() => setSearchValue('')}
+          onResetSearch={() => setSearchValue("")}
           onOpenSubmissionDetails={openSubmissionDetails}
           onPageChange={(page, nextPageSize) => {
             if (nextPageSize !== pageSize) {

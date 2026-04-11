@@ -1,19 +1,22 @@
-import { Bar, Line } from '@ant-design/charts'
-import { BarChart3, Users } from 'lucide-react'
-import { EmptyState } from '@/components/shared/EmptyState'
-import { SectionCard } from '@/components/shared/SectionCard'
+import { Bar, Line } from "@ant-design/charts"
+import { BarChart3, Users } from "lucide-react"
+import { EmptyState } from "@/components/shared/EmptyState"
+import { SectionCard } from "@/components/shared/SectionCard"
 import {
   QA_MANAGER_DEPARTMENT_SERIES,
-  QA_MANAGER_TREND_SERIES
-  
-} from '@/features/dashboard/qa-manager/helpers/qa-manager-dashboard'
-import type {DepartmentSummary} from '@/features/dashboard/qa-manager/helpers/qa-manager-dashboard';
+  QA_MANAGER_TREND_SERIES,
+} from "@/features/dashboard/qa-manager/helpers/qa-manager-dashboard"
+import type { DepartmentSummary } from "@/features/dashboard/qa-manager/helpers/qa-manager-dashboard"
 
 interface QAManagerChartsSectionProps {
   error?: Error | null
   ideasCount: number
   trendChartData: Array<{ month: string; series: string; value: number }>
-  departmentChartData: Array<{ department: string; series: string; value: number }>
+  departmentChartData: Array<{
+    department: string
+    series: string
+    value: number
+  }>
   departmentSummaries: DepartmentSummary[]
   departmentMax: number
 }
@@ -33,7 +36,11 @@ export function QAManagerChartsSection({
         description="Recent movement across ideas, comments, and contributors."
       >
         {error ? (
-          <EmptyState icon={BarChart3} title="Trend data unavailable" description={error.message} />
+          <EmptyState
+            icon={BarChart3}
+            title="Trend data unavailable"
+            description={error.message}
+          />
         ) : ideasCount > 0 ? (
           <div className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-5">
             <Line
@@ -53,11 +60,11 @@ export function QAManagerChartsSection({
               style={{ lineWidth: 3 }}
               point={{
                 size: 4,
-                shape: 'circle',
-                style: { fill: '#ffffff', lineWidth: 2 },
+                shape: "circle",
+                style: { fill: "#ffffff", lineWidth: 2 },
               }}
               legend={false}
-              tooltip={{ title: 'month' }}
+              tooltip={{ title: "month" }}
               axis={{
                 x: { title: false, line: true, tick: false },
                 y: { title: false, grid: true },
@@ -66,7 +73,10 @@ export function QAManagerChartsSection({
 
             <div className="mt-4 flex flex-wrap gap-4 text-sm text-slate-600">
               {QA_MANAGER_TREND_SERIES.map((series) => (
-                <span key={series.key} className="inline-flex items-center gap-2">
+                <span
+                  key={series.key}
+                  className="inline-flex items-center gap-2"
+                >
                   <span
                     className="h-2.5 w-2.5 rounded-full"
                     style={{ backgroundColor: series.color }}
@@ -107,25 +117,29 @@ export function QAManagerChartsSection({
               group
               scale={{
                 color: {
-                  domain: QA_MANAGER_DEPARTMENT_SERIES.map((series) => series.key),
-                  range: QA_MANAGER_DEPARTMENT_SERIES.map((series) => series.color),
+                  domain: QA_MANAGER_DEPARTMENT_SERIES.map(
+                    (series) => series.key,
+                  ),
+                  range: QA_MANAGER_DEPARTMENT_SERIES.map(
+                    (series) => series.color,
+                  ),
                 },
                 y: { domainMax: departmentMax },
               }}
               legend={false}
-              tooltip={{ title: 'department' }}
+              tooltip={{ title: "department" }}
               axis={{
                 x: { title: false },
                 y: { title: false, grid: true },
               }}
               label={{
-                text: 'value',
-                position: 'inside',
+                text: "value",
+                position: "inside",
                 style: {
-                  fill: '#ffffff',
+                  fill: "#ffffff",
                   fontSize: 12,
                   fontWeight: 600,
-                  stroke: 'rgba(15, 23, 42, 0.15)',
+                  stroke: "rgba(15, 23, 42, 0.15)",
                   lineWidth: 2,
                 },
               }}
@@ -133,7 +147,10 @@ export function QAManagerChartsSection({
 
             <div className="mt-4 flex flex-wrap gap-4 text-sm text-slate-600">
               {QA_MANAGER_DEPARTMENT_SERIES.map((series) => (
-                <span key={series.key} className="inline-flex items-center gap-2">
+                <span
+                  key={series.key}
+                  className="inline-flex items-center gap-2"
+                >
                   <span
                     className="h-2.5 w-2.5 rounded-full"
                     style={{ backgroundColor: series.color }}

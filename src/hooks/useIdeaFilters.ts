@@ -1,10 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState } from "react"
 
 export function useIdeaFilters() {
-  const [search, setSearch] = useState('')
-  const [status, setStatus] = useState('')
-  const [categoryId, setCategoryId] = useState('')
-  const [submissionId, setSubmissionId] = useState('')
+  const [search, setSearch] = useState("")
+  const [status, setStatus] = useState("")
+  const [categoryId, setCategoryId] = useState("")
+  const [submissionId, setSubmissionId] = useState("")
 
   const query = useMemo(
     () => ({

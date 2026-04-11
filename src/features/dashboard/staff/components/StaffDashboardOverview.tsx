@@ -1,14 +1,12 @@
-import { useMemo } from 'react'
-import type { Idea } from '@/types'
-import { EmptyState } from '@/components/shared/EmptyState'
-import { SectionCard } from '@/components/shared/SectionCard'
-import { Lightbulb } from 'lucide-react'
-import {
-  getReactionScore,
-} from '@/features/dashboard/staff/helpers/staff-dashboard'
-import { StaffOverviewMetrics } from '@/features/dashboard/staff/components/StaffOverviewMetrics'
-import { StaffQuickActionsSection } from '@/features/dashboard/staff/components/StaffQuickActionsSection'
-import { IdeaHighlightListSection } from '@/features/dashboard/staff/components/IdeaHighlightListSection'
+import { useMemo } from "react"
+import type { Idea } from "@/types"
+import { EmptyState } from "@/components/shared/EmptyState"
+import { SectionCard } from "@/components/shared/SectionCard"
+import { Lightbulb } from "lucide-react"
+import { getReactionScore } from "@/features/dashboard/staff/helpers/staff-dashboard"
+import { StaffOverviewMetrics } from "@/features/dashboard/staff/components/StaffOverviewMetrics"
+import { StaffQuickActionsSection } from "@/features/dashboard/staff/components/StaffQuickActionsSection"
+import { IdeaHighlightListSection } from "@/features/dashboard/staff/components/IdeaHighlightListSection"
 
 interface StaffDashboardOverviewProps {
   myIdeas: Idea[]
@@ -57,7 +55,11 @@ export function StaffDashboardOverview({
 
   return (
     <div className="space-y-6">
-      <StaffOverviewMetrics myIdeas={myIdeas} allIdeas={allIdeas} isLoading={isLoading} />
+      <StaffOverviewMetrics
+        myIdeas={myIdeas}
+        allIdeas={allIdeas}
+        isLoading={isLoading}
+      />
       <StaffQuickActionsSection />
 
       {errorMessage ? (

@@ -1,15 +1,15 @@
-import { Input } from 'antd'
-import { CalendarRange, Search } from 'lucide-react'
-import { AppButton } from '@/components/app/AppButton'
-import { AppPagination } from '@/components/shared/AppPagination'
-import { EmptyState } from '@/components/shared/EmptyState'
-import { SectionCard } from '@/components/shared/SectionCard'
-import { formatAppDateTime } from '@/utils/date'
-import type { Submission } from '@/types'
+import { Input } from "antd"
+import { CalendarRange, Search } from "lucide-react"
+import { AppButton } from "@/components/app/AppButton"
+import { AppPagination } from "@/components/shared/AppPagination"
+import { EmptyState } from "@/components/shared/EmptyState"
+import { SectionCard } from "@/components/shared/SectionCard"
+import { formatAppDateTime } from "@/utils/date"
+import type { Submission } from "@/types"
 import {
   isSubmissionClosed,
   SUBMISSION_PAGE_SIZE_OPTIONS,
-} from '@/features/ideas/helpers/submit-idea'
+} from "@/features/ideas/helpers/submit-idea"
 
 interface SubmissionListSectionProps {
   error?: Error | null
@@ -96,22 +96,26 @@ export function SubmissionListSection({
                         {submission.name}
                       </p>
                       <span
-                        className={`rounded-full px-3 py-1 text-xs font-medium ${closed ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'}`}
+                        className={`rounded-full px-3 py-1 text-xs font-medium ${closed ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-700"}`}
                       >
-                        {closed ? 'Closed' : 'Open'}
+                        {closed ? "Closed" : "Open"}
                       </span>
                     </div>
                     <p className="max-w-3xl text-sm text-slate-600">
                       {submission.description?.trim() ||
-                        'No description has been added for this submission yet.'}
+                        "No description has been added for this submission yet."}
                     </p>
                     <div className="grid gap-2 text-sm text-slate-600 md:grid-cols-2">
                       <p>
-                        <span className="font-medium text-slate-800">Closure date:</span>{' '}
+                        <span className="font-medium text-slate-800">
+                          Closure date:
+                        </span>{" "}
                         {formatAppDateTime(submission.closureDate)}
                       </p>
                       <p>
-                        <span className="font-medium text-slate-800">Final closure date:</span>{' '}
+                        <span className="font-medium text-slate-800">
+                          Final closure date:
+                        </span>{" "}
                         {formatAppDateTime(submission.finalClosureDate)}
                       </p>
                     </div>
@@ -143,7 +147,7 @@ export function SubmissionListSection({
             />
           )}
 
-          {submissions.length &&  (
+          {submissions.length && (
             <AppPagination
               current={currentPage}
               total={totalSubmissions}

@@ -1,5 +1,5 @@
-import type { Submission } from '@/types'
-import { getDateTimestamp } from '@/utils/date'
+import type { Submission } from "@/types"
+import { getDateTimestamp } from "@/utils/date"
 
 export function isAdminSubmissionOpen(submission: Submission) {
   const finalClosureTimestamp = getDateTimestamp(submission.finalClosureDate)
@@ -7,5 +7,5 @@ export function isAdminSubmissionOpen(submission: Submission) {
 }
 
 export function getAdminStatValue(value?: number) {
-  return typeof value === 'number' ? value : 0
+  return typeof value === "number" ? value : 0
 }

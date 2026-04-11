@@ -1,6 +1,6 @@
-import { useEffect } from 'react'
-import type { ReactNode } from 'react'
-import { X } from 'lucide-react'
+import { useEffect } from "react"
+import type { ReactNode } from "react"
+import { X } from "lucide-react"
 
 interface ModalProps {
   isOpen: boolean
@@ -24,26 +24,26 @@ export function Modal({
   children,
   onClose,
   footer,
-  maxWidthClassName = 'max-w-2xl',
+  maxWidthClassName = "max-w-2xl",
   titleIcon,
   showCloseButton = true,
   closeOnBackdrop = true,
-  contentClassName = 'max-h-[70vh] overflow-y-auto px-6 py-5',
-  footerClassName = 'flex flex-wrap justify-end gap-3 border-t border-slate-200 px-6 py-4',
+  contentClassName = "max-h-[70vh] overflow-y-auto px-6 py-5",
+  footerClassName = "flex flex-wrap justify-end gap-3 border-t border-slate-200 px-6 py-4",
 }: ModalProps) {
   useEffect(() => {
     if (!isOpen) return
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         onClose()
       }
     }
 
-    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener("keydown", handleKeyDown)
 
     return () => {
-      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener("keydown", handleKeyDown)
     }
   }, [isOpen, onClose])
 
@@ -65,16 +65,18 @@ export function Modal({
           <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5">
             <div className="min-w-0">
               <div className="flex items-center gap-3">
-                {titleIcon &&  (
+                {titleIcon && (
                   <span className="shrink-0 text-slate-500">{titleIcon}</span>
                 )}
-                <h2 className="text-xl font-semibold text-slate-900">{title}</h2>
+                <h2 className="text-xl font-semibold text-slate-900">
+                  {title}
+                </h2>
               </div>
-              {description &&  (
+              {description && (
                 <p className="mt-1 text-sm text-slate-500">{description}</p>
               )}
             </div>
-            {showCloseButton &&  (
+            {showCloseButton && (
               <button
                 type="button"
                 onClick={onClose}
@@ -86,11 +88,7 @@ export function Modal({
             )}
           </div>
           <div className={contentClassName}>{children}</div>
-          {footer &&  (
-            <div className={footerClassName}>
-              {footer}
-            </div>
-          )}
+          {footer && <div className={footerClassName}>{footer}</div>}
         </div>
       </div>
     </>

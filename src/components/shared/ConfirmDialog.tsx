@@ -1,6 +1,6 @@
-import { AlertTriangle } from 'lucide-react'
-import { AppButton } from '@/components/app/AppButton'
-import { Modal } from '@/components/shared/Modal'
+import { AlertTriangle } from "lucide-react"
+import { AppButton } from "@/components/app/AppButton"
+import { Modal } from "@/components/shared/Modal"
 
 interface ConfirmDialogProps {
   isOpen: boolean
@@ -18,8 +18,8 @@ export function ConfirmDialog({
   isOpen,
   title,
   message,
-  confirmText = 'Confirm',
-  cancelText = 'Cancel',
+  confirmText = "Confirm",
+  cancelText = "Cancel",
   isDangerous = false,
   isLoading = false,
   onConfirm,
@@ -30,7 +30,8 @@ export function ConfirmDialog({
       isOpen={isOpen}
       title={title}
       titleIcon={
-        isDangerous &&  <AlertTriangle className="h-5 w-5 text-red-600" />}
+        isDangerous && <AlertTriangle className="h-5 w-5 text-red-600" />
+      }
       onClose={onCancel}
       maxWidthClassName="max-w-md"
       contentClassName="px-6 py-5"
@@ -50,9 +51,11 @@ export function ConfirmDialog({
             variant="secondary"
             onClick={onConfirm}
             disabled={isLoading}
-            className={isDangerous ? 'bg-red-100 text-red-700 hover:bg-red-200' : ''}
+            className={
+              isDangerous ? "bg-red-100 text-red-700 hover:bg-red-200" : ""
+            }
           >
-            {isLoading ? 'Processing...' : confirmText}
+            {isLoading ? "Processing..." : confirmText}
           </AppButton>
         </>
       }

@@ -1,4 +1,4 @@
-import type { UpdateUserRequest, User } from '@/types'
+import type { UpdateUserRequest, User } from "@/types"
 
 export interface CreateUserFormState {
   email: string
@@ -19,47 +19,47 @@ export type UserFormValidationErrors = Partial<
 >
 
 export const AVAILABLE_USER_ROLES = [
-  'Administrator',
-  'Staff',
-  'QA Manager',
-  'QA Coordinator',
+  "Administrator",
+  "Staff",
+  "QA Manager",
+  "QA Coordinator",
 ]
 
 export const USER_PASSWORD_RULES = [
-  'At least 8 characters',
-  'At least one uppercase letter',
-  'At least one lowercase letter',
-  'At least one number',
-  'At least one special character',
+  "At least 8 characters",
+  "At least one uppercase letter",
+  "At least one lowercase letter",
+  "At least one number",
+  "At least one special character",
 ]
 
 export const userRoleSelectClassName =
-  'w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100'
+  "w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
 
 export const initialCreateUserForm: CreateUserFormState = {
-  email: '',
-  name: '',
-  password: '',
-  role: 'Staff',
-  departmentId: '',
+  email: "",
+  name: "",
+  password: "",
+  role: "Staff",
+  departmentId: "",
 }
 
 export const initialEditUserForm: EditUserFormState = {
-  name: '',
-  role: 'Staff',
-  departmentId: '',
+  name: "",
+  role: "Staff",
+  departmentId: "",
 }
 
 export const DEFAULT_USER_PAGE_SIZE = 10
-export const USER_PAGE_SIZE_OPTIONS = ['10', '20', '50']
+export const USER_PAGE_SIZE_OPTIONS = ["10", "20", "50"]
 
 export function normalizeUserRoleKey(value?: string | null) {
-  return value?.toLowerCase().replace(/[^a-z]/g, '') ?? ''
+  return value?.toLowerCase().replace(/[^a-z]/g, "") ?? ""
 }
 
 export function formatUserRoleLabel(value?: string | null) {
   if (!value) {
-    return 'Unknown'
+    return "Unknown"
   }
 
   const normalized = normalizeUserRoleKey(value)
@@ -67,20 +67,21 @@ export function formatUserRoleLabel(value?: string | null) {
     (role) => normalizeUserRoleKey(role) === normalized,
   )
 
-  return matchingRole ?? value.replace(/_/g, ' ')
+  return matchingRole ?? value.replace(/_/g, " ")
 }
 
 export function getMatchingUserRole(value?: string | null) {
   const normalized = normalizeUserRoleKey(value)
 
   return (
-    AVAILABLE_USER_ROLES.find((role) => normalizeUserRoleKey(role) === normalized) ??
-    'Staff'
+    AVAILABLE_USER_ROLES.find(
+      (role) => normalizeUserRoleKey(role) === normalized,
+    ) ?? "Staff"
   )
 }
 
 export function getUserDepartmentValue(user: User) {
-  return user.departmentId ?? ''
+  return user.departmentId ?? ""
 }
 
 export function isValidUserEmail(value: string) {

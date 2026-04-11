@@ -1,7 +1,7 @@
-import { authService, extractAuthResponse } from '@/api'
-import type { LoginRequest } from '@/types'
-import { auth, normalizeRole } from '@/utils/auth'
-import { useMutation } from '@tanstack/react-query'
+import { authService, extractAuthResponse } from "@/api"
+import type { LoginRequest } from "@/types"
+import { auth, normalizeRole } from "@/utils/auth"
+import { useMutation } from "@tanstack/react-query"
 
 export const useLogin = () => {
   return useMutation({

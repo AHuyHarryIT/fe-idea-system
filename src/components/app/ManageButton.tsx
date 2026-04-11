@@ -1,28 +1,28 @@
-import type { ButtonHTMLAttributes } from 'react'
-import { ArrowRight } from 'lucide-react'
+import type { ButtonHTMLAttributes } from "react"
+import { ArrowRight } from "lucide-react"
 
 interface AppButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'blue' | 'amber' | 'emerald' | 'violet'
+  variant?: "blue" | "amber" | "emerald" | "violet"
   title: string
   description: string
   meta?: string
 }
 
 const variantClassNames: Record<
-  NonNullable<AppButtonProps['variant']>,
+  NonNullable<AppButtonProps["variant"]>,
   string
 > = {
-  blue: 'border-blue-100 bg-[linear-gradient(180deg,rgba(239,246,255,0.9)_0%,rgba(255,255,255,1)_65%)] hover:border-blue-200 hover:bg-blue-50/80',
+  blue: "border-blue-100 bg-[linear-gradient(180deg,rgba(239,246,255,0.9)_0%,rgba(255,255,255,1)_65%)] hover:border-blue-200 hover:bg-blue-50/80",
   amber:
-    'border-amber-100 bg-[linear-gradient(180deg,rgba(255,251,235,0.92)_0%,rgba(255,255,255,1)_65%)] hover:border-amber-200 hover:bg-amber-50/80',
+    "border-amber-100 bg-[linear-gradient(180deg,rgba(255,251,235,0.92)_0%,rgba(255,255,255,1)_65%)] hover:border-amber-200 hover:bg-amber-50/80",
   emerald:
-    'border-emerald-100 bg-[linear-gradient(180deg,rgba(236,253,245,0.92)_0%,rgba(255,255,255,1)_65%)] hover:border-emerald-200 hover:bg-emerald-50/80',
+    "border-emerald-100 bg-[linear-gradient(180deg,rgba(236,253,245,0.92)_0%,rgba(255,255,255,1)_65%)] hover:border-emerald-200 hover:bg-emerald-50/80",
   violet:
-    'border-violet-100 bg-[linear-gradient(180deg,rgba(245,243,255,0.92)_0%,rgba(255,255,255,1)_65%)] hover:border-violet-200 hover:bg-violet-50/80',
+    "border-violet-100 bg-[linear-gradient(180deg,rgba(245,243,255,0.92)_0%,rgba(255,255,255,1)_65%)] hover:border-violet-200 hover:bg-violet-50/80",
 }
 
 export function ManageButton({
-  variant = 'blue',
+  variant = "blue",
   className,
   title,
   description,
@@ -32,12 +32,12 @@ export function ManageButton({
   return (
     <button
       {...props}
-      className={`group rounded-[24px] border p-5 text-left transition ${variantClassNames[variant]} ${className ?? ''}`.trim()}
+      className={`group rounded-[24px] border p-5 text-left transition ${variantClassNames[variant]} ${className ?? ""}`.trim()}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-3">
-          {meta &&  (
-            <span className="inline-flex rounded-full bg-white/80 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+          {meta && (
+            <span className="inline-flex rounded-full bg-white/80 px-2.5 py-1 text-[11px] font-semibold tracking-[0.18em] text-slate-500 uppercase">
               {meta}
             </span>
           )}

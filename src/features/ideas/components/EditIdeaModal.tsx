@@ -1,9 +1,9 @@
-import { FileUp } from 'lucide-react'
-import { AppButton } from '@/components/app/AppButton'
-import { FormField } from '@/components/forms/FormField'
-import { FormInput, FormTextarea } from '@/components/forms/FormInput'
-import { Modal } from '@/components/shared/Modal'
-import type { IdeaCategory } from '@/types'
+import { FileUp } from "lucide-react"
+import { AppButton } from "@/components/app/AppButton"
+import { FormField } from "@/components/forms/FormField"
+import { FormInput, FormTextarea } from "@/components/forms/FormInput"
+import { Modal } from "@/components/shared/Modal"
+import type { IdeaCategory } from "@/types"
 
 export interface EditIdeaFormState {
   title: string
@@ -47,7 +47,12 @@ export function EditIdeaModal({
       maxWidthClassName="max-w-3xl"
       footer={
         <>
-          <AppButton type="button" variant="ghost" onClick={onClose} disabled={isUpdatingIdea}>
+          <AppButton
+            type="button"
+            variant="ghost"
+            onClick={onClose}
+            disabled={isUpdatingIdea}
+          >
             Cancel
           </AppButton>
           <AppButton
@@ -56,7 +61,7 @@ export function EditIdeaModal({
             onClick={onSave}
             disabled={isUpdatingIdea}
           >
-            {isUpdatingIdea ? 'Saving...' : 'Save changes'}
+            {isUpdatingIdea ? "Saving..." : "Save changes"}
           </AppButton>
         </>
       }
@@ -68,7 +73,9 @@ export function EditIdeaModal({
             name="edit-idea-title"
             aria-label="Idea title"
             value={editForm.title}
-            onChange={(event) => onFormChange({ ...editForm, title: event.target.value })}
+            onChange={(event) =>
+              onFormChange({ ...editForm, title: event.target.value })
+            }
             placeholder="Enter a concise title"
           />
         </FormField>
@@ -93,8 +100,10 @@ export function EditIdeaModal({
               name="edit-idea-category"
               aria-label="Idea category"
               value={editForm.categoryId}
-              onChange={(event) => onFormChange({ ...editForm, categoryId: event.target.value })}
-              className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+              onChange={(event) =>
+                onFormChange({ ...editForm, categoryId: event.target.value })
+              }
+              className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 transition outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
             >
               <option value="">Select category</option>
               {categories.map((category) => (
@@ -103,7 +112,7 @@ export function EditIdeaModal({
                 </option>
               ))}
             </select>
-            {categoriesLoading &&  (
+            {categoriesLoading && (
               <p className="text-xs text-slate-500">Loading categories...</p>
             )}
           </FormField>
@@ -117,7 +126,10 @@ export function EditIdeaModal({
                 type="checkbox"
                 checked={editForm.isAnonymous}
                 onChange={(event) =>
-                  onFormChange({ ...editForm, isAnonymous: event.target.checked })
+                  onFormChange({
+                    ...editForm,
+                    isAnonymous: event.target.checked,
+                  })
                 }
               />
               Hide author identity from public idea views.
@@ -132,7 +144,9 @@ export function EditIdeaModal({
                 <FileUp className="h-6 w-6 text-slate-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-slate-900">Upload replacement files</p>
+                <p className="text-sm font-medium text-slate-900">
+                  Upload replacement files
+                </p>
                 <p className="mt-1 text-xs text-slate-500">
                   PDF files only. Leave empty to keep current documents.
                 </p>
@@ -150,11 +164,13 @@ export function EditIdeaModal({
             </label>
             <p className="mt-4 text-sm text-slate-600">
               {editForm.uploadFiles.length
-                ? editForm.uploadFiles.map((file) => file.name).join(', ')
-                : 'No new files selected.'}
+                ? editForm.uploadFiles.map((file) => file.name).join(", ")
+                : "No new files selected."}
             </p>
-            {fileValidationMessage &&  (
-              <p className="mt-3 text-sm text-red-600">{fileValidationMessage}</p>
+            {fileValidationMessage && (
+              <p className="mt-3 text-sm text-red-600">
+                {fileValidationMessage}
+              </p>
             )}
           </div>
         </FormField>

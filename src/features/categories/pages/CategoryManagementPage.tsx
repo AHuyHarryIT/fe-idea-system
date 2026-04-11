@@ -1,30 +1,29 @@
-import { useDeferredValue, useEffect, useMemo, useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
-import { ActionButton } from '@/components/app/ActionButton'
-import { PageHeader } from '@/components/shared/PageHeader'
+import { useDeferredValue, useEffect, useMemo, useState } from "react"
+import { useQueryClient } from "@tanstack/react-query"
+import { ActionButton } from "@/components/app/ActionButton"
+import { PageHeader } from "@/components/shared/PageHeader"
 import {
   useCreateIdeaCategory,
   useDeleteIdeaCategory,
   useIdeaCategories,
   useUpdateIdeaCategory,
-} from '@/hooks/useCategories'
-import { extractCollection, mapCategory } from '@/utils/api-mappers'
-import { appNotification } from '@/utils/notifications'
-import { CategoryManagementListSection } from '@/features/categories/components/CategoryManagementListSection'
+} from "@/hooks/useCategories"
+import { extractCollection, mapCategory } from "@/utils/api-mappers"
+import { appNotification } from "@/utils/notifications"
+import { CategoryManagementListSection } from "@/features/categories/components/CategoryManagementListSection"
 import {
   buildCategoryManagementPayload,
   DEFAULT_CATEGORY_PAGE_SIZE,
   initialCategoryManagementForm,
-  
-  validateCategoryManagementForm
-} from '@/features/categories/helpers/category-management'
-import type {CategoryManagementFormState} from '@/features/categories/helpers/category-management';
+  validateCategoryManagementForm,
+} from "@/features/categories/helpers/category-management"
+import type { CategoryManagementFormState } from "@/features/categories/helpers/category-management"
 
 export default function CategoryManagementPage() {
   const queryClient = useQueryClient()
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState<number>(DEFAULT_CATEGORY_PAGE_SIZE)
-  const [searchValue, setSearchValue] = useState('')
+  const [searchValue, setSearchValue] = useState("")
   const deferredSearch = useDeferredValue(searchValue.trim())
   const { data, isLoading, error } = useIdeaCategories({
     pageNumber: currentPage,
@@ -47,7 +46,7 @@ export default function CategoryManagementPage() {
 
   const categories = useMemo(
     () =>
-      extractCollection(data, ['categories'])
+      extractCollection(data, ["categories"])
         .map(mapCategory)
         .filter((item) => item.id),
     [data],
@@ -67,8 +66,8 @@ export default function CategoryManagementPage() {
 
   const refreshCategoryQueries = async () => {
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ['ideaCategories'] }),
-      queryClient.invalidateQueries({ queryKey: ['adminOverview'] }),
+      queryClient.invalidateQueries({ queryKey: ["ideaCategories"] }),
+      queryClient.invalidateQueries({ queryKey: ["adminOverview"] }),
     ])
   }
 
@@ -103,10 +102,10 @@ export default function CategoryManagementPage() {
           id: editingId,
           request: buildCategoryManagementPayload(form),
         })
-        appNotification.success('Category updated successfully.')
+        appNotification.success("Category updated successfully.")
       } else {
         await createIdeaCategory(buildCategoryManagementPayload(form))
-        appNotification.success('Category created successfully.')
+        appNotification.success("Category created successfully.")
         setCurrentPage(1)
       }
 
@@ -117,8 +116,8 @@ export default function CategoryManagementPage() {
         err instanceof Error
           ? err.message
           : editingId
-            ? 'Unable to update category.'
-            : 'Unable to create category.',
+            ? "Unable to update category."
+            : "Unable to create category.",
       )
     }
   }
@@ -129,14 +128,14 @@ export default function CategoryManagementPage() {
     try {
       await deleteIdeaCategory(deleteConfirmId)
       await refreshCategoryQueries()
-      appNotification.success('Category deleted successfully.')
+      appNotification.success("Category deleted successfully.")
 
       if (editingId === deleteConfirmId) {
         closeFormModal()
       }
     } catch (err) {
       appNotification.error(
-        err instanceof Error ? err.message : 'Unable to delete category.',
+        err instanceof Error ? err.message : "Unable to delete category.",
       )
     } finally {
       setDeleteConfirmId(null)
@@ -174,7 +173,7 @@ export default function CategoryManagementPage() {
         isSaving={isCreating || isUpdating}
         isDeleting={isDeleting}
         onSearchChange={setSearchValue}
-        onResetSearch={() => setSearchValue('')}
+        onResetSearch={() => setSearchValue("")}
         onOpenCreateModal={openCreateModal}
         onEditCategory={handleEdit}
         onDeleteRequest={setDeleteConfirmId}

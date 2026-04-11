@@ -1,6 +1,6 @@
-import { auth } from '@/utils/auth'
+import { auth } from "@/utils/auth"
 
-const IDEA_VOTE_STATUS_STORAGE_KEY = 'idea_system_vote_status'
+const IDEA_VOTE_STATUS_STORAGE_KEY = "idea_system_vote_status"
 
 export const IDEA_VOTE_STATUS_NONE = 0
 export const IDEA_VOTE_STATUS_LIKED = 1
@@ -25,7 +25,7 @@ function isStoredIdeaVoteStatuses(
 
   return Object.values(value).every(
     (status) =>
-      typeof status === 'number' &&
+      typeof status === "number" &&
       [
         IDEA_VOTE_STATUS_NONE,
         IDEA_VOTE_STATUS_LIKED,
@@ -72,13 +72,18 @@ export function normalizeIdeaThumbStatus(value?: number) {
 export function getStoredIdeaVoteStatus(ideaId: string) {
   const statuses = readStoredIdeaVoteStatuses()
 
-  return ideaId in statuses ? normalizeIdeaThumbStatus(statuses[ideaId]) : undefined
+  return ideaId in statuses
+    ? normalizeIdeaThumbStatus(statuses[ideaId])
+    : undefined
 }
 
-export function getResolvedIdeaVoteStatus(ideaId: string, apiThumbStatus?: number) {
+export function getResolvedIdeaVoteStatus(
+  ideaId: string,
+  apiThumbStatus?: number,
+) {
   const storedStatus = getStoredIdeaVoteStatus(ideaId)
 
-  if (typeof storedStatus === 'number') {
+  if (typeof storedStatus === "number") {
     return storedStatus
   }
 
@@ -202,23 +207,23 @@ export function getIdeaVoteFeedbackMessage(
 
   if (isThumbsUp) {
     if (nextThumbStatus === IDEA_VOTE_STATUS_NONE) {
-      return 'Your like has been removed.'
+      return "Your like has been removed."
     }
 
     if (normalizedPreviousStatus === IDEA_VOTE_STATUS_DISLIKED) {
-      return 'Your vote has been changed to like.'
+      return "Your vote has been changed to like."
     }
 
-    return 'Thanks! Your like has been recorded.'
+    return "Thanks! Your like has been recorded."
   }
 
   if (nextThumbStatus === IDEA_VOTE_STATUS_NONE) {
-    return 'Your dislike has been removed.'
+    return "Your dislike has been removed."
   }
 
   if (normalizedPreviousStatus === IDEA_VOTE_STATUS_LIKED) {
-    return 'Your vote has been changed to dislike.'
+    return "Your vote has been changed to dislike."
   }
 
-  return 'Thanks! Your dislike has been recorded.'
+  return "Thanks! Your dislike has been recorded."
 }

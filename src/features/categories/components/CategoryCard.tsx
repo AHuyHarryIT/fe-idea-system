@@ -1,13 +1,13 @@
-import { ActionButton } from "@/components/app/ActionButton";
-import type { IdeaCategory } from "@/types";
-import React from "react";
+import { ActionButton } from "@/components/app/ActionButton"
+import type { IdeaCategory } from "@/types"
+import React from "react"
 
 interface CategoryCardProps {
-  category: IdeaCategory;
-  onEditCategory: (categoryId: string, categoryName: string) => void;
-  onDeleteRequest: (categoryId: string) => void;
-  isSaving: boolean;
-  isDeleting: boolean;
+  category: IdeaCategory
+  onEditCategory: (categoryId: string, categoryName: string) => void
+  onDeleteRequest: (categoryId: string) => void
+  isSaving: boolean
+  isDeleting: boolean
 }
 export const CategoryCard: React.FC<CategoryCardProps> = ({
   category,
@@ -40,5 +40,5 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
         />
       </div>
     </div>
-  );
-};
+  )
+}
