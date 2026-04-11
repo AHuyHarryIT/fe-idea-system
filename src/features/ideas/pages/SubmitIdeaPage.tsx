@@ -155,27 +155,25 @@ export default function SubmitIdeaPage() {
   const openSubmissionDetails = (submissionId: string) => {
     setSelectedSubmissionId(submissionId)
     setShowSubmitForm(false)
-    setFileValidationMessage('')
-    setForm((prev) => ({ ...prev, submissionId }))
-  }
-
-  const handleOpenSubmitForm = () => {
-    if (!selectedSubmission) return
-    setForm((prev) => ({ ...prev, submissionId: selectedSubmission.id }))
-    setFileValidationMessage('')
-    setShowSubmitForm(true)
-  }
-
-  const handleBackToList = () => {
-    setSelectedSubmissionId(null)
-    setShowSubmitForm(false)
-    handleReset()
   }
 
   const handleBackToDetails = () => {
     setShowSubmitForm(false)
-    setFileValidationMessage('')
   }
+
+  const handleOpenSubmitForm = () => {
+    if (!selectedSubmission) {
+      return
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      submissionId: selectedSubmission.id,
+    }))
+    setShowSubmitForm(true)
+  }
+
+
 
   const handleFileChange = (files: FileList | null) => {
     const selectedFiles = Array.from(files ?? [])
@@ -373,8 +371,9 @@ export default function SubmitIdeaPage() {
       ) : !showSubmitForm ? (
         <SubmissionDetailsSection
           selectedSubmission={selectedSubmission}
-          onBackToList={handleBackToList}
-          onOpenSubmitForm={handleOpenSubmitForm}
+          mode="submit"
+          onEditSubmission={handleOpenSubmitForm}
+          onDeleteRequest={() => setSelectedSubmissionId(null)}
         />
       ) : (
         <IdeaSubmissionFormSection

@@ -1,22 +1,25 @@
-import { DatePicker, Input } from 'antd'
-import { CalendarRange, Search } from 'lucide-react'
-import type { Submission } from '@/types'
+import { useState } from 'react'
 import { ActionButton } from '@/components/app/ActionButton'
 import { AppButton } from '@/components/app/AppButton'
+import { FormField } from '@/components/forms/FormField'
+import { FormInput, FormTextarea } from '@/components/forms/FormInput'
 import { AppPagination } from '@/components/shared/AppPagination'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { FormField } from '@/components/forms/FormField'
-import { FormInput, FormTextarea } from '@/components/forms/FormInput'
 import { Modal } from '@/components/shared/Modal'
 import { SectionCard } from '@/components/shared/SectionCard'
-import { formatAppDateTime, parseDateTimeInputValue } from '@/utils/date'
+import type { SubmissionManagementFormState } from '@/features/submissions/helpers/submission-management'
 import {
+  SUBMISSION_MANAGEMENT_PAGE_SIZE_OPTIONS,
   getSubmissionLifecycle,
   getSubmissionLifecycleMeta,
-  SUBMISSION_MANAGEMENT_PAGE_SIZE_OPTIONS
 } from '@/features/submissions/helpers/submission-management'
-import type { SubmissionManagementFormState } from '@/features/submissions/helpers/submission-management'
+import type { Submission } from '@/types'
+import { formatAppDateTime, parseDateTimeInputValue } from '@/utils/date'
+import { exportService } from '@/api/export'
+import { appNotification } from '@/utils/notifications'
+import { DatePicker, Input } from 'antd'
+import { Archive, CalendarRange, Download, Eye, Search } from 'lucide-react'
 
 interface SubmissionManagementListSectionProps {
   error: Error | null
@@ -33,6 +36,7 @@ interface SubmissionManagementListSectionProps {
   editingId: string | null
   isFormModalOpen: boolean
   deleteConfirmId: string | null
+  detailSubmissionId: string | null
   onSearchChange: (value: string) => void
   onOpenCreateModal: () => void
   onEditSubmission: (submission: Submission) => void
@@ -43,6 +47,8 @@ interface SubmissionManagementListSectionProps {
   onSubmit: () => void
   onDeleteConfirm: () => void
   onDeleteCancel: () => void
+  onViewDetail: (submission: Submission) => void
+  onCloseDetailModal: () => void
 }
 
 export function SubmissionManagementListSection({
@@ -60,6 +66,7 @@ export function SubmissionManagementListSection({
   editingId,
   isFormModalOpen,
   deleteConfirmId,
+  detailSubmissionId,
   onSearchChange,
   onOpenCreateModal,
   onEditSubmission,
@@ -70,12 +77,76 @@ export function SubmissionManagementListSection({
   onSubmit,
   onDeleteConfirm,
   onDeleteCancel,
+  onViewDetail,
+  onCloseDetailModal,
 }: SubmissionManagementListSectionProps) {
+  const detailSubmission = submissions.find((s) => s.id === detailSubmissionId)
+  const [isExportingAllCSV, setIsExportingAllCSV] = useState(false)
+  const [isExportingAllZip, setIsExportingAllZip] = useState(false)
+  const [isExportingCSV, setIsExportingCSV] = useState(false)
+  const [isExportingZip, setIsExportingZip] = useState(false)
+
+  const handleExportAllCSV = async () => {
+    try {
+      setIsExportingAllCSV(true)
+      await exportService.exportAllSubmissionsAsCSV()
+      appNotification.success('All submissions CSV exported successfully.')
+    } catch {
+      appNotification.error('Failed to export all submissions CSV.')
+    } finally {
+      setIsExportingAllCSV(false)
+    }
+  }
+
+  const handleExportAllZip = async () => {
+    try {
+      setIsExportingAllZip(true)
+      await exportService.exportAllSubmissionsAsZip()
+      appNotification.success('All submissions ZIP exported successfully.')
+    } catch {
+      appNotification.error('Failed to export all submissions ZIP.')
+    } finally {
+      setIsExportingAllZip(false)
+    }
+  }
+
+  const handleExportCSV = async () => {
+    if (!detailSubmission) return
+    try {
+      setIsExportingCSV(true)
+      await exportService.exportSubmissionAsCSV(
+        detailSubmission.id,
+        detailSubmission.name,
+      )
+      appNotification.success('CSV exported successfully.')
+    } catch {
+      appNotification.error('Failed to export CSV.')
+    } finally {
+      setIsExportingCSV(false)
+    }
+  }
+
+  const handleExportZip = async () => {
+    if (!detailSubmission) return
+    try {
+      setIsExportingZip(true)
+      await exportService.exportSubmissionAsZip(
+        detailSubmission.id,
+        detailSubmission.name,
+      )
+      appNotification.success('ZIP exported successfully.')
+    } catch {
+      appNotification.error('Failed to export ZIP.')
+    } finally {
+      setIsExportingZip(false)
+    }
+  }
+
   return (
     <>
       <SectionCard>
-        <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="grid gap-4 lg:min-w-152 lg:grid-cols-[minmax(0,1fr)]">
+        <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="w-full lg:max-w-2xl lg:flex-1">
             <label className="block">
               <Input
                 id="submission-search"
@@ -91,12 +162,32 @@ export function SubmissionManagementListSection({
             </label>
           </div>
 
-          <ActionButton
-            type="button"
-            action="add"
-            label="Add submission"
-            onClick={onOpenCreateModal}
-          />
+          <div className="flex flex-wrap items-center gap-2 lg:flex-nowrap lg:justify-end lg:shrink-0">
+            <AppButton
+              type="button"
+              variant="ghost"
+              onClick={handleExportAllCSV}
+              disabled={isExportingAllCSV || isExportingAllZip}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              {isExportingAllCSV ? 'Exporting...' : 'Export all CSV'}
+            </AppButton>
+            <AppButton
+              type="button"
+              variant="ghost"
+              onClick={handleExportAllZip}
+              disabled={isExportingAllZip || isExportingAllCSV}
+            >
+              <Archive className="mr-2 h-4 w-4" />
+              {isExportingAllZip ? 'Exporting...' : 'Export all ZIP'}
+            </AppButton>
+            <ActionButton
+              type="button"
+              action="add"
+              label="Add submission"
+              onClick={onOpenCreateModal}
+            />
+          </div>
         </div>
         <p className="mb-5 text-sm text-slate-500">
           {totalSubmissions} submissions available, sorted by most recent final closure date.
@@ -121,59 +212,77 @@ export function SubmissionManagementListSection({
                   new Date(left.finalClosureDate).getTime(),
               )
               .map((submission) => {
-              const lifecycleMeta = getSubmissionLifecycleMeta(
-                getSubmissionLifecycle(submission),
-              )
+                const lifecycleMeta = getSubmissionLifecycleMeta(
+                  getSubmissionLifecycle(submission),
+                );
 
-              return (
-                <div
-                  key={submission.id}
-                  className="rounded-2xl border border-slate-200 bg-slate-50 p-5"
-                >
-                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                    <div className="space-y-2">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-base font-semibold text-slate-900">
-                          {submission.name}
+                return (
+                  <div
+                    key={submission.id}
+                    className="rounded-2xl border border-slate-200 bg-slate-50 p-5"
+                  >
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                      <div className="space-y-2 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => onViewDetail(submission)}
+                            className="text-base font-semibold text-slate-900 hover:text-blue-600 cursor-pointer transition"
+                          >
+                            {submission.name}
+                          </button>
+                          <span
+                            className={`rounded-full px-3 py-1 text-xs font-medium ${lifecycleMeta.className}`}
+                          >
+                            {lifecycleMeta.label}
+                          </span>
+                        </div>
+                        <p className="max-w-3xl text-sm text-slate-600">
+                          {submission.description?.trim() ||
+                            'No description has been added for this submission yet.'}
                         </p>
-                        <span
-                          className={`rounded-full px-3 py-1 text-xs font-medium ${lifecycleMeta.className}`}
-                        >
-                          {lifecycleMeta.label}
-                        </span>
+                        <div className="grid gap-2 text-sm text-slate-600 md:grid-cols-2">
+                          <p>
+                            <span className="font-medium text-slate-800">Closure date:</span>{' '}
+                            {formatAppDateTime(submission.closureDate)}
+                          </p>
+                          <p>
+                            <span className="font-medium text-slate-800">Final closure date:</span>{' '}
+                            {formatAppDateTime(submission.finalClosureDate)}
+                          </p>
+                        </div>
                       </div>
-                      <p className="max-w-3xl text-sm text-slate-600">
-                        {submission.description?.trim() ||
-                          'No description has been added for this submission yet.'}
-                      </p>
-                      <div className="grid gap-2 text-sm text-slate-600 md:grid-cols-2">
-                        <p>
-                          <span className="font-medium text-slate-800">Closure date:</span>{' '}
-                          {formatAppDateTime(submission.closureDate)}
-                        </p>
-                        <p>
-                          <span className="font-medium text-slate-800">Final closure date:</span>{' '}
-                          {formatAppDateTime(submission.finalClosureDate)}
-                        </p>
-                      </div>
-                    </div>
 
-                    <div className="flex flex-wrap gap-2">
-                      <ActionButton
-                        action="edit"
-                        onClick={() => onEditSubmission(submission)}
-                        disabled={isUpdating}
-                      />
-                      <ActionButton
-                        action="delete"
-                        onClick={() => onDeleteRequest(submission.id)}
-                        disabled={isDeleting}
-                      />
+                      <div className="flex flex-wrap gap-2">
+                        <ActionButton
+                          action="ghost"
+                          label="Detail"
+                          icon={<Eye className="h-4 w-4" />}
+                          className="bg-blue-50 text-blue-700 hover:bg-blue-100"
+                          onClick={() => onViewDetail(submission)}
+                          disabled={isUpdating || isDeleting}
+                        />
+                        <ActionButton
+                          action="edit"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            onEditSubmission(submission)
+                          }}
+                          disabled={isUpdating}
+                        />
+                        <ActionButton
+                          action="delete"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            onDeleteRequest(submission.id)
+                          }}
+                          disabled={isDeleting}
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-              )
-            })}
+                );
+              })}
 
             <AppPagination
               current={currentPage}
@@ -329,6 +438,75 @@ export function SubmissionManagementListSection({
         onConfirm={onDeleteConfirm}
         onCancel={onDeleteCancel}
       />
+
+      {detailSubmission && (
+        <Modal
+          isOpen={!!detailSubmissionId}
+          title="Submission Details"
+          description={detailSubmission.name}
+          onClose={onCloseDetailModal}
+          footer={
+            <div className="flex justify-end">
+              <AppButton type="button" variant="ghost" onClick={onCloseDetailModal}>
+                Close
+              </AppButton>
+            </div>
+          }
+        >
+          <div className="space-y-4">
+            <div className="flex flex-wrap justify-end gap-2">
+              <AppButton
+                type="button"
+                variant="ghost"
+                onClick={handleExportCSV}
+                disabled={isExportingCSV || isExportingZip}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Export CSV
+              </AppButton>
+              <AppButton
+                type="button"
+                variant="ghost"
+                onClick={handleExportZip}
+                disabled={isExportingZip || isExportingCSV}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Export ZIP
+              </AppButton>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+              <p className="text-sm font-medium text-slate-800">Description</p>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                {detailSubmission.description?.trim() ||
+                  'No description has been added for this submission.'}
+              </p>
+            </div>
+
+            <div className="grid gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-5 md:grid-cols-2">
+              <div>
+                <p className="text-sm font-medium text-slate-800">Closure date</p>
+                <p className="mt-1 text-sm text-slate-600">
+                  {formatAppDateTime(detailSubmission.closureDate)}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-800">Final closure date</p>
+                <p className="mt-1 text-sm text-slate-600">
+                  {formatAppDateTime(detailSubmission.finalClosureDate)}
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+              <p className="text-sm font-medium text-slate-800">Academic year</p>
+              <p className="mt-1 text-sm text-slate-600">
+                {new Date(detailSubmission.finalClosureDate).getFullYear()}
+              </p>
+            </div>
+          </div>
+        </Modal>
+      )}
     </>
   )
 }

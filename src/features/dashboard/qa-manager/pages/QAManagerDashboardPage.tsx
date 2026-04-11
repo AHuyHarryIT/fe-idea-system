@@ -1,16 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Link } from '@tanstack/react-router'
-import type { Submission } from '@/types'
+
 import { AppButton } from '@/components/app/AppButton'
 import { PageHeader } from '@/components/shared/PageHeader'
-import { exportService } from '@/api/export'
-import { SUBMISSION_SELECT_PAGE_SIZE } from '@/constants/submission'
 import { useQAManagerIdeas } from '@/hooks/useIdeas'
-import { useSubmissions } from '@/hooks/useSubmissions'
-import { getDateTimestamp } from '@/utils/date'
 import { normalizeIdeaResponse } from '@/utils/idea-response-mapper'
 import { QAManagerSummaryCards } from '@/features/dashboard/qa-manager/components/QAManagerSummaryCards'
-import { QAManagerExportSection } from '@/features/dashboard/qa-manager/components/QAManagerExportSection'
 import { QAManagerChartsSection } from '@/features/dashboard/qa-manager/components/QAManagerChartsSection'
 import { QAManagerInsightListsSection } from '@/features/dashboard/qa-manager/components/QAManagerInsightListsSection'
 import {
@@ -18,18 +13,10 @@ import {
   buildTrendPoints,
   getCommentCount,
   isReviewableIdea,
-  isSubmissionExportReady,
 } from '@/features/dashboard/qa-manager/helpers/qa-manager-dashboard'
 
 export default function QAManagerDashboardPage() {
   const { data: ideaData, isLoading, error } = useQAManagerIdeas()
-  const {
-    data: submissionsData,
-    isLoading: submissionsLoading,
-    error: submissionsError,
-  } = useSubmissions({ pageNumber: 1, pageSize: SUBMISSION_SELECT_PAGE_SIZE })
-  const [activeExportKey, setActiveExportKey] = useState<string | null>(null)
-  const [exportFeedback, setExportFeedback] = useState('')
 
   const ideas = useMemo(() => {
     const ideaList = normalizeIdeaResponse(ideaData)
@@ -90,18 +77,6 @@ export default function QAManagerDashboardPage() {
     [departmentSummaries],
   )
 
-  const exportableSubmissions = useMemo(() => {
-    const submissions = submissionsData?.submissions ?? []
-
-    return submissions
-      .filter((submission: Submission) => isSubmissionExportReady(submission))
-      .sort(
-        (left, right) =>
-          getDateTimestamp(right.finalClosureDate) -
-          getDateTimestamp(left.finalClosureDate),
-      )
-  }, [submissionsData])
-
   return (
     <div className="mx-auto w-full max-w-7xl">
       <PageHeader
@@ -126,48 +101,6 @@ export default function QAManagerDashboardPage() {
         contributorCount={contributorCount}
         reviewQueueCount={reviewQueue.length}
       />
-
-      <div className="mt-6">
-        <QAManagerExportSection
-          submissionsError={submissionsError}
-          submissionsLoading={submissionsLoading}
-          exportableSubmissions={exportableSubmissions}
-          activeExportKey={activeExportKey}
-          exportFeedback={exportFeedback}
-          onExportCsv={async () => {
-            setActiveExportKey('all-csv')
-            setExportFeedback('')
-            try {
-              await exportService.exportQAManagerIdeasAsCSV()
-              setExportFeedback('Downloaded university-wide CSV export.')
-            } catch (downloadError) {
-              setExportFeedback(
-                downloadError instanceof Error
-                  ? downloadError.message
-                  : 'Unable to download CSV export.',
-              )
-            } finally {
-              setActiveExportKey(null)
-            }
-          }}
-          onExportZip={async () => {
-            setActiveExportKey('all-zip')
-            setExportFeedback('')
-            try {
-              await exportService.exportQAManagerIdeasAsZip()
-              setExportFeedback('Downloaded all documents ZIP export.')
-            } catch (downloadError) {
-              setExportFeedback(
-                downloadError instanceof Error
-                  ? downloadError.message
-                  : 'Unable to download ZIP export.',
-              )
-            } finally {
-              setActiveExportKey(null)
-            }
-          }}
-        />
-      </div>
 
       <QAManagerChartsSection
         error={error}

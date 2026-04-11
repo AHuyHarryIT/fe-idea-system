@@ -42,12 +42,12 @@ async function requestExport(
 }
 
 export const exportService = {
-  exportIdeasAsCSV: async (): Promise<void> => {
-    return requestExport('/export/csv', 'ideas.csv')
+  exportAllSubmissionsAsCSV: async (): Promise<void> => {
+    return requestExport('/export/csv', 'all-submissions.csv')
   },
 
-  exportIdeasAsZip: async (): Promise<void> => {
-    return requestExport('/export/zip', 'ideas.zip')
+  exportAllSubmissionsAsZip: async (): Promise<void> => {
+    return requestExport('/export/zip', 'all-submissions.zip')
   },
 
   exportSubmissionAsCSV: async (
@@ -64,22 +64,6 @@ export const exportService = {
   ): Promise<void> => {
     const filename = sanitizeFilename(submissionName || submissionId)
     return requestExport(`/export/zip/${submissionId}`, `${filename}.zip`)
-  },
-
-  exportAdminIdeasAsCSV: async (): Promise<void> => {
-    return requestExport('/export/csv', 'ideas.csv')
-  },
-
-  exportAdminIdeasAsZip: async (): Promise<void> => {
-    return requestExport('/export/zip', 'ideas.zip')
-  },
-
-  exportQAManagerIdeasAsCSV: async (): Promise<void> => {
-    return requestExport('/export/csv', 'ideas.csv')
-  },
-
-  exportQAManagerIdeasAsZip: async (): Promise<void> => {
-    return requestExport('/export/zip', 'ideas.zip')
   },
 }
 

@@ -52,6 +52,7 @@ export default function SubmissionManagementPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
+  const [detailSubmissionId, setDetailSubmissionId] = useState<string | null>(null)
 
   const submissions = useMemo(() => data?.submissions ?? [], [data])
   const totalSubmissions = data?.pagination?.totalCount ?? submissions.length
@@ -77,6 +78,14 @@ export default function SubmissionManagementPage() {
     setEditingId(null)
     setForm(initialSubmissionManagementForm)
     setIsFormModalOpen(true)
+  }
+
+  const onViewDetail = (submission: Submission) => {
+    setDetailSubmissionId(submission.id)
+  }
+
+  const onCloseDetailModal = () => {
+    setDetailSubmissionId(null)
   }
 
   const refreshSubmissions = async () => {
@@ -159,6 +168,7 @@ export default function SubmissionManagementPage() {
         editingId={editingId}
         isFormModalOpen={isFormModalOpen}
         deleteConfirmId={deleteConfirmId}
+        detailSubmissionId={detailSubmissionId}
         onSearchChange={setSearchValue}
         onOpenCreateModal={openCreateModal}
         onEditSubmission={handleEdit}
@@ -177,6 +187,8 @@ export default function SubmissionManagementPage() {
         onSubmit={() => void handleSubmit()}
         onDeleteConfirm={() => void handleDeleteConfirm()}
         onDeleteCancel={() => setDeleteConfirmId(null)}
+        onViewDetail={onViewDetail}
+        onCloseDetailModal={onCloseDetailModal}
       />
     </div>
   )

@@ -20,6 +20,18 @@ export const useSubmissions = (
   })
 }
 
+export const useSubmission = (submissionId: string) => {
+  return useQuery({
+    queryKey: ['submission', submissionId],
+    queryFn: async () => {
+      const response = await submissionService.getSubmissionById(submissionId)
+      if (response.success) return response.data
+      throw new Error(response.error ?? 'Unable to load submission.')
+    },
+    enabled: !!submissionId,
+  })
+}
+
 export const useCreateSubmission = () => {
   return useMutation({
     mutationFn: async (request: SubmissionCreateRequest) => {

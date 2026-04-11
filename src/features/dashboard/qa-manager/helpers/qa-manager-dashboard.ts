@@ -1,8 +1,7 @@
-import type { Idea, Submission } from '@/types'
+import type { Idea } from '@/types'
 import {
   formatAppDateTime,
   formatMonthLabel,
-  getDateTimestamp,
 } from '@/utils/date'
 
 export interface TrendPoint {
@@ -115,7 +114,3 @@ export function buildDepartmentSummaries(ideas: Idea[]): DepartmentSummary[] {
     .sort((left, right) => right.ideas - left.ideas)
 }
 
-export function isSubmissionExportReady(submission: Submission) {
-  const finalClosure = getDateTimestamp(submission.finalClosureDate)
-  return finalClosure > 0 && finalClosure <= Date.now()
-}

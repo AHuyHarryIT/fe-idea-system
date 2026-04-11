@@ -73,4 +73,37 @@ export const submissionService = {
     apiClient.put<Submission>(`/submissions/${id}`, request),
   deleteSubmission: (id: string): Promise<ApiResponse<null>> =>
     apiClient.delete(`/submissions/${id}`),
+
+  getSubmissionById: async (
+    id: string,
+  ): Promise<ApiResponse<Submission>> => {
+    const response = await apiClient.get<
+      Submission[] | SubmissionListResponse,
+      SubmissionListQueryParams
+    >('/submissions', { params: { fetchAll: true } })
+
+    if (!response.success) {
+      return {
+        success: false,
+        error: response.error,
+      }
+    }
+
+    const submissions = Array.isArray(response.data)
+      ? response.data
+      : response.data?.submissions ?? []
+    const submission = submissions.find((s) => s.id === id)
+
+    if (!submission) {
+      return {
+        success: false,
+        error: 'Submission not found',
+      }
+    }
+
+    return {
+      success: true,
+      data: submission,
+    }
+  },
 }
