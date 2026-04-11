@@ -267,7 +267,7 @@ export default function SubmitIdeaPage() {
 
     handleReset()
     appNotification.success('Idea submitted successfully.')
-    navigate({ to: '/ideas' })
+    navigate({ to: '/my-ideas' })
   }
 
   return (
